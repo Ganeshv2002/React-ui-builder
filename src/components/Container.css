@@ -1,0 +1,29 @@
+.ui-container {
+  display: flex;
+  width: 100%;
+  min-height: 50px;
+  border: 1px dashed #ddd;
+  border-radius: 4px;
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+.ui-container--vertical {
+  flex-direction: column;
+}
+
+.ui-container--horizontal {
+  flex-direction: row;
+}
+
+.ui-container--gap-small {
+  gap: 4px;
+}
+
+.ui-container--gap-medium {
+  gap: 8px;
+}
+
+.ui-container--gap-large {
+  gap: 16px;
+}

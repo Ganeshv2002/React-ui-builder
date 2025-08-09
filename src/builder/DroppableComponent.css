@@ -1,0 +1,101 @@
+.droppable-component {
+  position: relative;
+  margin: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+/* Only show hover and selection styles when NOT in preview mode */
+.droppable-component:not(.preview-mode):hover {
+  outline: 2px solid #007bff;
+  outline-offset: 2px;
+}
+
+.droppable-component.selected:not(.preview-mode) {
+  outline: 3px solid #007bff;
+  outline-offset: 2px;
+  background: rgba(0, 123, 255, 0.1);
+  box-shadow: 0 0 0 1px rgba(0, 123, 255, 0.3);
+}
+
+/* Prevent hover effect on selected components */
+.droppable-component.selected:not(.preview-mode):hover {
+  outline: 3px solid #007bff;
+}
+
+/* In preview mode, remove all builder-specific styling */
+.droppable-component.preview-mode {
+  margin: 0;
+  outline: none !important;
+  background: none !important;
+  box-shadow: none !important;
+}
+
+.droppable-component.dragging {
+  opacity: 0.5;
+}
+
+.droppable-component.drop-over {
+  background: rgba(0, 123, 255, 0.1);
+  border: 2px dashed #007bff;
+}
+
+.component-controls {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  display: flex;
+  gap: 4px;
+  z-index: 1001;
+}
+
+.drag-handle {
+  width: 20px;
+  height: 20px;
+  background: #6c757d;
+  color: white;
+  border-radius: 4px;
+  cursor: move;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  border: 1px solid #ffffff;
+  transition: all 0.2s ease;
+}
+
+.drag-handle:hover {
+  background: #5a6268;
+  transform: scale(1.05);
+}
+
+.drag-handle:active {
+  background: #495057;
+  transform: scale(0.95);
+}
+
+.drag-handle svg {
+  opacity: 0.9;
+}
+
+.delete-btn {
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: #dc3545;
+  color: white;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.delete-btn:hover {
+  background: #c82333;
+  transform: scale(1.1);
+}

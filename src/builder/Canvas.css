@@ -1,0 +1,73 @@
+.canvas-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: auto;
+}
+
+.canvas {
+  flex: 1;
+  padding: 20px;
+  background: white;
+  min-height: 500px;
+  position: relative;
+}
+
+.canvas--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.canvas--over {
+  background: #f0f8ff;
+  border: 2px dashed #007bff;
+}
+
+.canvas--preview {
+  background: #fafafa;
+  border: 2px solid #28a745;
+  border-radius: 8px;
+}
+
+.canvas--preview::before {
+  content: "🎮 Preview Mode - Interact with your components!";
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #28a745;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  z-index: 10;
+  animation: previewHide 0.3s ease 1s forwards;
+}
+
+@keyframes previewHide {
+  to {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+}
+
+.canvas-placeholder {
+  text-align: center;
+  color: #666;
+  font-size: 16px;
+}
+
+.canvas-placeholder p {
+  margin: 0;
+}
+
+.canvas-components {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}

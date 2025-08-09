@@ -1,0 +1,199 @@
+.properties-panel {
+  min-width: 200px;
+  max-width: 600px;
+  width: 250px;
+  background: #f8f9fa;
+  border-left: 1px solid #dee2e6;
+  padding: 16px;
+  overflow-y: auto;
+  height: calc(100vh - 60px);
+  position: relative;
+  resize: horizontal;
+  overflow: auto;
+}
+
+.properties-panel::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: transparent;
+  cursor: ew-resize;
+  z-index: 10;
+}
+
+.properties-panel::before:hover {
+  background: #007bff;
+  opacity: 0.5;
+}
+
+.properties-panel h3 {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  color: #333;
+}
+
+.no-selection {
+  color: #666;
+  font-style: italic;
+  text-align: center;
+  margin-top: 40px;
+}
+
+.component-info {
+  background: white;
+  padding: 12px;
+  border-radius: 4px;
+  margin-bottom: 16px;
+  border: 1px solid #dee2e6;
+}
+
+.component-info strong {
+  display: block;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.component-id {
+  font-size: 12px;
+  color: #666;
+  font-family: monospace;
+}
+
+.properties-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.property-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.property-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+.prop-input,
+.prop-select,
+.prop-textarea,
+.prop-color {
+  padding: 6px 8px;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  font-size: 14px;
+  font-family: inherit;
+  width: 100%;
+}
+
+.prop-textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+.prop-color {
+  height: 32px;
+  padding: 2px;
+  cursor: pointer;
+}
+
+.prop-input:focus,
+.prop-select:focus,
+.prop-textarea:focus,
+.prop-color:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.style-controls {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #dee2e6;
+}
+
+.style-controls h4 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  color: #333;
+}
+
+.style-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.style-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.style-item label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #666;
+}
+
+.input-with-clear {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.clear-btn {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #999;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.clear-btn:hover {
+  background: #f0f0f0;
+  color: #666;
+}
+
+.textarea-clear {
+  top: 12px;
+  transform: none;
+}
+
+.checkbox-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+.prop-checkbox {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.checkbox-label {
+  font-size: 14px;
+  color: #333;
+  cursor: pointer;
+}
