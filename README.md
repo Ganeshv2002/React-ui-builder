@@ -95,6 +95,4 @@ The tool generates clean, readable React code that you can copy and use in your 
 
 Feel free to contribute by adding new components, improving the UI, or enhancing the code generation features.
 
-## License
 
-This project is open source and available under the MIT License.
