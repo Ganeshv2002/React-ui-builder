@@ -1,0 +1,43 @@
+.ui-heading {
+  margin: 0;
+  font-family: inherit;
+  font-weight: 600;
+  line-height: 1.2;
+  color: #333;
+}
+
+.ui-heading--1 {
+  font-size: 2.5rem;
+}
+
+.ui-heading--2 {
+  font-size: 2rem;
+}
+
+.ui-heading--3 {
+  font-size: 1.75rem;
+}
+
+.ui-heading--4 {
+  font-size: 1.5rem;
+}
+
+.ui-heading--5 {
+  font-size: 1.25rem;
+}
+
+.ui-heading--6 {
+  font-size: 1rem;
+}
+
+.ui-heading--left {
+  text-align: left;
+}
+
+.ui-heading--center {
+  text-align: center;
+}
+
+.ui-heading--right {
+  text-align: right;
+}

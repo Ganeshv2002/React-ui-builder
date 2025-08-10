@@ -1,0 +1,11 @@
+.ui-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.ui-image:hover {
+  opacity: 0.9;
+  transition: opacity 0.2s ease;
+}

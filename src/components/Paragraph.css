@@ -1,0 +1,34 @@
+.ui-paragraph {
+  margin: 0;
+  font-family: inherit;
+  line-height: 1.5;
+  color: #555;
+}
+
+.ui-paragraph--small {
+  font-size: 0.875rem;
+}
+
+.ui-paragraph--medium {
+  font-size: 1rem;
+}
+
+.ui-paragraph--large {
+  font-size: 1.125rem;
+}
+
+.ui-paragraph--left {
+  text-align: left;
+}
+
+.ui-paragraph--center {
+  text-align: center;
+}
+
+.ui-paragraph--right {
+  text-align: right;
+}
+
+.ui-paragraph--justify {
+  text-align: justify;
+}

@@ -7,6 +7,13 @@ import Card from '../components/Card';
 import Text from '../components/Text';
 import Container from '../components/Container';
 import Form from '../components/Form';
+import Image from '../components/Image';
+import Link from '../components/Link';
+import Heading from '../components/Heading';
+import Paragraph from '../components/Paragraph';
+import List from '../components/List';
+import Divider from '../components/Divider';
+import Checkbox from '../components/Checkbox';
 import './DroppableComponent.css';
 
 const componentMap = {
@@ -15,7 +22,14 @@ const componentMap = {
   card: Card,
   text: Text,
   container: Container,
-  form: Form
+  form: Form,
+  image: Image,
+  link: Link,
+  heading: Heading,
+  paragraph: Paragraph,
+  list: List,
+  divider: Divider,
+  checkbox: Checkbox
 };
 
 const DroppableComponent = ({ 
@@ -32,6 +46,7 @@ const DroppableComponent = ({
 }) => {
   const Component = componentMap[component.type];
   const componentRef = useRef(null);
+  const clickTimeoutRef = useRef(null);
 
   const [{ isDragging }, drag] = useDrag(() => ({
     type: 'component',
@@ -45,6 +60,12 @@ const DroppableComponent = ({
     canDrag: (monitor) => {
       return !isPreviewMode;
     },
+    end: (item, monitor) => {
+      // Reset any drag state when drag ends
+      if (monitor.didDrop()) {
+        // Drag was successful
+      }
+    }
   }), [isPreviewMode]);
 
   const [{ isOver }, drop] = useDrop(() => ({
@@ -75,11 +96,29 @@ const DroppableComponent = ({
   }), [component.id, component.children, onUpdate]);
 
   const handleClick = (e) => {
-    if (!isPreviewMode && !isDragging) {
+    if (!isPreviewMode) {
       e.stopPropagation();
-      onSelect();
+      
+      // Clear any existing timeout
+      if (clickTimeoutRef.current) {
+        clearTimeout(clickTimeoutRef.current);
+      }
+      
+      // Use a small delay to ensure drag operations don't interfere
+      clickTimeoutRef.current = setTimeout(() => {
+        onSelect();
+      }, 10);
     }
   };
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (clickTimeoutRef.current) {
+        clearTimeout(clickTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleDelete = (e) => {
     if (!isPreviewMode) {
@@ -165,6 +204,7 @@ const DroppableComponent = ({
             }}
             className="drag-handle"
             title="Drag to move"
+            onClick={(e) => e.stopPropagation()}
           >
             <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
               <circle cx="3" cy="3" r="1"/>

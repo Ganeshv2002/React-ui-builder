@@ -181,6 +181,48 @@ const PropertiesPanel = ({ selectedComponent, onUpdateComponent, components = []
             label={prop.label}
           />
         );
+      case 'array':
+        const arrayValue = Array.isArray(currentValue) ? currentValue : [];
+        return (
+          <div className="array-input">
+            {arrayValue.map((item, index) => (
+              <div key={index} className="array-item">
+                <input
+                  type="text"
+                  value={item}
+                  onChange={(e) => {
+                    const newArray = [...arrayValue];
+                    newArray[index] = e.target.value;
+                    handlePropChange(prop.name, newArray);
+                  }}
+                  className="prop-input"
+                  placeholder={`Item ${index + 1}`}
+                />
+                <button
+                  type="button"
+                  className="remove-item-btn"
+                  onClick={() => {
+                    const newArray = arrayValue.filter((_, i) => i !== index);
+                    handlePropChange(prop.name, newArray);
+                  }}
+                  title="Remove item"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              className="add-item-btn"
+              onClick={() => {
+                const newArray = [...arrayValue, `Item ${arrayValue.length + 1}`];
+                handlePropChange(prop.name, newArray);
+              }}
+            >
+              + Add Item
+            </button>
+          </div>
+        );
       default:
         return (
           <input

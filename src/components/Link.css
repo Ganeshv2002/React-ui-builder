@@ -1,0 +1,19 @@
+.ui-link {
+  color: #007bff;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.ui-link:hover {
+  color: #0056b3;
+  text-decoration: underline;
+}
+
+.ui-link:visited {
+  color: #6f42c1;
+}
+
+.ui-link:active {
+  color: #004085;
+}

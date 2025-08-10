@@ -306,5 +306,322 @@ export const componentDefinitions = [
       }
     ],
     canContainChildren: true
+  },
+  {
+    id: 'image',
+    type: 'image',
+    name: 'Image',
+    icon: '🖼️',
+    category: 'Layout',
+    defaultProps: {
+      src: '',
+      alt: 'Image',
+      width: '200px',
+      height: 'auto',
+      borderRadius: '0px'
+    },
+    props: [
+      {
+        name: 'src',
+        type: 'string',
+        defaultValue: '',
+        label: 'Image URL'
+      },
+      {
+        name: 'alt',
+        type: 'string',
+        defaultValue: 'Image',
+        label: 'Alt Text'
+      },
+      {
+        name: 'width',
+        type: 'string',
+        defaultValue: '200px',
+        label: 'Width'
+      },
+      {
+        name: 'height',
+        type: 'string',
+        defaultValue: 'auto',
+        label: 'Height'
+      },
+      {
+        name: 'borderRadius',
+        type: 'string',
+        defaultValue: '0px',
+        label: 'Border Radius'
+      }
+    ],
+    canContainChildren: false
+  },
+  {
+    id: 'link',
+    type: 'link',
+    name: 'Link',
+    icon: '🔗',
+    category: 'Typography',
+    defaultProps: {
+      href: '#',
+      text: 'Click here',
+      target: '_self',
+      color: '#007bff',
+      underline: true
+    },
+    props: [
+      {
+        name: 'href',
+        type: 'string',
+        defaultValue: '#',
+        label: 'URL'
+      },
+      {
+        name: 'text',
+        type: 'string',
+        defaultValue: 'Click here',
+        label: 'Link Text'
+      },
+      {
+        name: 'target',
+        type: 'select',
+        defaultValue: '_self',
+        label: 'Target',
+        options: ['_self', '_blank', '_parent']
+      },
+      {
+        name: 'color',
+        type: 'color',
+        defaultValue: '#007bff',
+        label: 'Color'
+      },
+      {
+        name: 'underline',
+        type: 'boolean',
+        defaultValue: true,
+        label: 'Show Underline'
+      }
+    ],
+    canContainChildren: false
+  },
+  {
+    id: 'heading',
+    type: 'heading',
+    name: 'Heading',
+    icon: '📝',
+    category: 'Typography',
+    defaultProps: {
+      text: 'Heading',
+      level: 'h2',
+      align: 'left',
+      color: '#333333'
+    },
+    props: [
+      {
+        name: 'text',
+        type: 'string',
+        defaultValue: 'Heading',
+        label: 'Text'
+      },
+      {
+        name: 'level',
+        type: 'select',
+        defaultValue: 'h2',
+        label: 'Level',
+        options: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']
+      },
+      {
+        name: 'align',
+        type: 'select',
+        defaultValue: 'left',
+        label: 'Alignment',
+        options: ['left', 'center', 'right']
+      },
+      {
+        name: 'color',
+        type: 'color',
+        defaultValue: '#333333',
+        label: 'Color'
+      }
+    ],
+    canContainChildren: false
+  },
+  {
+    id: 'paragraph',
+    type: 'paragraph', 
+    name: 'Paragraph',
+    icon: '📄',
+    category: 'Typography',
+    defaultProps: {
+      text: 'This is a paragraph text.',
+      size: 'medium',
+      align: 'left',
+      color: '#666666'
+    },
+    props: [
+      {
+        name: 'text',
+        type: 'string',
+        defaultValue: 'This is a paragraph text.',
+        label: 'Text'
+      },
+      {
+        name: 'size',
+        type: 'select',
+        defaultValue: 'medium',
+        label: 'Size',
+        options: ['small', 'medium', 'large']
+      },
+      {
+        name: 'align',
+        type: 'select',
+        defaultValue: 'left',
+        label: 'Alignment',
+        options: ['left', 'center', 'right', 'justify']
+      },
+      {
+        name: 'color',
+        type: 'color',
+        defaultValue: '#666666',
+        label: 'Color'
+      }
+    ],
+    canContainChildren: false
+  },
+  {
+    id: 'list',
+    type: 'list',
+    name: 'List',
+    icon: '📋',
+    category: 'Typography',
+    defaultProps: {
+      type: 'unordered',
+      items: ['Item 1', 'Item 2', 'Item 3'],
+      spacing: 'normal'
+    },
+    props: [
+      {
+        name: 'type',
+        type: 'select',
+        defaultValue: 'unordered',
+        label: 'List Type',
+        options: ['unordered', 'ordered']
+      },
+      {
+        name: 'items',
+        type: 'array',
+        defaultValue: ['Item 1', 'Item 2', 'Item 3'],
+        label: 'List Items'
+      },
+      {
+        name: 'spacing',
+        type: 'select',
+        defaultValue: 'normal',
+        label: 'Item Spacing',
+        options: ['compact', 'normal', 'relaxed']
+      }
+    ],
+    canContainChildren: false
+  },
+  {
+    id: 'divider',
+    type: 'divider',
+    name: 'Divider',
+    icon: '➖',
+    category: 'Layout',
+    defaultProps: {
+      thickness: '1px',
+      color: '#e0e0e0',
+      marginTop: '16px',
+      marginBottom: '16px',
+      style: 'solid'
+    },
+    props: [
+      {
+        name: 'thickness',
+        type: 'string',
+        defaultValue: '1px',
+        label: 'Thickness'
+      },
+      {
+        name: 'color',
+        type: 'color',
+        defaultValue: '#e0e0e0',
+        label: 'Color'
+      },
+      {
+        name: 'marginTop',
+        type: 'string',
+        defaultValue: '16px',
+        label: 'Top Margin'
+      },
+      {
+        name: 'marginBottom',
+        type: 'string',
+        defaultValue: '16px',
+        label: 'Bottom Margin'
+      },
+      {
+        name: 'style',
+        type: 'select',
+        defaultValue: 'solid',
+        label: 'Style',
+        options: ['solid', 'dashed', 'dotted']
+      }
+    ],
+    canContainChildren: false
+  },
+  {
+    id: 'checkbox',
+    type: 'checkbox',
+    name: 'Checkbox',
+    icon: '☑️',
+    category: 'Form',
+    defaultProps: {
+      checked: false,
+      label: 'Checkbox label',
+      name: 'checkbox-field',
+      required: false,
+      disabled: false,
+      size: 'medium'
+    },
+    props: [
+      {
+        name: 'checked',
+        type: 'boolean',
+        defaultValue: false,
+        label: 'Checked'
+      },
+      {
+        name: 'label',
+        type: 'string',
+        defaultValue: 'Checkbox label',
+        label: 'Label'
+      },
+      {
+        name: 'name',
+        type: 'string',
+        defaultValue: 'checkbox-field',
+        label: 'Field Name'
+      },
+      {
+        name: 'required',
+        type: 'boolean',
+        defaultValue: false,
+        label: 'Required'
+      },
+      {
+        name: 'disabled',
+        type: 'boolean',
+        defaultValue: false,
+        label: 'Disabled'
+      },
+      {
+        name: 'size',
+        type: 'select',
+        defaultValue: 'medium',
+        label: 'Size',
+        options: ['small', 'medium', 'large']
+      }
+    ],
+    canContainChildren: false
   }
 ];

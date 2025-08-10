@@ -1,0 +1,24 @@
+.ui-list {
+  margin: 0;
+  padding: 0;
+  padding-left: 1.5rem;
+  font-family: inherit;
+  color: #555;
+}
+
+.ui-list-item {
+  margin-bottom: 0.5rem;
+  line-height: 1.5;
+}
+
+.ui-list-item:last-child {
+  margin-bottom: 0;
+}
+
+.ui-list--unordered {
+  list-style-type: disc;
+}
+
+.ui-list--ordered {
+  list-style-type: decimal;
+}
