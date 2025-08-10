@@ -1,0 +1,78 @@
+/* Generated Button component styles - uses CSS variables only */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--gap) calc(var(--gap) * 2);
+  border: none;
+  border-radius: var(--radius);
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.5;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  outline: none;
+  position: relative;
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Variants */
+.button--primary {
+  background: var(--primary);
+  color: var(--bg);
+}
+
+.button--primary:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.button--secondary {
+  background: var(--muted);
+  color: var(--bg);
+}
+
+.button--secondary:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.button--outline {
+  background: transparent;
+  color: var(--primary);
+  border: 1px solid var(--primary);
+}
+
+.button--outline:hover:not(:disabled) {
+  background: var(--primary);
+  color: var(--bg);
+}
+
+/* Sizes */
+.button--small {
+  padding: calc(var(--gap) * 0.5) var(--gap);
+  font-size: 0.75rem;
+}
+
+.button--medium {
+  padding: var(--gap) calc(var(--gap) * 2);
+  font-size: 0.875rem;
+}
+
+.button--large {
+  padding: calc(var(--gap) * 1.5) calc(var(--gap) * 3);
+  font-size: 1rem;
+}
+
+/* States */
+.button--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}

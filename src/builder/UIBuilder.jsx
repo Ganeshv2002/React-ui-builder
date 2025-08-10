@@ -5,6 +5,7 @@ import ComponentPalette from './ComponentPalette';
 import Canvas from './Canvas';
 import PropertiesPanel from './PropertiesPanel';
 import CodeViewer from './CodeViewer';
+import { ThemeToggle } from './ThemeToggle';
 import { componentDefinitions } from '../data/componentDefinitions';
 import './UIBuilder.css';
 
@@ -60,6 +61,7 @@ const UIBuilder = () => {
         <header className="ui-builder-header">
           <h1>React UI Builder</h1>
           <div className="header-controls">
+            <ThemeToggle />
             <button 
               className={`btn ${isPreviewMode ? 'btn-secondary' : 'btn-success'}`}
               onClick={() => setIsPreviewMode(!isPreviewMode)}
