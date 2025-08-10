@@ -1,10 +1,26 @@
 // Component definitions for the UI builder
+import { 
+  faSquare, 
+  faFont, 
+  faFileAlt, 
+  faListUl, 
+  faImage, 
+  faHeading, 
+  faTextHeight,
+  faCircle,
+  faBox,
+  faLink,
+  faMinus,
+  faCheckSquare,
+  faEdit
+} from '@fortawesome/free-solid-svg-icons';
+
 export const componentDefinitions = [
   {
     id: 'button',
     name: 'Button',
     category: 'Interactive',
-    icon: '🔘',
+    icon: faCircle,
     defaultProps: {
       children: 'Click me',
       variant: 'primary',
@@ -45,7 +61,7 @@ export const componentDefinitions = [
     id: 'input',
     name: 'Input',
     category: 'Form',
-    icon: '📝',
+    icon: faEdit,
     defaultProps: {
       type: 'text',
       placeholder: 'Enter text...',
@@ -205,7 +221,7 @@ export const componentDefinitions = [
     id: 'card',
     name: 'Card',
     category: 'Layout',
-    icon: '📄',
+    icon: faFileAlt,
     defaultProps: {
       title: 'Card Title',
       children: 'Card content goes here'
@@ -230,7 +246,7 @@ export const componentDefinitions = [
     id: 'text',
     name: 'Text',
     category: 'Typography',
-    icon: '📝',
+    icon: faFont,
     defaultProps: {
       variant: 'body',
       children: 'Sample text'
@@ -256,7 +272,7 @@ export const componentDefinitions = [
     id: 'container',
     name: 'Container',
     category: 'Layout',
-    icon: '📦',
+    icon: faBox,
     defaultProps: {
       direction: 'vertical',
       gap: 'medium',
@@ -284,7 +300,7 @@ export const componentDefinitions = [
     id: 'form',
     name: 'Form',
     category: 'Form',
-    icon: '📋',
+    icon: faListUl,
     defaultProps: {
       method: 'POST',
       action: '',
@@ -311,7 +327,7 @@ export const componentDefinitions = [
     id: 'image',
     type: 'image',
     name: 'Image',
-    icon: '🖼️',
+    icon: faImage,
     category: 'Layout',
     defaultProps: {
       src: '',
@@ -358,7 +374,7 @@ export const componentDefinitions = [
     id: 'link',
     type: 'link',
     name: 'Link',
-    icon: '🔗',
+    icon: faLink,
     category: 'Typography',
     defaultProps: {
       href: '#',
@@ -406,7 +422,7 @@ export const componentDefinitions = [
     id: 'heading',
     type: 'heading',
     name: 'Heading',
-    icon: '📝',
+    icon: faHeading,
     category: 'Typography',
     defaultProps: {
       text: 'Heading',
@@ -448,7 +464,7 @@ export const componentDefinitions = [
     id: 'paragraph',
     type: 'paragraph', 
     name: 'Paragraph',
-    icon: '📄',
+    icon: faTextHeight,
     category: 'Typography',
     defaultProps: {
       text: 'This is a paragraph text.',
@@ -490,7 +506,7 @@ export const componentDefinitions = [
     id: 'list',
     type: 'list',
     name: 'List',
-    icon: '📋',
+    icon: faListUl,
     category: 'Typography',
     defaultProps: {
       type: 'unordered',
@@ -525,14 +541,14 @@ export const componentDefinitions = [
     id: 'divider',
     type: 'divider',
     name: 'Divider',
-    icon: '➖',
+    icon: faMinus,
     category: 'Layout',
     defaultProps: {
       thickness: '1px',
       color: '#e0e0e0',
       marginTop: '16px',
       marginBottom: '16px',
-      style: 'solid'
+      borderStyle: 'solid'
     },
     props: [
       {
@@ -560,10 +576,10 @@ export const componentDefinitions = [
         label: 'Bottom Margin'
       },
       {
-        name: 'style',
+        name: 'borderStyle',
         type: 'select',
         defaultValue: 'solid',
-        label: 'Style',
+        label: 'Border Style',
         options: ['solid', 'dashed', 'dotted']
       }
     ],
@@ -573,7 +589,7 @@ export const componentDefinitions = [
     id: 'checkbox',
     type: 'checkbox',
     name: 'Checkbox',
-    icon: '☑️',
+    icon: faCheckSquare,
     category: 'Form',
     defaultProps: {
       checked: false,

@@ -1,7 +1,8 @@
 import React from 'react'
 import UIBuilder from './builder/UIBuilder'
-import { BuilderThemeProvider } from './builder/ThemeProvider'
+
 import './App.css'
+import { BuilderThemeProvider } from './builder/ThemeProvider'
 
 function App() {
   return (

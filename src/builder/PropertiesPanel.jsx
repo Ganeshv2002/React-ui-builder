@@ -1,16 +1,31 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { Resizable } from 'react-resizable';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCogs } from '@fortawesome/free-solid-svg-icons';
 import { componentDefinitions } from '../data/componentDefinitions';
 import VisualConditionBuilder from './VisualConditionBuilder';
 import VisualValidationBuilder from './VisualValidationBuilder';
 import './PropertiesPanel.css';
+import 'react-resizable/css/styles.css';
 
 const PropertiesPanel = ({ selectedComponent, onUpdateComponent, components = [] }) => {
+  const [panelWidth, setPanelWidth] = useState(300);
+  
   if (!selectedComponent) {
     return (
-      <div className="properties-panel">
-        <h3>Properties</h3>
-        <p className="no-selection">Select a component to edit its properties</p>
-      </div>
+      <Resizable
+        width={panelWidth}
+        height={0}
+        onResize={(e, { size }) => setPanelWidth(size.width)}
+        resizeHandles={['w']}
+        minConstraints={[250, 0]}
+        maxConstraints={[500, 0]}
+      >
+        <div className="properties-panel" style={{ width: panelWidth }}>
+          <h3><FontAwesomeIcon icon={faCogs} /> Properties</h3>
+          <p className="no-selection">Select a component to edit its properties</p>
+        </div>
+      </Resizable>
     );
   }
 
@@ -307,24 +322,33 @@ const PropertiesPanel = ({ selectedComponent, onUpdateComponent, components = []
   };
 
   return (
-    <div className="properties-panel">
-      <h3>Properties</h3>
-      <div className="component-info">
-        <strong>{componentDef.name}</strong>
-        <span className="component-id">#{selectedComponent.id.slice(0, 8)}</span>
+    <Resizable
+      width={panelWidth}
+      height={0}
+      onResize={(e, { size }) => setPanelWidth(size.width)}
+      resizeHandles={['w']}
+      minConstraints={[250, 0]}
+      maxConstraints={[500, 0]}
+    >
+      <div className="properties-panel" style={{ width: panelWidth }}>
+        <h3><FontAwesomeIcon icon={faCogs} /> Properties</h3>
+        <div className="component-info">
+          <strong>{componentDef.name}</strong>
+          <span className="component-id">#{selectedComponent.id.slice(0, 8)}</span>
+        </div>
+        
+        <div className="properties-list">
+          {componentDef.props.map(prop => (
+            <div key={prop.name} className="property-item">
+              <label className="property-label">{prop.label}</label>
+              {renderPropInput(prop)}
+            </div>
+          ))}
+        </div>
+        
+        {renderStyleControls()}
       </div>
-      
-      <div className="properties-list">
-        {componentDef.props.map(prop => (
-          <div key={prop.name} className="property-item">
-            <label className="property-label">{prop.label}</label>
-            {renderPropInput(prop)}
-          </div>
-        ))}
-      </div>
-      
-      {renderStyleControls()}
-    </div>
+    </Resizable>
   );
 };
 

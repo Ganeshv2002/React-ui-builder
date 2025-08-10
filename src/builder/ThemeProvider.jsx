@@ -1,14 +1,7 @@
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { MantineProvider, createTheme } from '@mantine/core';
 
-type ColorScheme = 'light' | 'dark';
-
-interface ThemeContextType {
-  colorScheme: ColorScheme;
-  toggleColorScheme: () => void;
-}
-
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+const ThemeContext = createContext(undefined);
 
 export const useTheme = () => {
   const context = useContext(ThemeContext);
@@ -18,12 +11,8 @@ export const useTheme = () => {
   return context;
 };
 
-interface BuilderThemeProviderProps {
-  children: ReactNode;
-}
-
-export const BuilderThemeProvider: React.FC<BuilderThemeProviderProps> = ({ children }) => {
-  const [colorScheme, setColorScheme] = useState<ColorScheme>(() => {
+export const BuilderThemeProvider = ({ children }) => {
+  const [colorScheme, setColorScheme] = useState(() => {
     // Initialize from localStorage or default to light
     const stored = localStorage.getItem('mantine-color-scheme');
     return (stored === 'dark' || stored === 'light') ? stored : 'light';

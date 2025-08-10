@@ -1,15 +1,71 @@
 .properties-panel {
-  min-width: 200px;
-  max-width: 600px;
-  width: 250px;
-  background: #f8f9fa;
-  border-left: 1px solid #dee2e6;
-  padding: 16px;
+  min-width: 250px;
+  background: var(--bg-surface);
+  border-left: 1px solid var(--border);
+  padding: 20px;
   overflow-y: auto;
   height: calc(100vh - 60px);
   position: relative;
-  resize: horizontal;
-  overflow: auto;
+  box-sizing: border-box;
+}
+
+/* Enhanced scrollbar for properties panel */
+.properties-panel::-webkit-scrollbar {
+  width: 6px;
+}
+
+.properties-panel::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 3px;
+}
+
+.properties-panel::-webkit-scrollbar-thumb {
+  background: rgba(var(--border-rgb, 209, 213, 219), 0.5);
+  border-radius: 3px;
+  transition: all 0.2s ease;
+}
+
+.properties-panel::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+  box-shadow: 0 0 4px rgba(var(--primary-rgb, 37, 99, 235), 0.3);
+}
+
+.properties-panel:hover::-webkit-scrollbar-thumb {
+  background: rgba(var(--border-rgb, 209, 213, 219), 0.8);
+}
+
+/* Resizable handle styling for properties panel */
+.properties-panel .react-resizable-handle {
+  position: absolute;
+  left: -5px;
+  top: 0;
+  bottom: 0;
+  width: 10px;
+  background: transparent;
+  cursor: col-resize;
+  z-index: 10;
+}
+
+.properties-panel .react-resizable-handle:hover {
+  background: var(--primary);
+  opacity: 0.3;
+}
+
+.properties-panel .react-resizable-handle::after {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 30px;
+  background: var(--border);
+  border-radius: 2px;
+  transition: background-color 0.2s ease;
+}
+
+.properties-panel .react-resizable-handle:hover::after {
+  background: var(--primary);
 }
 
 .properties-panel::before {
@@ -22,32 +78,43 @@
   background: transparent;
   cursor: ew-resize;
   z-index: 10;
+  transition: background 0.2s ease;
 }
 
 .properties-panel::before:hover {
-  background: #007bff;
-  opacity: 0.5;
+  background: var(--primary);
+  opacity: 0.6;
 }
 
 .properties-panel h3 {
-  margin: 0 0 16px 0;
+  margin: 0 0 20px 0;
   font-size: 18px;
-  color: #333;
+  color: var(--fg);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
 }
 
 .no-selection {
-  color: #666;
+  color: var(--muted);
   font-style: italic;
   text-align: center;
-  margin-top: 40px;
+  margin-top: 60px;
+  padding: 20px;
+  background: var(--bg);
+  border-radius: var(--radius);
+  border: 1px dashed var(--border);
 }
 
 .component-info {
-  background: white;
-  padding: 12px;
-  border-radius: 4px;
-  margin-bottom: 16px;
-  border: 1px solid #dee2e6;
+  background: var(--bg);
+  padding: 16px;
+  border-radius: var(--radius);
+  margin-bottom: 20px;
+  border: 1px solid var(--border);
 }
 
 .component-info strong {
@@ -95,6 +162,26 @@
 .prop-textarea {
   resize: vertical;
   min-height: 60px;
+}
+
+/* Enhanced scrollbar for textarea elements */
+.prop-textarea::-webkit-scrollbar {
+  width: 4px;
+}
+
+.prop-textarea::-webkit-scrollbar-track {
+  background: var(--bg-surface);
+  border-radius: 2px;
+}
+
+.prop-textarea::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 2px;
+  transition: background-color 0.2s ease;
+}
+
+.prop-textarea::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
 }
 
 .prop-color {

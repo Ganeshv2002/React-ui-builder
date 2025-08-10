@@ -1,0 +1,140 @@
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 20px;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* .theme-toggle:hover {
+  background-color: var(--muted);
+} */
+
+.theme-toggle__track {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  border: 2px solid var(--border);
+}
+
+.theme-toggle--light .theme-toggle__track {
+  background: linear-gradient(135deg, #ffd93d 0%, #ff9500 100%);
+  border-color: #ff9500;
+}
+
+.theme-toggle--dark .theme-toggle__track {
+  background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+  border-color: #34495e;
+}
+
+.theme-toggle__thumb {
+  position: absolute;
+  top: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: white;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.theme-toggle--light .theme-toggle__thumb {
+  transform: translateX(2px);
+  background: #fff;
+}
+
+.theme-toggle--dark .theme-toggle__thumb {
+  transform: translateX(22px);
+  background: #2c3e50;
+}
+
+.theme-toggle__icon {
+  font-size: 8px;
+  transition: all 0.3s ease;
+}
+
+.theme-toggle--light .theme-toggle__icon {
+  color: #ff9500;
+}
+
+.theme-toggle--dark .theme-toggle__icon {
+  color: #f1c40f;
+}
+
+.theme-toggle__label {
+  color: var(--fg);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  min-width: 32px;
+  transition: color 0.2s ease;
+}
+
+/* Hover effects */
+.theme-toggle:hover .theme-toggle__track {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.theme-toggle:hover .theme-toggle__thumb {
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
+}
+
+.theme-toggle--light:hover .theme-toggle__track {
+  background: linear-gradient(135deg, #ffdf5d 0%, #ffad33 100%);
+}
+
+.theme-toggle--dark:hover .theme-toggle__track {
+  background: linear-gradient(135deg, #34495e 0%, #3d566e 100%);
+}
+
+/* Focus styles for accessibility */
+.theme-toggle:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--primary);
+  border-radius: 20px;
+}
+
+/* Animation for the icon */
+.theme-toggle__icon {
+  animation: iconSpin 0.3s ease-in-out;
+}
+
+@keyframes iconSpin {
+  0% {
+    transform: scale(0.8) rotate(-90deg);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1) rotate(0deg);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .theme-toggle__label {
+    display: none;
+  }
+  
+  .theme-toggle {
+    gap: 0;
+    padding: 8px;
+  }
+}

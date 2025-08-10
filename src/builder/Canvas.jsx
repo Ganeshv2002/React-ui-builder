@@ -1,6 +1,8 @@
 import React from 'react';
 import { useDrop } from 'react-dnd';
 import { v4 as uuidv4 } from 'uuid';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCogs, faCode, faGridVertical, faBullseye } from '@fortawesome/free-solid-svg-icons';
 import DroppableComponent from './DroppableComponent';
 import './Canvas.css';
 
@@ -83,7 +85,14 @@ const Canvas = ({ layout, onLayoutChange, selectedComponent, onSelectComponent, 
         {layout.length === 0 ? (
           !isPreviewMode && (
             <div className="canvas-placeholder">
-              <p>Drag components here to start building your layout</p>
+              <div className="placeholder-icon"><FontAwesomeIcon icon={faBullseye} /></div>
+              <p>Start Building Your UI</p>
+              <small>Drag components from the left panel to create your layout</small>
+              <div className="placeholder-features">
+                <span><FontAwesomeIcon icon={faGridVertical} /> Drag & Drop</span>
+                <span><FontAwesomeIcon icon={faCogs} /> Live Preview</span>
+                <span><FontAwesomeIcon icon={faCode} /> Code Export</span>
+              </div>
             </div>
           )
         ) : (
