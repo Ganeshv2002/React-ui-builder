@@ -51,10 +51,33 @@
   border-radius: 4px;
   cursor: pointer;
   font-size: 12px;
+  margin-left: 8px;
+  transition: background-color 0.2s;
 }
 
 .download-btn:hover {
   background: #218838;
+}
+
+.download-btn:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+}
+
+.complete-app-btn {
+  background: #007bff;
+}
+
+.complete-app-btn:hover {
+  background: #0056b3;
+}
+
+.page-code-btn {
+  background: #fd7e14;
+}
+
+.page-code-btn:hover {
+  background: #e55a00;
 }
 
 .close-btn {

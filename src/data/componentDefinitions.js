@@ -12,7 +12,11 @@ import {
   faLink,
   faMinus,
   faCheckSquare,
-  faEdit
+  faEdit,
+  faRoute,
+  faBars,
+  faNavicon,
+  faTableCells
 } from '@fortawesome/free-solid-svg-icons';
 
 export const componentDefinitions = [
@@ -54,6 +58,18 @@ export const componentDefinitions = [
         options: ['small', 'medium', 'large'],
         defaultValue: 'medium',
         label: 'Size'
+      },
+      {
+        name: 'targetPageId',
+        type: 'page-select',
+        defaultValue: '',
+        label: 'Navigate to Page'
+      },
+      {
+        name: 'navigateOnValidation',
+        type: 'boolean',
+        defaultValue: false,
+        label: 'Navigate Only After Validation (Submit buttons)'
       }
     ]
   },
@@ -276,6 +292,10 @@ export const componentDefinitions = [
     defaultProps: {
       direction: 'vertical',
       gap: 'medium',
+      justifyContent: 'flex-start',
+      alignItems: 'stretch',
+      flexWrap: 'nowrap',
+      padding: 'medium',
       children: []
     },
     props: [
@@ -287,11 +307,39 @@ export const componentDefinitions = [
         label: 'Direction'
       },
       {
+        name: 'justifyContent',
+        type: 'select',
+        options: ['flex-start', 'center', 'flex-end', 'space-between', 'space-around', 'space-evenly'],
+        defaultValue: 'flex-start',
+        label: 'Justify Content'
+      },
+      {
+        name: 'alignItems',
+        type: 'select',
+        options: ['stretch', 'flex-start', 'center', 'flex-end', 'baseline'],
+        defaultValue: 'stretch',
+        label: 'Align Items'
+      },
+      {
+        name: 'flexWrap',
+        type: 'select',
+        options: ['nowrap', 'wrap', 'wrap-reverse'],
+        defaultValue: 'nowrap',
+        label: 'Flex Wrap'
+      },
+      {
         name: 'gap',
         type: 'select',
-        options: ['small', 'medium', 'large'],
+        options: ['none', 'small', 'medium', 'large', 'xl'],
         defaultValue: 'medium',
         label: 'Gap'
+      },
+      {
+        name: 'padding',
+        type: 'select',
+        options: ['none', 'small', 'medium', 'large', 'xl'],
+        defaultValue: 'medium',
+        label: 'Padding'
       }
     ],
     canContainChildren: true
@@ -319,6 +367,18 @@ export const componentDefinitions = [
         type: 'string',
         defaultValue: '',
         label: 'Submit URL'
+      },
+      {
+        name: 'targetPageId',
+        type: 'page-select',
+        defaultValue: '',
+        label: 'Navigate to Page After Success'
+      },
+      {
+        name: 'navigateOnSuccess',
+        type: 'boolean',
+        defaultValue: false,
+        label: 'Navigate After Successful Submission'
       }
     ],
     canContainChildren: true
@@ -636,6 +696,32 @@ export const componentDefinitions = [
         defaultValue: 'medium',
         label: 'Size',
         options: ['small', 'medium', 'large']
+      }
+    ],
+    canContainChildren: false
+  },
+  {
+    id: 'navigationLink',
+    name: 'Page Link',
+    category: 'Navigation',
+    icon: faRoute,
+    defaultProps: {
+      children: 'Go to Page',
+      targetPageId: '',
+      style: {}
+    },
+    props: [
+      {
+        name: 'children',
+        type: 'string',
+        defaultValue: 'Go to Page',
+        label: 'Link Text'
+      },
+      {
+        name: 'targetPageId',
+        type: 'page-select',
+        defaultValue: '',
+        label: 'Target Page'
       }
     ],
     canContainChildren: false

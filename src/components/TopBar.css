@@ -1,0 +1,68 @@
+.ui-topbar {
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.ui-topbar--default {
+  justify-content: space-between;
+}
+
+.ui-topbar--centered {
+  justify-content: center;
+}
+
+.ui-topbar--left {
+  justify-content: flex-start;
+}
+
+.ui-topbar--right {
+  justify-content: flex-end;
+}
+
+.ui-topbar--spaced {
+  justify-content: space-around;
+}
+
+/* Topbar content styling */
+.ui-topbar > * {
+  margin: 0 8px;
+}
+
+.ui-topbar > *:first-child {
+  margin-left: 0;
+}
+
+.ui-topbar > *:last-child {
+  margin-right: 0;
+}
+
+/* Fixed positioning adjustments */
+.ui-topbar[style*="position: fixed"] {
+  top: 0;
+  left: 0;
+  right: 0;
+}
+
+.ui-topbar[style*="position: sticky"] {
+  top: 0;
+}
+
+/* Responsive behavior */
+@media (max-width: 768px) {
+  .ui-topbar {
+    padding: 0 12px;
+    flex-wrap: wrap;
+    min-height: 50px;
+  }
+  
+  .ui-topbar > * {
+    margin: 4px;
+  }
+}

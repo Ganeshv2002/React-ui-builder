@@ -2,18 +2,30 @@
   display: flex;
   width: 100%;
   min-height: 50px;
-  border: 1px dashed #ddd;
-  border-radius: 4px;
-  padding: 8px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
   box-sizing: border-box;
+  background: rgba(var(--bg-surface-rgb, 248, 250, 252), 0.5);
+  transition: all 0.2s ease;
 }
 
+.ui-container:hover {
+  border-color: var(--primary);
+  background: rgba(var(--primary-rgb), 0.05);
+}
+
+/* Direction */
 .ui-container--vertical {
   flex-direction: column;
 }
 
 .ui-container--horizontal {
   flex-direction: row;
+}
+
+/* Gap */
+.ui-container--gap-none {
+  gap: 0;
 }
 
 .ui-container--gap-small {
@@ -26,4 +38,54 @@
 
 .ui-container--gap-large {
   gap: 16px;
+}
+
+.ui-container--gap-xl {
+  gap: 24px;
+}
+
+/* Padding */
+.ui-container--padding-none {
+  padding: 0;
+}
+
+.ui-container--padding-small {
+  padding: 8px;
+}
+
+.ui-container--padding-medium {
+  padding: 16px;
+}
+
+.ui-container--padding-large {
+  padding: 24px;
+}
+
+.ui-container--padding-xl {
+  padding: 32px;
+}
+
+/* Empty state */
+.ui-container:empty::before {
+  content: "Drop components here";
+  color: var(--muted);
+  font-size: 14px;
+  font-style: italic;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 50px;
+  width: 100%;
+}
+
+/* Responsive behavior */
+@media (max-width: 768px) {
+  .ui-container--horizontal {
+    flex-direction: column;
+  }
+  
+  .ui-container--gap-large,
+  .ui-container--gap-xl {
+    gap: 12px;
+  }
 }

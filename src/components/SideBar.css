@@ -1,0 +1,93 @@
+.ui-sidebar {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+  z-index: 999;
+  transition: width 0.3s ease;
+  overflow: hidden;
+}
+
+.ui-sidebar--left {
+  left: 0;
+  border-right: 1px solid var(--border);
+  border-left: none;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+}
+
+.ui-sidebar--right {
+  right: 0;
+  border-left: 1px solid var(--border);
+  border-right: none;
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
+}
+
+.ui-sidebar--minimal {
+  border: none;
+  box-shadow: none;
+  background: transparent;
+}
+
+.ui-sidebar--floating {
+  top: 20px;
+  bottom: 20px;
+  border-radius: var(--radius);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.ui-sidebar-content {
+  padding: 20px;
+  height: 100%;
+  overflow-y: auto;
+  transition: padding 0.3s ease;
+}
+
+.ui-sidebar--collapsed .ui-sidebar-content {
+  padding: 10px 8px;
+}
+
+/* Collapsed state adjustments */
+.ui-sidebar--collapsed {
+  overflow: visible;
+}
+
+.ui-sidebar--collapsed .ui-sidebar-content {
+  text-align: center;
+}
+
+/* Custom scrollbar for sidebar */
+.ui-sidebar-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.ui-sidebar-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.ui-sidebar-content::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+.ui-sidebar-content::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+}
+
+/* Responsive behavior */
+@media (max-width: 768px) {
+  .ui-sidebar {
+    position: fixed;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+  
+  .ui-sidebar--right {
+    transform: translateX(100%);
+  }
+  
+  .ui-sidebar.ui-sidebar--mobile-visible {
+    transform: translateX(0);
+  }
+}

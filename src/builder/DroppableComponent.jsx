@@ -14,6 +14,11 @@ import Paragraph from '../components/Paragraph';
 import List from '../components/List';
 import Divider from '../components/Divider';
 import Checkbox from '../components/Checkbox';
+import NavigationLink from '../components/NavigationLink';
+import TopBar from '../components/TopBar';
+import SideBar from '../components/SideBar';
+import Grid from '../components/Grid';
+import DropZone from './DropZone';
 import './DroppableComponent.css';
 
 const componentMap = {
@@ -29,7 +34,11 @@ const componentMap = {
   paragraph: Paragraph,
   list: List,
   divider: Divider,
-  checkbox: Checkbox
+  checkbox: Checkbox,
+  navigationLink: NavigationLink,
+  topbar: TopBar,
+  sidebar: SideBar,
+  grid: Grid
 };
 
 const DroppableComponent = ({ 
@@ -42,7 +51,8 @@ const DroppableComponent = ({
   layout,
   selectedComponent,
   onSelectComponent,
-  isPreviewMode = false
+  isPreviewMode = false,
+  isDragActive = false
 }) => {
   const Component = componentMap[component.type];
   const componentRef = useRef(null);
@@ -52,7 +62,8 @@ const DroppableComponent = ({
     type: 'component',
     item: { 
       type: 'existing',
-      componentId: component.id 
+      componentId: component.id,
+      component: component
     },
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
@@ -66,7 +77,7 @@ const DroppableComponent = ({
         // Drag was successful
       }
     }
-  }), [isPreviewMode]);
+  }), [isPreviewMode, component]);
 
   const [{ isOver }, drop] = useDrop(() => ({
     accept: 'component',
@@ -77,7 +88,9 @@ const DroppableComponent = ({
         return;
       }
       
+      // Only handle drops for containers (components that can have children)
       if (item.type === 'component' && component.children !== undefined) {
+        // Adding new component to container
         const newComponent = {
           id: uuidv4(),
           type: item.componentType,
@@ -89,6 +102,7 @@ const DroppableComponent = ({
           children: [...(component.children || []), newComponent]
         });
       }
+      // Note: Repositioning is now handled by DropZone components
     },
     collect: (monitor) => ({
       isOver: monitor.isOver({ shallow: true }),
@@ -131,24 +145,109 @@ const DroppableComponent = ({
     return <div>Unknown component type: {component.type}</div>;
   }
 
+  const handleChildDropZoneDrop = (item, insertIndex) => {
+    if (item.type === 'component') {
+      // Adding new component at specific position within children
+      const newComponent = {
+        id: uuidv4(),
+        type: item.componentType,
+        props: { ...item.component.defaultProps },
+        children: item.component.canContainChildren ? [] : undefined
+      };
+      
+      const newChildren = [...(component.children || [])];
+      newChildren.splice(insertIndex, 0, newComponent);
+      
+      onUpdate(component.id, { children: newChildren });
+    } else if (item.type === 'existing') {
+      // Repositioning existing component within children
+      const componentId = item.componentId;
+      const children = component.children || [];
+      const componentToMove = children.find(child => child.id === componentId);
+      
+      if (componentToMove) {
+        const currentIndex = children.findIndex(child => child.id === componentId);
+        const newChildren = [...children];
+        
+        // Remove from current position
+        newChildren.splice(currentIndex, 1);
+        
+        // Adjust insert index if we're moving from before the target position
+        const adjustedIndex = currentIndex < insertIndex ? insertIndex - 1 : insertIndex;
+        
+        // Insert at new position
+        newChildren.splice(adjustedIndex, 0, componentToMove);
+        onUpdate(component.id, { children: newChildren });
+      }
+    }
+  };
+
   const renderChildren = () => {
     if (!component.children) return component.props.children;
     
-    return component.children.map((child) => (
-      <DroppableComponent
-        key={child.id}
-        component={child}
-        isSelected={!isPreviewMode && selectedComponent?.id === child.id}
-        onSelect={() => !isPreviewMode && onSelectComponent(child)}
-        onUpdate={onUpdate}
-        onDelete={onDelete}
-        onLayoutChange={onLayoutChange}
-        layout={layout}
-        selectedComponent={selectedComponent}
-        onSelectComponent={onSelectComponent}
-        isPreviewMode={isPreviewMode}
-      />
-    ));
+    const children = component.children;
+    const canAcceptChildren = component.type === 'container' || component.type === 'form';
+    
+    if (!canAcceptChildren) {
+      // For components that can't accept new children, render normally
+      return children.map((child) => (
+        <DroppableComponent
+          key={child.id}
+          component={child}
+          isSelected={!isPreviewMode && selectedComponent?.id === child.id}
+          onSelect={() => !isPreviewMode && onSelectComponent(child)}
+          onUpdate={onUpdate}
+          onDelete={onDelete}
+          onLayoutChange={onLayoutChange}
+          layout={layout}
+          selectedComponent={selectedComponent}
+          onSelectComponent={onSelectComponent}
+          isPreviewMode={isPreviewMode}
+          isDragActive={isDragActive}
+        />
+      ));
+    }
+
+    // For containers and forms, add DropZones between children
+    return (
+      <>
+        {/* Drop zone at the beginning */}
+        {!isPreviewMode && (
+          <DropZone 
+            onDrop={handleChildDropZoneDrop} 
+            index={0} 
+            isVisible={true}
+          />
+        )}
+        
+        {children.map((child, index) => (
+          <React.Fragment key={child.id}>
+            <DroppableComponent
+              component={child}
+              isSelected={!isPreviewMode && selectedComponent?.id === child.id}
+              onSelect={() => !isPreviewMode && onSelectComponent(child)}
+              onUpdate={onUpdate}
+              onDelete={onDelete}
+              onLayoutChange={onLayoutChange}
+              layout={layout}
+              selectedComponent={selectedComponent}
+              onSelectComponent={onSelectComponent}
+              isPreviewMode={isPreviewMode}
+              isDragActive={isDragActive}
+            />
+            
+            {/* Drop zone after each child */}
+            {!isPreviewMode && (
+              <DropZone 
+                onDrop={handleChildDropZoneDrop} 
+                index={index + 1} 
+                isVisible={true}
+              />
+            )}
+          </React.Fragment>
+        ))}
+      </>
+    );
   };
 
   // Get current dimensions from component style or set defaults
@@ -188,7 +287,7 @@ const DroppableComponent = ({
           }
         }
       }}
-      className={`droppable-component ${isSelected ? 'selected' : ''} ${isDragging ? 'dragging' : ''} ${isOver ? 'drop-over' : ''}`}
+      className={`droppable-component ${isSelected ? 'selected' : ''} ${isDragging ? 'dragging' : ''} ${isOver ? 'drop-over' : ''} ${isDragActive ? 'canvas--dragging' : ''}`}
       onClick={handleClick}
     >
       <Component {...component.props} style={component.props.style} isPreview={isPreviewMode}>

@@ -7,18 +7,29 @@ import ComponentPalette from './ComponentPalette';
 import Canvas from './Canvas';
 import PropertiesPanel from './PropertiesPanel';
 import CodeViewer from './CodeViewer';
+import PageManager from './PageManager';
 import { ThemeToggle } from './ThemeToggle';
 import { NotificationSystem, useNotifications } from './NotificationSystem';
 import { useKeyboardShortcuts, KEYBOARD_SHORTCUTS } from '../utils/keyboard';
+import { PageProvider, usePages } from '../contexts/PageContext';
 import { componentDefinitions } from '../data/componentDefinitions';
 import './UIBuilder.css';
 
-const UIBuilder = () => {
-  const [layout, setLayout] = useState([]);
+const UIBuilderContent = () => {
   const [selectedComponent, setSelectedComponent] = useState(null);
   const [showCodeViewer, setShowCodeViewer] = useState(false);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const notifications = useNotifications();
+  const { getCurrentPage, updatePageLayout } = usePages();
+  
+  const currentPage = getCurrentPage();
+  const layout = currentPage?.layout || [];
+
+  const handleLayoutChange = (newLayout) => {
+    if (currentPage) {
+      updatePageLayout(currentPage.id, newLayout);
+    }
+  };
 
   // Keyboard shortcuts
   useKeyboardShortcuts([
@@ -49,10 +60,6 @@ const UIBuilder = () => {
     }
   ]);
 
-  const handleLayoutChange = (newLayout) => {
-    setLayout(newLayout);
-  };
-
   const handleSelectComponent = (component) => {
     setSelectedComponent(component);
   };
@@ -77,11 +84,11 @@ const UIBuilder = () => {
       });
     };
     
-    setLayout(updateComponent(layout));
+    handleLayoutChange(updateComponent(layout));
   };
 
   const clearLayout = () => {
-    setLayout([]);
+    handleLayoutChange([]);
     setSelectedComponent(null);
     notifications.success('Canvas cleared successfully');
   };
@@ -92,76 +99,90 @@ const UIBuilder = () => {
   };
 
   return (
-    <DndProvider backend={HTML5Backend}>
-      <div className="ui-builder">
-        <header className="ui-builder-header">
-          <div className="header-left">
-            <h1><FontAwesomeIcon icon={faCube} /> React UI Builder</h1>
-            <span className="version-badge">v1.0</span>
+    <div className="ui-builder">
+      <header className="ui-builder-header">
+        <div className="header-left">
+          <h1><FontAwesomeIcon icon={faCube} /> React UI Builder</h1>
+          <span className="version-badge">v1.0</span>
+          <div className="page-info">
+            <span>Editing: <strong>{currentPage?.name || 'No Page'}</strong></span>
+            <code>{currentPage?.path || '/'}</code>
           </div>
-          <div className="header-controls">
-            <ThemeToggle />
-            <div className="control-group">
-              <button 
-                className={`btn ${isPreviewMode ? 'btn-secondary' : 'btn-success'}`}
-                onClick={() => setIsPreviewMode(!isPreviewMode)}
-                disabled={layout.length === 0 && !isPreviewMode}
-                title={isPreviewMode ? 'Exit Preview Mode' : 'Preview Mode - Test your layout'}
-              >
-                <FontAwesomeIcon icon={isPreviewMode ? faEdit : faPlay} /> {isPreviewMode ? 'Edit' : 'Preview'}
-              </button>
-              <button 
-                className="btn btn-secondary"
-                onClick={clearLayout}
-                disabled={layout.length === 0}
-                title="Clear all components from canvas"
-              >
-                <FontAwesomeIcon icon={faTrash} /> Clear
-              </button>
-              <button 
-                className="btn btn-primary"
-                onClick={exportCode}
-                disabled={layout.length === 0}
-                title="Export React code"
-              >
-                <FontAwesomeIcon icon={faFileCode} /> Export
-              </button>
-            </div>
-          </div>
-        </header>
-
-        <div className="ui-builder-content">
-          {!isPreviewMode && <ComponentPalette components={componentDefinitions} />}
-          
-          <Canvas
-            layout={layout}
-            onLayoutChange={handleLayoutChange}
-            selectedComponent={selectedComponent}
-            onSelectComponent={handleSelectComponent}
-            isPreviewMode={isPreviewMode}
-          />
-          
-          {!isPreviewMode && (
-            <PropertiesPanel
-              selectedComponent={selectedComponent}
-              onUpdateComponent={handleUpdateComponent}
-              components={layout}
-            />
-          )}
         </div>
+        <div className="header-controls">
+          <ThemeToggle />
+          <div className="control-group">
+            <button 
+              className={`btn ${isPreviewMode ? 'btn-secondary' : 'btn-success'}`}
+              onClick={() => setIsPreviewMode(!isPreviewMode)}
+              disabled={layout.length === 0 && !isPreviewMode}
+              title={isPreviewMode ? 'Exit Preview Mode' : 'Preview Mode - Test your layout'}
+            >
+              <FontAwesomeIcon icon={isPreviewMode ? faEdit : faPlay} /> {isPreviewMode ? 'Edit' : 'Preview'}
+            </button>
+            <button 
+              className="btn btn-secondary"
+              onClick={clearLayout}
+              disabled={layout.length === 0}
+              title="Clear all components from canvas"
+            >
+              <FontAwesomeIcon icon={faTrash} /> Clear
+            </button>
+            <button 
+              className="btn btn-primary"
+              onClick={exportCode}
+              disabled={layout.length === 0}
+              title="Export React code"
+            >
+              <FontAwesomeIcon icon={faFileCode} /> Export
+            </button>
+          </div>
+        </div>
+      </header>
 
-        <CodeViewer
+      <div className="ui-builder-content">
+        <PageManager />
+        
+        {!isPreviewMode && <ComponentPalette components={componentDefinitions} />}
+        
+        <Canvas
           layout={layout}
-          isVisible={showCodeViewer}
-          onClose={() => setShowCodeViewer(false)}
+          onLayoutChange={handleLayoutChange}
+          selectedComponent={selectedComponent}
+          onSelectComponent={handleSelectComponent}
+          isPreviewMode={isPreviewMode}
         />
-
-        <NotificationSystem
-          notifications={notifications.notifications}
-          onRemove={notifications.removeNotification}
-        />
+        
+        {!isPreviewMode && (
+          <PropertiesPanel
+            selectedComponent={selectedComponent}
+            onUpdateComponent={handleUpdateComponent}
+            components={layout}
+          />
+        )}
       </div>
-    </DndProvider>
+
+      <CodeViewer
+        layout={layout}
+        isVisible={showCodeViewer}
+        onClose={() => setShowCodeViewer(false)}
+      />
+
+      <NotificationSystem
+        notifications={notifications.notifications}
+        onRemove={notifications.removeNotification}
+      />
+    </div>
+  );
+};
+
+const UIBuilder = () => {
+  return (
+    <PageProvider>
+      <DndProvider backend={HTML5Backend}>
+        <UIBuilderContent />
+      </DndProvider>
+    </PageProvider>
   );
 };
 

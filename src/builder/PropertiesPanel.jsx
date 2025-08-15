@@ -3,6 +3,7 @@ import { Resizable } from 'react-resizable';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCogs } from '@fortawesome/free-solid-svg-icons';
 import { componentDefinitions } from '../data/componentDefinitions';
+import { usePages } from '../contexts/PageContext';
 import VisualConditionBuilder from './VisualConditionBuilder';
 import VisualValidationBuilder from './VisualValidationBuilder';
 import './PropertiesPanel.css';
@@ -10,6 +11,7 @@ import 'react-resizable/css/styles.css';
 
 const PropertiesPanel = ({ selectedComponent, onUpdateComponent, components = [] }) => {
   const [panelWidth, setPanelWidth] = useState(300);
+  const { pages } = usePages();
   
   if (!selectedComponent) {
     return (
@@ -129,6 +131,21 @@ const PropertiesPanel = ({ selectedComponent, onUpdateComponent, components = []
             {prop.options.map(option => (
               <option key={option} value={option}>
                 {option}
+              </option>
+            ))}
+          </select>
+        );
+      case 'page-select':
+        return (
+          <select
+            value={currentValue}
+            onChange={(e) => handlePropChange(prop.name, e.target.value)}
+            className="prop-select"
+          >
+            <option value="">Select a page...</option>
+            {pages.map(page => (
+              <option key={page.id} value={page.id}>
+                {page.name} ({page.path})
               </option>
             ))}
           </select>

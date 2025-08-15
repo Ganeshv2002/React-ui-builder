@@ -1,0 +1,41 @@
+.ui-grid {
+  display: grid;
+  width: 100%;
+}
+
+/* Grid item styling for better visual feedback in builder */
+.ui-grid > * {
+  min-height: 40px;
+  position: relative;
+}
+
+/* Responsive grid behavior */
+@media (max-width: 768px) {
+  .ui-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .ui-grid {
+    gap: 8px;
+  }
+}
+
+/* Grid debugging (only in development) */
+.ui-grid[data-debug="true"] {
+  outline: 2px dashed var(--primary);
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 10px,
+    rgba(var(--primary-rgb), 0.05) 10px,
+    rgba(var(--primary-rgb), 0.05) 20px
+  );
+}
+
+.ui-grid[data-debug="true"] > * {
+  outline: 1px solid var(--border);
+  background: rgba(var(--bg-surface-rgb, 255, 255, 255), 0.8);
+}
