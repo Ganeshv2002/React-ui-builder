@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './VisualValidationBuilder.css';
 
 const VisualValidationBuilder = ({ value, onChange, label }) => {
@@ -19,10 +19,21 @@ const VisualValidationBuilder = ({ value, onChange, label }) => {
     }
   }, [value]);
 
-  // Update parent when rules change
+  // Track last emitted serialized value to prevent redundant updates & loops
+  const lastEmittedRef = useRef('');
+  const isFirstEmissionRef = useRef(true);
+
   useEffect(() => {
     const jsonValue = rules.length > 0 ? JSON.stringify(rules) : '';
-    onChange(jsonValue);
+    if (isFirstEmissionRef.current) {
+      isFirstEmissionRef.current = false;
+      lastEmittedRef.current = jsonValue;
+      return;
+    }
+    if (lastEmittedRef.current !== jsonValue) {
+      lastEmittedRef.current = jsonValue;
+      onChange(jsonValue);
+    }
   }, [rules, onChange]);
 
   const addRule = () => {

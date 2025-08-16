@@ -107,7 +107,7 @@ const DroppableComponent = ({
     collect: (monitor) => ({
       isOver: monitor.isOver({ shallow: true }),
     }),
-  }), [component.id, component.children, onUpdate]);
+  }), [component.id, component.children, isPreviewMode]);
 
   const handleClick = (e) => {
     if (!isPreviewMode) {

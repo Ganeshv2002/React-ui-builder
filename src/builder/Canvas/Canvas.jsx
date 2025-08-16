@@ -43,7 +43,7 @@ const Canvas = ({ layout, onLayoutChange, selectedComponent, onSelectComponent, 
       isOver: monitor.isOver({ shallow: true }),
       isDragActive: monitor.canDrop() && monitor.isOver(),
     }),
-  }), [layout, onLayoutChange]);
+  }), [layout]);
 
   const handleDropZoneDrop = (item, insertIndex) => {
     if (item.type === 'component') {
@@ -134,6 +134,11 @@ const Canvas = ({ layout, onLayoutChange, selectedComponent, onSelectComponent, 
   };
 
   const handleComponentDelete = (componentId) => {
+    // Clear selection if we're deleting the selected component
+    if (selectedComponent?.id === componentId) {
+      onSelectComponent(null);
+    }
+    
     const deleteComponent = (components) => {
       return components.filter(component => {
         if (component.id === componentId) {

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
 const PageContext = createContext();
@@ -24,7 +24,21 @@ export const PageProvider = ({ children }) => {
   
   const [currentPageId, setCurrentPageId] = useState('home');
 
-  const getCurrentPage = () => pages.find(page => page.id === currentPageId);
+  const getCurrentPage = useCallback(() => {
+    return pages.find(page => page.id === currentPageId);
+  }, [pages, currentPageId]);
+
+  const updatePageLayout = useCallback((pageId, layout) => {
+    setPages(prev => prev.map(page => 
+      page.id === pageId ? { ...page, layout } : page
+    ));
+  }, []);
+
+  const updatePage = useCallback((pageId, updates) => {
+    setPages(prev => prev.map(page => 
+      page.id === pageId ? { ...page, ...updates } : page
+    ));
+  }, []);
 
   const addPage = (name, path) => {
     const newPage = {
@@ -39,62 +53,67 @@ export const PageProvider = ({ children }) => {
   };
 
   const deletePage = (pageId) => {
-    if (pages.find(p => p.id === pageId)?.isHome) {
-      return; // Can't delete home page
-    }
-    setPages(prev => prev.filter(page => page.id !== pageId));
-    if (currentPageId === pageId) {
-      setCurrentPageId('home');
-    }
-  };
-
-  const updatePage = (pageId, updates) => {
-    setPages(prev => prev.map(page => 
-      page.id === pageId ? { ...page, ...updates } : page
-    ));
-  };
-
-  const updatePageLayout = (pageId, layout) => {
-    updatePage(pageId, { layout });
+    setPages(prev => {
+      const pageToDelete = prev.find(p => p.id === pageId);
+      if (pageToDelete?.isHome) {
+        return prev; // Can't delete home page
+      }
+      return prev.filter(page => page.id !== pageId);
+    });
+    
+    setCurrentPageId(prevCurrentId => {
+      if (prevCurrentId === pageId) {
+        return 'home';
+      }
+      return prevCurrentId;
+    });
   };
 
   const duplicatePage = (pageId) => {
-    const originalPage = pages.find(p => p.id === pageId);
-    if (!originalPage) return;
-
-    const newPage = {
-      ...originalPage,
-      id: uuidv4(),
-      name: `${originalPage.name} (Copy)`,
-      path: `${originalPage.path}-copy`,
-      isHome: false
-    };
+    let newPage = null;
     
-    setPages(prev => [...prev, newPage]);
+    setPages(prev => {
+      const originalPage = prev.find(p => p.id === pageId);
+      if (!originalPage) return prev;
+
+      newPage = {
+        ...originalPage,
+        id: uuidv4(),
+        name: `${originalPage.name} (Copy)`,
+        path: `${originalPage.path}-copy`,
+        isHome: false
+      };
+      
+      return [...prev, newPage];
+    });
+    
     return newPage;
   };
 
-  const getPageRoutes = () => {
+  const getPageRoutes = useCallback(() => {
     return pages.map(page => ({
       path: page.path,
       name: page.name,
       id: page.id
     }));
-  };
+  }, [pages]);
+
+  // Memoize the provider value to prevent infinite re-renders
+  const providerValue = useMemo(() => ({
+    pages,
+    currentPageId,
+    setCurrentPageId,
+    getCurrentPage,
+    addPage,
+    deletePage,
+    updatePage,
+    updatePageLayout,
+    duplicatePage,
+    getPageRoutes
+  }), [pages, currentPageId, getCurrentPage, updatePageLayout, updatePage, getPageRoutes]);
 
   return (
-    <PageContext.Provider value={{
-      pages,
-      currentPageId,
-      setCurrentPageId,
-      getCurrentPage,
-      addPage,
-      deletePage,
-      updatePage,
-      updatePageLayout,
-      duplicatePage,
-      getPageRoutes
-    }}>
+    <PageContext.Provider value={providerValue}>
       {children}
     </PageContext.Provider>
   );

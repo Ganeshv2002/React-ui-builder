@@ -37,13 +37,17 @@
 /* Resizable handle styling for properties panel */
 .properties-panel .react-resizable-handle {
   position: absolute;
-  left: -5px;
-  top: 0;
+  left: 5px;
+  top: 50%;
   bottom: 0;
   width: 10px;
   background: transparent;
   cursor: col-resize;
   z-index: 10;
+}
+
+.properties-panel .react-resizable-handle-w {
+  transform: none !important;
 }
 
 .properties-panel .react-resizable-handle:hover {

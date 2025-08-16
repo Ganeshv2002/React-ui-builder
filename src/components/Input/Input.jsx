@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useFormContext } from '../../contexts/FormContext';
 import './Input.css';
 
@@ -65,8 +65,8 @@ const Input = ({
     return disabled || formContext.checkConditions(disableConditionsArray);
   };
   
-  // Validate field
-  const validateInput = (value) => {
+  // Validate field (memoized to prevent infinite re-renders)
+  const validateInput = useCallback((value) => {
     if (!isPreview || !formContext || validationRulesArray.length === 0) {
       return;
     }
@@ -79,7 +79,7 @@ const Input = ({
       setValidationError('');
       formContext.clearFieldError(name);
     }
-  };
+  }, [isPreview, formContext, validationRulesArray, name]);
   
   // Update form context when value changes
   useEffect(() => {
@@ -87,7 +87,7 @@ const Input = ({
       formContext.updateField(name, localValue);
       validateInput(localValue);
     }
-  }, [localValue, isPreview, formContext, name]);
+  }, [localValue, isPreview, formContext, name, validateInput]);
 
   // In preview mode, inputs should be interactive; in builder mode, they should be readonly
   const handleChange = (e) => {

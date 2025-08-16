@@ -117,13 +117,14 @@
 }
 
 .btn-primary {
-  background: var(--primary);
-  color: var(--bg);
+  background: color-mix(in srgb, var(--primary) 5%, var(--bg));
+  color: var(--primary);
   border-color: var(--primary);
 }
 
 .btn-primary:hover:not(:disabled) {
   background: var(--primary);
+  color: var(--bg);
   opacity: 0.9;
 }
 

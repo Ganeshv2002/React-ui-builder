@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './VisualConditionBuilder.css';
 
 const VisualConditionBuilder = ({ value, onChange, label, formComponents = [] }) => {
@@ -19,10 +19,22 @@ const VisualConditionBuilder = ({ value, onChange, label, formComponents = [] })
     }
   }, [value]);
 
-  // Update parent when conditions change
+  // Track last emitted value to avoid redundant parent updates (prevents update loops)
+  const lastEmittedRef = useRef('');
+  const isFirstEmissionRef = useRef(true);
+
   useEffect(() => {
     const jsonValue = conditions.length > 0 ? JSON.stringify(conditions) : '';
-    onChange(jsonValue);
+    // Skip emitting on the very first pass if the incoming value already equals serialized state
+    if (isFirstEmissionRef.current) {
+      isFirstEmissionRef.current = false;
+      lastEmittedRef.current = jsonValue;
+      return;
+    }
+    if (lastEmittedRef.current !== jsonValue) {
+      lastEmittedRef.current = jsonValue;
+      onChange(jsonValue);
+    }
   }, [conditions, onChange]);
 
   const addCondition = () => {

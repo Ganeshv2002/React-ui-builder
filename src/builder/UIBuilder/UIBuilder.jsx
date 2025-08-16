@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEdit, faPlay, faTrash, faFileCode, faCube } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faPlay, faTrash, faFileCode, faCube, faDownload } from '@fortawesome/free-solid-svg-icons';
 import ComponentPalette from '../ComponentPalette/ComponentPalette';
 import Canvas from '../Canvas/Canvas';
 import PropertiesPanel from '../PropertiesPanel/PropertiesPanel';
@@ -25,11 +25,12 @@ const UIBuilderContent = () => {
   const currentPage = getCurrentPage();
   const layout = currentPage?.layout || [];
 
-  const handleLayoutChange = (newLayout) => {
-    if (currentPage) {
-      updatePageLayout(currentPage.id, newLayout);
+  const handleLayoutChange = useCallback((newLayout) => {
+    const page = getCurrentPage();
+    if (page) {
+      updatePageLayout(page.id, newLayout);
     }
-  };
+  }, [getCurrentPage, updatePageLayout]);
 
   // Keyboard shortcuts
   useKeyboardShortcuts([
@@ -60,19 +61,15 @@ const UIBuilderContent = () => {
     }
   ]);
 
-  const handleSelectComponent = (component) => {
+  const handleSelectComponent = useCallback((component) => {
     setSelectedComponent(component);
-  };
+  }, []);
 
-  const handleUpdateComponent = (componentId, updates) => {
+  const handleUpdateComponent = useCallback((componentId, updates) => {
     const updateComponent = (components) => {
       return components.map(component => {
         if (component.id === componentId) {
-          const updated = { ...component, ...updates };
-          if (component.id === selectedComponent?.id) {
-            setSelectedComponent(updated);
-          }
-          return updated;
+          return { ...component, ...updates };
         }
         if (component.children) {
           return {
@@ -84,19 +81,34 @@ const UIBuilderContent = () => {
       });
     };
     
-    handleLayoutChange(updateComponent(layout));
-  };
+    const currentPage = getCurrentPage();
+    if (currentPage) {
+      const newLayout = updateComponent(currentPage.layout || []);
+      updatePageLayout(currentPage.id, newLayout);
+    }
+    
+    // Update selectedComponent only if it's the one being updated
+    setSelectedComponent(prevSelected => {
+      if (prevSelected?.id === componentId) {
+        return { ...prevSelected, ...updates };
+      }
+      return prevSelected;
+    });
+  }, [getCurrentPage, updatePageLayout]);
 
   const clearLayout = () => {
-    handleLayoutChange([]);
+    const currentPage = getCurrentPage();
+    if (currentPage) {
+      updatePageLayout(currentPage.id, []);
+    }
     setSelectedComponent(null);
     notifications.success('Canvas cleared successfully');
   };
 
-  const exportCode = () => {
+  const exportCode = useCallback(() => {
     setShowCodeViewer(true);
     notifications.success('Code exported successfully');
-  };
+  }, [notifications]);
 
   return (
     <div className="ui-builder">
@@ -111,9 +123,9 @@ const UIBuilderContent = () => {
         </div>
         <div className="header-controls">
           <ThemeToggle />
-          <div className="control-group">
+          {/* <div className="control-group"> */}
             <button 
-              className={`btn ${isPreviewMode ? 'btn-secondary' : 'btn-success'}`}
+              className={`btn btn-primary`}
               onClick={() => setIsPreviewMode(!isPreviewMode)}
               disabled={layout.length === 0 && !isPreviewMode}
               title={isPreviewMode ? 'Exit Preview Mode' : 'Preview Mode - Test your layout'}
@@ -121,7 +133,7 @@ const UIBuilderContent = () => {
               <FontAwesomeIcon icon={isPreviewMode ? faEdit : faPlay} /> {isPreviewMode ? 'Edit' : 'Preview'}
             </button>
             <button 
-              className="btn btn-secondary"
+              className="btn btn-primary"
               onClick={clearLayout}
               disabled={layout.length === 0}
               title="Clear all components from canvas"
@@ -134,9 +146,9 @@ const UIBuilderContent = () => {
               disabled={layout.length === 0}
               title="Export React code"
             >
-              <FontAwesomeIcon icon={faFileCode} /> Export
+              <FontAwesomeIcon icon={faDownload} /> Export
             </button>
-          </div>
+          {/* </div> */}
         </div>
       </header>
 

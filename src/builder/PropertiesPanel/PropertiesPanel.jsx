@@ -42,7 +42,10 @@ const PropertiesPanel = ({ selectedComponent, onUpdateComponent, components = []
     );
   }
 
+  // Note: Avoid hooks (useCallback) after conditional early returns to keep hook order stable.
+  // Plain functions here prevent the 'Rendered more hooks than during the previous render' error.
   const handlePropChange = (propName, value) => {
+    if (!selectedComponent) return;
     onUpdateComponent(selectedComponent.id, {
       props: {
         ...selectedComponent.props,
@@ -52,8 +55,8 @@ const PropertiesPanel = ({ selectedComponent, onUpdateComponent, components = []
   };
 
   const handleStyleChange = (styleProp, value) => {
+    if (!selectedComponent) return;
     const currentStyle = selectedComponent.props.style || {};
-    
     // If value is empty, remove the property instead of setting it to empty string
     const updatedStyle = { ...currentStyle };
     if (value === '' || value === null || value === undefined) {
@@ -61,7 +64,6 @@ const PropertiesPanel = ({ selectedComponent, onUpdateComponent, components = []
     } else {
       updatedStyle[styleProp] = value;
     }
-    
     onUpdateComponent(selectedComponent.id, {
       props: {
         ...selectedComponent.props,
