@@ -274,21 +274,22 @@ export default Container;`;
 export const generateAllComponents = () => {
   const components = {};
   
-  // Basic components
+  // Basic components with folder structure
   const button = generateButtonComponent();
-  components['src/components/Button.jsx'] = button.jsx;
-  components['src/components/Button.css'] = button.css;
+  components['src/components/Button/Button.jsx'] = button.jsx;
+  components['src/components/Button/Button.css'] = button.css;
   
   const input = generateInputComponent();
-  components['src/components/Input.jsx'] = input.jsx;
-  components['src/components/Input.css'] = input.css;
+  components['src/components/Input/Input.jsx'] = input.jsx;
+  components['src/components/Input/Input.css'] = input.css;
   
   const container = generateContainerComponent();
-  components['src/components/Container.jsx'] = container.jsx;
-  components['src/components/Container.css'] = container.css;
+  components['src/components/Container/Container.jsx'] = container.jsx;
+  components['src/components/Container/Container.css'] = container.css;
   
-  // Simple components
-  components['src/components/Text.jsx'] = `import React from 'react';
+  // Simple components with folder structure
+  components['src/components/Text/Text.jsx'] = `import React from 'react';
+import './Text.css';
 
 const Text = ({ variant = 'body', children, style, className = '' }) => {
   const Tag = variant === 'body' ? 'p' : variant;
@@ -297,7 +298,7 @@ const Text = ({ variant = 'body', children, style, className = '' }) => {
 
 export default Text;`;
 
-  components['src/components/Text.css'] = `.text {
+  components['src/components/Text/Text.css'] = `.text {
   margin: 0 0 16px 0;
 }
 .text-h1 { font-size: 2em; font-weight: bold; }
@@ -305,7 +306,7 @@ export default Text;`;
 .text-h3 { font-size: 1.25em; font-weight: bold; }
 .text-body { font-size: 1em; }`;
 
-  components['src/components/Card.jsx'] = `import React from 'react';
+  components['src/components/Card/Card.jsx'] = `import React from 'react';
 import './Card.css';
 
 const Card = ({ title, children, style, className = '' }) => (
@@ -317,7 +318,7 @@ const Card = ({ title, children, style, className = '' }) => (
 
 export default Card;`;
 
-  components['src/components/Card.css'] = `.card {
+  components['src/components/Card/Card.css'] = `.card {
   background: white;
   border: 1px solid #e0e0e0;
   border-radius: 8px;

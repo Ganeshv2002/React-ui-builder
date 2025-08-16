@@ -3,16 +3,16 @@ import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faPlay, faTrash, faFileCode, faCube } from '@fortawesome/free-solid-svg-icons';
-import ComponentPalette from './ComponentPalette';
-import Canvas from './Canvas';
-import PropertiesPanel from './PropertiesPanel';
-import CodeViewer from './CodeViewer';
-import PageManager from './PageManager';
-import { ThemeToggle } from './ThemeToggle';
-import { NotificationSystem, useNotifications } from './NotificationSystem';
-import { useKeyboardShortcuts, KEYBOARD_SHORTCUTS } from '../utils/keyboard';
-import { PageProvider, usePages } from '../contexts/PageContext';
-import { componentDefinitions } from '../data/componentDefinitions';
+import ComponentPalette from '../ComponentPalette/ComponentPalette';
+import Canvas from '../Canvas/Canvas';
+import PropertiesPanel from '../PropertiesPanel/PropertiesPanel';
+import CodeViewer from '../CodeViewer/CodeViewer';
+import PageManager from '../PageManager/PageManager';
+import { ThemeToggle } from '../ThemeToggle/ThemeToggle';
+import { NotificationSystem, useNotifications } from '../NotificationSystem/NotificationSystem';
+import { useKeyboardShortcuts, KEYBOARD_SHORTCUTS } from '../../utils/keyboard';
+import { PageProvider, usePages } from '../../contexts/PageContext';
+import { componentDefinitions } from '../../data/componentDefinitions';
 import './UIBuilder.css';
 
 const UIBuilderContent = () => {

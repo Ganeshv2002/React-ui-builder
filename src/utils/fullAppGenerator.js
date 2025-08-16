@@ -123,7 +123,7 @@ ${indent}</${componentName}>`;
   page.layout.forEach(collectImports);
   
   const importStatements = Array.from(imports)
-    .map(comp => `import ${comp.charAt(0).toUpperCase() + comp.slice(1)} from '../components/${comp.charAt(0).toUpperCase() + comp.slice(1)}';`)
+    .map(comp => `import ${comp.charAt(0).toUpperCase() + comp.slice(1)} from '../components/${comp.charAt(0).toUpperCase() + comp.slice(1)}/${comp.charAt(0).toUpperCase() + comp.slice(1)}';`)
     .join('\n');
 
   return `import React from 'react';
@@ -399,7 +399,14 @@ npm run dev
 
 \`\`\`
 src/
-├── components/     # Reusable UI components
+├── components/     # Reusable UI components (organized in folders)
+│   ├── Button/     # Button component
+│   │   ├── Button.jsx
+│   │   └── Button.css
+│   ├── Input/      # Input component
+│   │   ├── Input.jsx
+│   │   └── Input.css
+│   └── ...         # Other components
 ├── pages/         # Page components
 ├── styles/        # CSS files
 ├── App.jsx        # Main app with routing
@@ -413,7 +420,7 @@ You can customize this app by:
 - Editing page components in \`src/pages/\`
 - Modifying styles in \`src/styles/\`
 - Adding new routes in \`src/App.jsx\`
-- Creating new components in \`src/components/\`
+- Creating new components in \`src/components/\` (each in its own folder)
 
 ## Deployment
 

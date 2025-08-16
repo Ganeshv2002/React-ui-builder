@@ -1,6 +1,6 @@
 import React from 'react';
-import { FormProvider } from '../contexts/FormContext';
-import { usePages } from '../contexts/PageContext';
+import { FormProvider } from '../../contexts/FormContext';
+import { usePages } from '../../contexts/PageContext';
 import './Form.css';
 
 const Form = ({ 

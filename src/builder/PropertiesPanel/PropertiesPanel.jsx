@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { Resizable } from 'react-resizable';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCogs } from '@fortawesome/free-solid-svg-icons';
-import { componentDefinitions } from '../data/componentDefinitions';
-import { usePages } from '../contexts/PageContext';
-import VisualConditionBuilder from './VisualConditionBuilder';
-import VisualValidationBuilder from './VisualValidationBuilder';
+import { componentDefinitions } from '../../data/componentDefinitions';
+import { usePages } from '../../contexts/PageContext';
+import VisualConditionBuilder from '../VisualConditionBuilder/VisualConditionBuilder';
+import VisualValidationBuilder from '../VisualValidationBuilder/VisualValidationBuilder';
 import './PropertiesPanel.css';
 import 'react-resizable/css/styles.css';
 

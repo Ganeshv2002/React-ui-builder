@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { generateReactCode, generateCSSCode, generateCompleteProject } from '../utils/codeGenerator';
-import { generateCompleteApp } from '../utils/fullAppGenerator';
-import { createAndDownloadZip, createProjectStructureFile } from '../utils/downloadUtils';
-import { usePages } from '../contexts/PageContext';
+import { generateReactCode, generateCSSCode, generateCompleteProject } from '../../utils/codeGenerator';
+import { generateCompleteApp } from '../../utils/fullAppGenerator';
+import { createAndDownloadZip, createProjectStructureFile } from '../../utils/downloadUtils';
+import { usePages } from '../../contexts/PageContext';
 import './CodeViewer.css';
 
 const CodeViewer = ({ layout, isVisible, onClose }) => {

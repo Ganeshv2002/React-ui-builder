@@ -11,7 +11,7 @@ import {
   faRoute,
   faGlobe
 } from '@fortawesome/free-solid-svg-icons';
-import { usePages } from '../contexts/PageContext';
+import { usePages } from '../../contexts/PageContext';
 import './PageManager.css';
 
 const PageManager = () => {

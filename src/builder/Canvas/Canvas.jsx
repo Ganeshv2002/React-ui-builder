@@ -3,8 +3,8 @@ import { useDrop, useDragDropManager } from 'react-dnd';
 import { v4 as uuidv4 } from 'uuid';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCogs, faCode, faGridVertical, faBullseye } from '@fortawesome/free-solid-svg-icons';
-import DroppableComponent from './DroppableComponent';
-import DropZone from './DropZone';
+import DroppableComponent from '../DroppableComponent/DroppableComponent';
+import DropZone from '../DropZone/DropZone';
 import './Canvas.css';
 
 const Canvas = ({ layout, onLayoutChange, selectedComponent, onSelectComponent, isPreviewMode = false }) => {
