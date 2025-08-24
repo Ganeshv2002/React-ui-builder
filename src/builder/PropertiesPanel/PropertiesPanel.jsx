@@ -272,68 +272,539 @@ const PropertiesPanel = ({ selectedComponent, onUpdateComponent, components = []
 
   const renderStyleControls = () => {
     const currentStyle = selectedComponent.props.style || {};
+    const variants = selectedComponent.props.variants || {};
+    const currentVariant = selectedComponent.props.currentVariant || '';
+
+    const saveVariant = () => {
+      const variantName = prompt('Variant name:');
+      if (!variantName) return;
+      const newVariants = { ...variants, [variantName]: { ...currentStyle } };
+      onUpdateComponent(selectedComponent.id, {
+        props: { ...selectedComponent.props, variants: newVariants, currentVariant: variantName }
+      });
+    };
+
+    const applyVariant = (name) => {
+      if (!variants[name]) return;
+      onUpdateComponent(selectedComponent.id, {
+        props: { ...selectedComponent.props, style: { ...variants[name] }, currentVariant: name }
+      });
+    };
+
+    const deleteVariant = (name) => {
+      if (!variants[name]) return;
+      const newVariants = { ...variants };
+      delete newVariants[name];
+      const nextCurrent = name === currentVariant ? '' : currentVariant;
+      onUpdateComponent(selectedComponent.id, {
+        props: { ...selectedComponent.props, variants: newVariants, currentVariant: nextCurrent }
+      });
+    };
     
     return (
       <div className="style-controls">
         <h4>Styling</h4>
-        <div className="style-grid">
-          <div className="style-item">
-            <label>Background Color</label>
-            <input
-              type="color"
-              value={currentStyle.backgroundColor || '#ffffff'}
-              onChange={(e) => handleStyleChange('backgroundColor', e.target.value)}
-              className="prop-color"
-            />
+        
+        {/* Variant Management */}
+        <div className="variant-section">
+          <div className="variant-header">
+            <h5>Variants</h5>
+            <button type="button" className="add-item-btn" onClick={saveVariant}>Save Variant</button>
           </div>
-          <div className="style-item">
-            <label>Text Color</label>
-            <input
-              type="color"
-              value={currentStyle.color || '#000000'}
-              onChange={(e) => handleStyleChange('color', e.target.value)}
-              className="prop-color"
-            />
+          {Object.keys(variants).length > 0 && (
+            <div className="variant-list">
+              {Object.keys(variants).map(name => (
+                <div key={name} className={`variant-item ${currentVariant === name ? 'active' : ''}`}>
+                  <button type="button" className="variant-apply-btn" onClick={() => applyVariant(name)}>
+                    {name}
+                  </button>
+                  <button type="button" className="remove-item-btn" onClick={() => deleteVariant(name)}>×</button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Layout & Dimensions */}
+        <div className="style-section">
+          <h5>Layout & Dimensions</h5>
+          <div className="style-grid">
+            <div className="style-item">
+              <label>Width</label>
+              <input
+                type="text"
+                value={currentStyle.width || ''}
+                onChange={(e) => handleStyleChange('width', e.target.value)}
+                className="prop-input"
+                placeholder="auto, 100px, 50%"
+              />
+            </div>
+            <div className="style-item">
+              <label>Height</label>
+              <input
+                type="text"
+                value={currentStyle.height || ''}
+                onChange={(e) => handleStyleChange('height', e.target.value)}
+                className="prop-input"
+                placeholder="auto, 200px, 100vh"
+              />
+            </div>
+            <div className="style-item">
+              <label>Min Width</label>
+              <input
+                type="text"
+                value={currentStyle.minWidth || ''}
+                onChange={(e) => handleStyleChange('minWidth', e.target.value)}
+                className="prop-input"
+                placeholder="0, 200px"
+              />
+            </div>
+            <div className="style-item">
+              <label>Max Width</label>
+              <input
+                type="text"
+                value={currentStyle.maxWidth || ''}
+                onChange={(e) => handleStyleChange('maxWidth', e.target.value)}
+                className="prop-input"
+                placeholder="none, 500px"
+              />
+            </div>
+            <div className="style-item">
+              <label>Display</label>
+              <select
+                value={currentStyle.display || ''}
+                onChange={(e) => handleStyleChange('display', e.target.value)}
+                className="prop-select"
+              >
+                <option value="">default</option>
+                <option value="block">block</option>
+                <option value="inline">inline</option>
+                <option value="inline-block">inline-block</option>
+                <option value="flex">flex</option>
+                <option value="inline-flex">inline-flex</option>
+                <option value="grid">grid</option>
+                <option value="none">none</option>
+              </select>
+            </div>
+            <div className="style-item">
+              <label>Position</label>
+              <select
+                value={currentStyle.position || ''}
+                onChange={(e) => handleStyleChange('position', e.target.value)}
+                className="prop-select"
+              >
+                <option value="">static</option>
+                <option value="relative">relative</option>
+                <option value="absolute">absolute</option>
+                <option value="fixed">fixed</option>
+                <option value="sticky">sticky</option>
+              </select>
+            </div>
           </div>
-          <div className="style-item">
-            <label>Padding</label>
-            <input
-              type="text"
-              value={currentStyle.padding || ''}
-              onChange={(e) => handleStyleChange('padding', e.target.value)}
-              className="prop-input"
-              placeholder="e.g., 8px, 1rem"
-            />
+        </div>
+
+        {/* Spacing */}
+        <div className="style-section">
+          <h5>Spacing</h5>
+          <div className="style-grid">
+            <div className="style-item">
+              <label>Padding</label>
+              <input
+                type="text"
+                value={currentStyle.padding || ''}
+                onChange={(e) => handleStyleChange('padding', e.target.value)}
+                className="prop-input"
+                placeholder="8px, 1rem, 10px 20px"
+              />
+            </div>
+            <div className="style-item">
+              <label>Margin</label>
+              <input
+                type="text"
+                value={currentStyle.margin || ''}
+                onChange={(e) => handleStyleChange('margin', e.target.value)}
+                className="prop-input"
+                placeholder="8px, 1rem, auto"
+              />
+            </div>
+            <div className="style-item">
+              <label>Gap</label>
+              <input
+                type="text"
+                value={currentStyle.gap || ''}
+                onChange={(e) => handleStyleChange('gap', e.target.value)}
+                className="prop-input"
+                placeholder="10px, 1rem"
+              />
+            </div>
           </div>
-          <div className="style-item">
-            <label>Margin</label>
-            <input
-              type="text"
-              value={currentStyle.margin || ''}
-              onChange={(e) => handleStyleChange('margin', e.target.value)}
-              className="prop-input"
-              placeholder="e.g., 8px, 1rem"
-            />
+        </div>
+
+        {/* Colors & Background */}
+        <div className="style-section">
+          <h5>Colors & Background</h5>
+          <div className="style-grid">
+            <div className="style-item">
+              <label>Background Color</label>
+              <input
+                type="color"
+                value={currentStyle.backgroundColor || '#ffffff'}
+                onChange={(e) => handleStyleChange('backgroundColor', e.target.value)}
+                className="prop-color"
+              />
+            </div>
+            <div className="style-item">
+              <label>Text Color</label>
+              <input
+                type="color"
+                value={currentStyle.color || '#000000'}
+                onChange={(e) => handleStyleChange('color', e.target.value)}
+                className="prop-color"
+              />
+            </div>
+            <div className="style-item">
+              <label>Background Image</label>
+              <input
+                type="text"
+                value={currentStyle.backgroundImage || ''}
+                onChange={(e) => handleStyleChange('backgroundImage', e.target.value)}
+                className="prop-input"
+                placeholder="url('image.jpg')"
+              />
+            </div>
+            <div className="style-item">
+              <label>Background Size</label>
+              <select
+                value={currentStyle.backgroundSize || ''}
+                onChange={(e) => handleStyleChange('backgroundSize', e.target.value)}
+                className="prop-select"
+              >
+                <option value="">auto</option>
+                <option value="cover">cover</option>
+                <option value="contain">contain</option>
+                <option value="100% 100%">stretch</option>
+              </select>
+            </div>
+            <div className="style-item">
+              <label>Opacity</label>
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.1"
+                value={currentStyle.opacity || '1'}
+                onChange={(e) => handleStyleChange('opacity', e.target.value)}
+                className="prop-range"
+              />
+              <span className="range-value">{currentStyle.opacity || '1'}</span>
+            </div>
           </div>
-          <div className="style-item">
-            <label>Border Radius</label>
-            <input
-              type="text"
-              value={currentStyle.borderRadius || ''}
-              onChange={(e) => handleStyleChange('borderRadius', e.target.value)}
-              className="prop-input"
-              placeholder="e.g., 4px, 50%"
-            />
+        </div>
+
+        {/* Border & Effects */}
+        <div className="style-section">
+          <h5>Border & Effects</h5>
+          <div className="style-grid">
+            <div className="style-item">
+              <label>Border</label>
+              <input
+                type="text"
+                value={currentStyle.border || ''}
+                onChange={(e) => handleStyleChange('border', e.target.value)}
+                className="prop-input"
+                placeholder="1px solid #ccc"
+              />
+            </div>
+            <div className="style-item">
+              <label>Border Radius</label>
+              <input
+                type="text"
+                value={currentStyle.borderRadius || ''}
+                onChange={(e) => handleStyleChange('borderRadius', e.target.value)}
+                className="prop-input"
+                placeholder="4px, 50%, 10px 5px"
+              />
+            </div>
+            <div className="style-item">
+              <label>Box Shadow</label>
+              <input
+                type="text"
+                value={currentStyle.boxShadow || ''}
+                onChange={(e) => handleStyleChange('boxShadow', e.target.value)}
+                className="prop-input"
+                placeholder="0 2px 4px rgba(0,0,0,0.1)"
+              />
+            </div>
+            <div className="style-item">
+              <label>Filter</label>
+              <input
+                type="text"
+                value={currentStyle.filter || ''}
+                onChange={(e) => handleStyleChange('filter', e.target.value)}
+                className="prop-input"
+                placeholder="blur(5px), brightness(0.8)"
+              />
+            </div>
           </div>
-          <div className="style-item">
-            <label>Width</label>
-            <input
-              type="text"
-              value={currentStyle.width || ''}
-              onChange={(e) => handleStyleChange('width', e.target.value)}
-              className="prop-input"
-              placeholder="e.g., 100px, 50%"
-            />
+        </div>
+
+        {/* Typography */}
+        <div className="style-section">
+          <h5>Typography</h5>
+          <div className="style-grid">
+            <div className="style-item">
+              <label>Font Family</label>
+              <input
+                type="text"
+                value={currentStyle.fontFamily || ''}
+                onChange={(e) => handleStyleChange('fontFamily', e.target.value)}
+                className="prop-input"
+                placeholder="Arial, sans-serif"
+              />
+            </div>
+            <div className="style-item">
+              <label>Font Size</label>
+              <input
+                type="text"
+                value={currentStyle.fontSize || ''}
+                onChange={(e) => handleStyleChange('fontSize', e.target.value)}
+                className="prop-input"
+                placeholder="16px, 1rem, 1.2em"
+              />
+            </div>
+            <div className="style-item">
+              <label>Font Weight</label>
+              <select
+                value={currentStyle.fontWeight || ''}
+                onChange={(e) => handleStyleChange('fontWeight', e.target.value)}
+                className="prop-select"
+              >
+                <option value="">normal</option>
+                <option value="bold">bold</option>
+                <option value="100">100</option>
+                <option value="200">200</option>
+                <option value="300">300</option>
+                <option value="400">400</option>
+                <option value="500">500</option>
+                <option value="600">600</option>
+                <option value="700">700</option>
+                <option value="800">800</option>
+                <option value="900">900</option>
+              </select>
+            </div>
+            <div className="style-item">
+              <label>Text Align</label>
+              <select
+                value={currentStyle.textAlign || ''}
+                onChange={(e) => handleStyleChange('textAlign', e.target.value)}
+                className="prop-select"
+              >
+                <option value="">left</option>
+                <option value="center">center</option>
+                <option value="right">right</option>
+                <option value="justify">justify</option>
+              </select>
+            </div>
+            <div className="style-item">
+              <label>Line Height</label>
+              <input
+                type="text"
+                value={currentStyle.lineHeight || ''}
+                onChange={(e) => handleStyleChange('lineHeight', e.target.value)}
+                className="prop-input"
+                placeholder="1.5, 24px"
+              />
+            </div>
+            <div className="style-item">
+              <label>Text Decoration</label>
+              <select
+                value={currentStyle.textDecoration || ''}
+                onChange={(e) => handleStyleChange('textDecoration', e.target.value)}
+                className="prop-select"
+              >
+                <option value="">none</option>
+                <option value="underline">underline</option>
+                <option value="overline">overline</option>
+                <option value="line-through">line-through</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Flexbox */}
+        <div className="style-section">
+          <h5>Flexbox</h5>
+          <div className="style-grid">
+            <div className="style-item">
+              <label>Flex Direction</label>
+              <select
+                value={currentStyle.flexDirection || ''}
+                onChange={(e) => handleStyleChange('flexDirection', e.target.value)}
+                className="prop-select"
+              >
+                <option value="">row</option>
+                <option value="row-reverse">row-reverse</option>
+                <option value="column">column</option>
+                <option value="column-reverse">column-reverse</option>
+              </select>
+            </div>
+            <div className="style-item">
+              <label>Justify Content</label>
+              <select
+                value={currentStyle.justifyContent || ''}
+                onChange={(e) => handleStyleChange('justifyContent', e.target.value)}
+                className="prop-select"
+              >
+                <option value="">flex-start</option>
+                <option value="flex-end">flex-end</option>
+                <option value="center">center</option>
+                <option value="space-between">space-between</option>
+                <option value="space-around">space-around</option>
+                <option value="space-evenly">space-evenly</option>
+              </select>
+            </div>
+            <div className="style-item">
+              <label>Align Items</label>
+              <select
+                value={currentStyle.alignItems || ''}
+                onChange={(e) => handleStyleChange('alignItems', e.target.value)}
+                className="prop-select"
+              >
+                <option value="">stretch</option>
+                <option value="flex-start">flex-start</option>
+                <option value="flex-end">flex-end</option>
+                <option value="center">center</option>
+                <option value="baseline">baseline</option>
+              </select>
+            </div>
+            <div className="style-item">
+              <label>Flex Wrap</label>
+              <select
+                value={currentStyle.flexWrap || ''}
+                onChange={(e) => handleStyleChange('flexWrap', e.target.value)}
+                className="prop-select"
+              >
+                <option value="">nowrap</option>
+                <option value="wrap">wrap</option>
+                <option value="wrap-reverse">wrap-reverse</option>
+              </select>
+            </div>
+            <div className="style-item">
+              <label>Flex Grow</label>
+              <input
+                type="number"
+                min="0"
+                value={currentStyle.flexGrow || ''}
+                onChange={(e) => handleStyleChange('flexGrow', e.target.value)}
+                className="prop-input"
+                placeholder="0"
+              />
+            </div>
+            <div className="style-item">
+              <label>Flex Shrink</label>
+              <input
+                type="number"
+                min="0"
+                value={currentStyle.flexShrink || ''}
+                onChange={(e) => handleStyleChange('flexShrink', e.target.value)}
+                className="prop-input"
+                placeholder="1"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Positioning */}
+        <div className="style-section">
+          <h5>Positioning</h5>
+          <div className="style-grid">
+            <div className="style-item">
+              <label>Top</label>
+              <input
+                type="text"
+                value={currentStyle.top || ''}
+                onChange={(e) => handleStyleChange('top', e.target.value)}
+                className="prop-input"
+                placeholder="0, 10px, auto"
+              />
+            </div>
+            <div className="style-item">
+              <label>Right</label>
+              <input
+                type="text"
+                value={currentStyle.right || ''}
+                onChange={(e) => handleStyleChange('right', e.target.value)}
+                className="prop-input"
+                placeholder="0, 10px, auto"
+              />
+            </div>
+            <div className="style-item">
+              <label>Bottom</label>
+              <input
+                type="text"
+                value={currentStyle.bottom || ''}
+                onChange={(e) => handleStyleChange('bottom', e.target.value)}
+                className="prop-input"
+                placeholder="0, 10px, auto"
+              />
+            </div>
+            <div className="style-item">
+              <label>Left</label>
+              <input
+                type="text"
+                value={currentStyle.left || ''}
+                onChange={(e) => handleStyleChange('left', e.target.value)}
+                className="prop-input"
+                placeholder="0, 10px, auto"
+              />
+            </div>
+            <div className="style-item">
+              <label>Z-Index</label>
+              <input
+                type="number"
+                value={currentStyle.zIndex || ''}
+                onChange={(e) => handleStyleChange('zIndex', e.target.value)}
+                className="prop-input"
+                placeholder="auto, 1, 999"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Transform & Animation */}
+        <div className="style-section">
+          <h5>Transform & Animation</h5>
+          <div className="style-grid">
+            <div className="style-item">
+              <label>Transform</label>
+              <input
+                type="text"
+                value={currentStyle.transform || ''}
+                onChange={(e) => handleStyleChange('transform', e.target.value)}
+                className="prop-input"
+                placeholder="rotate(45deg), scale(1.2)"
+              />
+            </div>
+            <div className="style-item">
+              <label>Transition</label>
+              <input
+                type="text"
+                value={currentStyle.transition || ''}
+                onChange={(e) => handleStyleChange('transition', e.target.value)}
+                className="prop-input"
+                placeholder="all 0.3s ease"
+              />
+            </div>
+            <div className="style-item">
+              <label>Animation</label>
+              <input
+                type="text"
+                value={currentStyle.animation || ''}
+                onChange={(e) => handleStyleChange('animation', e.target.value)}
+                className="prop-input"
+                placeholder="fadeIn 1s ease-in"
+              />
+            </div>
           </div>
         </div>
       </div>

@@ -46,7 +46,7 @@
 
 /* Custom scrollbar styling - webkit browsers */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 0px;
   height: 8px;
 }
 
@@ -76,6 +76,6 @@
 
 /* Thin scrollbar for Firefox */
 * {
-  scrollbar-width: thin;
-  scrollbar-color: var(--border) var(--bg-surface);
+  scrollbar-width: none;
+  /* scrollbar-color: var(--border) var(--bg-surface); */
 }

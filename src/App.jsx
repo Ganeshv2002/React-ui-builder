@@ -1,14 +1,17 @@
 import React from 'react'
 import UIBuilder from './builder/UIBuilder/UIBuilder'
+import { MantineProvider } from '@mantine/core'
 
 import './App.css'
 import { BuilderThemeProvider } from './builder/ThemeProvider/ThemeProvider'
 
 function App() {
   return (
-    <BuilderThemeProvider>
-      <UIBuilder />
-    </BuilderThemeProvider>
+    <MantineProvider>
+      <BuilderThemeProvider>
+        <UIBuilder />
+      </BuilderThemeProvider>
+    </MantineProvider>
   )
 }
 

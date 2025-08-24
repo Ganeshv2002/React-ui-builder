@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { useDrop, useDragDropManager } from 'react-dnd';
 import { v4 as uuidv4 } from 'uuid';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCogs, faCode, faGridVertical, faBullseye } from '@fortawesome/free-solid-svg-icons';
+import { faCogs, faCode, faGridVertical, faBullseye, faCube, faCubesStacked } from '@fortawesome/free-solid-svg-icons';
 import DroppableComponent from '../DroppableComponent/DroppableComponent';
 import DropZone from '../DropZone/DropZone';
 import './Canvas.css';
+import { FaCubesStacked } from 'react-icons/fa6';
+import { faCubes } from '@fortawesome/free-solid-svg-icons/faCubes';
 
 const Canvas = ({ layout, onLayoutChange, selectedComponent, onSelectComponent, isPreviewMode = false }) => {
   const manager = useDragDropManager();
@@ -169,7 +171,7 @@ const Canvas = ({ layout, onLayoutChange, selectedComponent, onSelectComponent, 
         {layout.length === 0 ? (
           !isPreviewMode && (
             <div className="canvas-placeholder">
-              <div className="placeholder-icon"><FontAwesomeIcon icon={faBullseye} /></div>
+              <div className="placeholder-icon"><FontAwesomeIcon icon={faCubes} /></div>
               <p>Start Building Your UI</p>
               <small>Drag components from the left panel to create your layout</small>
               <div className="placeholder-features">

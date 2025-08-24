@@ -115,7 +115,7 @@ const UIBuilderContent = () => {
       <header className="ui-builder-header">
         <div className="header-left">
           <h1><FontAwesomeIcon icon={faCube} /> React UI Builder</h1>
-          <span className="version-badge">v1.0</span>
+          <span className="version-badge">v{import.meta.env.VITE_VERSION}</span>
           <div className="page-info">
             <span>Editing: <strong>{currentPage?.name || 'No Page'}</strong></span>
             <code>{currentPage?.path || '/'}</code>
