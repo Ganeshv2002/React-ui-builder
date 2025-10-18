@@ -19,11 +19,20 @@ const UIBuilderContent = () => {
   const [selectedComponent, setSelectedComponent] = useState(null);
   const [showCodeViewer, setShowCodeViewer] = useState(false);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
+  const [customComponents, setCustomComponents] = useState([]);
   const notifications = useNotifications();
   const { getCurrentPage, updatePageLayout } = usePages();
   
   const currentPage = getCurrentPage();
   const layout = currentPage?.layout || [];
+
+  // Combine default components with custom components
+  const allComponents = [...componentDefinitions, ...customComponents];
+
+  const handleAddCustomComponent = useCallback((newComponent) => {
+    setCustomComponents(prev => [...prev, newComponent]);
+    notifications.success(`Custom component "${newComponent.name}" created successfully!`);
+  }, [notifications]);
 
   const handleLayoutChange = useCallback((newLayout) => {
     const page = getCurrentPage();
@@ -155,7 +164,12 @@ const UIBuilderContent = () => {
       <div className="ui-builder-content">
         <PageManager />
         
-        {!isPreviewMode && <ComponentPalette components={componentDefinitions} />}
+        {!isPreviewMode && (
+          <ComponentPalette 
+            components={allComponents} 
+            onAddCustomComponent={handleAddCustomComponent}
+          />
+        )}
         
         <Canvas
           layout={layout}

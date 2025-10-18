@@ -1,0 +1,22 @@
+{
+  "name": "red",
+  "description": "Variant created from button component",
+  "styles": {},
+  "isGlobal": false,
+  "isDefault": false,
+  "componentType": "button",
+  "tags": [
+    "button"
+  ],
+  "projectId": null,
+  "tokens": {},
+  "metadata": {},
+  "preview": null,
+  "createdBy": null,
+  "updatedBy": null,
+  "id": "0af18084-b2c6-4959-a5d1-327de733e4ff",
+  "createdAt": "2025-10-18T17:08:43.380Z",
+  "updatedAt": "2025-10-18T17:09:28.086Z",
+  "usageCount": 3,
+  "lastAppliedAt": "2025-10-18T17:09:28.086Z"
+}

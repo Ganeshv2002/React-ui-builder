@@ -1,0 +1,26 @@
+{
+  "name": "UI",
+  "description": "Variant created from button component",
+  "styles": {
+    "width": "200px",
+    "backgroundColor": "#f90101",
+    "color": "#ffffff"
+  },
+  "isGlobal": false,
+  "isDefault": false,
+  "componentType": "button",
+  "tags": [
+    "button"
+  ],
+  "projectId": null,
+  "tokens": {},
+  "metadata": {},
+  "preview": null,
+  "createdBy": null,
+  "updatedBy": null,
+  "id": "480dc10e-9c73-4453-9d7d-99235d56a185",
+  "createdAt": "2025-10-18T17:11:34.929Z",
+  "updatedAt": "2025-10-18T17:11:34.947Z",
+  "usageCount": 1,
+  "lastAppliedAt": "2025-10-18T17:11:34.947Z"
+}

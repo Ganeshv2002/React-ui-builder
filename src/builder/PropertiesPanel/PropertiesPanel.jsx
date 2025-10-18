@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Resizable } from 'react-resizable';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCogs } from '@fortawesome/free-solid-svg-icons';
@@ -6,12 +6,38 @@ import { componentDefinitions } from '../../data/componentDefinitions';
 import { usePages } from '../../contexts/PageContext';
 import VisualConditionBuilder from '../VisualConditionBuilder/VisualConditionBuilder';
 import VisualValidationBuilder from '../VisualValidationBuilder/VisualValidationBuilder';
+import variantPersistence from '../../services/variantPersistence';
 import './PropertiesPanel.css';
 import 'react-resizable/css/styles.css';
 
 const PropertiesPanel = ({ selectedComponent, onUpdateComponent, components = [] }) => {
   const [panelWidth, setPanelWidth] = useState(300);
+  const [variants, setVariants] = useState([]);
+  const [isLoadingVariants, setIsLoadingVariants] = useState(false);
+  const [variantError, setVariantError] = useState(null);
   const { pages } = usePages();
+
+  // Load variants for the selected component type
+  useEffect(() => {
+    if (selectedComponent?.type) {
+      loadVariantsForComponent(selectedComponent.type);
+    }
+  }, [selectedComponent?.type]);
+
+  const loadVariantsForComponent = async (componentType) => {
+    try {
+      setIsLoadingVariants(true);
+      setVariantError(null);
+      const componentVariants = await variantPersistence.getVariantsForComponentType(componentType);
+      setVariants(componentVariants);
+    } catch (error) {
+      console.error('Failed to load variants:', error);
+      setVariantError('Failed to load variants');
+      setVariants([]);
+    } finally {
+      setIsLoadingVariants(false);
+    }
+  };
   
   if (!selectedComponent) {
     return (
@@ -272,55 +298,206 @@ const PropertiesPanel = ({ selectedComponent, onUpdateComponent, components = []
 
   const renderStyleControls = () => {
     const currentStyle = selectedComponent.props.style || {};
-    const variants = selectedComponent.props.variants || {};
-    const currentVariant = selectedComponent.props.currentVariant || '';
+    const currentVariantId = selectedComponent.props.variantId || '';
 
-    const saveVariant = () => {
+    const saveVariant = async () => {
       const variantName = prompt('Variant name:');
       if (!variantName) return;
-      const newVariants = { ...variants, [variantName]: { ...currentStyle } };
-      onUpdateComponent(selectedComponent.id, {
-        props: { ...selectedComponent.props, variants: newVariants, currentVariant: variantName }
-      });
+
+      try {
+        const variantData = variantPersistence.createVariantFromComponent(
+          selectedComponent, 
+          variantName, 
+          false // not global by default
+        );
+        
+        const savedVariant = await variantPersistence.createVariant(variantData);
+        
+        // Apply the new variant to the current component
+        const updatedComponent = await variantPersistence.applyVariantToComponent(
+          savedVariant.id, 
+          selectedComponent.id, 
+          selectedComponent
+        );
+        
+        onUpdateComponent(selectedComponent.id, {
+          props: updatedComponent.props
+        });
+        
+        // Reload variants for this component type
+        await loadVariantsForComponent(selectedComponent.type);
+      } catch (error) {
+        console.error('Failed to save variant:', error);
+        alert('Failed to save variant: ' + error.message);
+      }
     };
 
-    const applyVariant = (name) => {
-      if (!variants[name]) return;
-      onUpdateComponent(selectedComponent.id, {
-        props: { ...selectedComponent.props, style: { ...variants[name] }, currentVariant: name }
-      });
+    const applyVariant = async (variantId) => {
+      try {
+        const updatedComponent = await variantPersistence.applyVariantToComponent(
+          variantId, 
+          selectedComponent.id, 
+          selectedComponent
+        );
+        
+        onUpdateComponent(selectedComponent.id, {
+          props: updatedComponent.props
+        });
+      } catch (error) {
+        console.error('Failed to apply variant:', error);
+        alert('Failed to apply variant: ' + error.message);
+      }
     };
 
-    const deleteVariant = (name) => {
-      if (!variants[name]) return;
-      const newVariants = { ...variants };
-      delete newVariants[name];
-      const nextCurrent = name === currentVariant ? '' : currentVariant;
-      onUpdateComponent(selectedComponent.id, {
-        props: { ...selectedComponent.props, variants: newVariants, currentVariant: nextCurrent }
-      });
+    const deleteVariant = async (variantId) => {
+      if (!confirm('Are you sure you want to delete this variant? This will affect all components using it.')) {
+        return;
+      }
+      
+      try {
+        await variantPersistence.deleteVariant(variantId);
+        
+        // If the deleted variant was applied to this component, clear it
+        if (currentVariantId === variantId) {
+          onUpdateComponent(selectedComponent.id, {
+            props: { 
+              ...selectedComponent.props, 
+              variantId: '', 
+              variantName: '',
+              variant: undefined
+            }
+          });
+        }
+        
+        // Reload variants for this component type
+        await loadVariantsForComponent(selectedComponent.type);
+      } catch (error) {
+        console.error('Failed to delete variant:', error);
+        alert('Failed to delete variant: ' + error.message);
+      }
+    };
+
+    const duplicateVariant = async (variantId) => {
+      try {
+        const duplicatedVariant = await variantPersistence.duplicateVariant(variantId);
+        await loadVariantsForComponent(selectedComponent.type);
+        
+        // Optionally apply the duplicated variant
+        await applyVariant(duplicatedVariant.id);
+      } catch (error) {
+        console.error('Failed to duplicate variant:', error);
+        alert('Failed to duplicate variant: ' + error.message);
+      }
+    };
+
+    const makeGlobalVariant = async (variantId) => {
+      try {
+        const variant = variantPersistence.getVariant(variantId);
+        if (variant) {
+          await variantPersistence.updateVariant(variantId, {
+            ...variant,
+            isGlobal: true,
+            projectId: null
+          });
+          
+          await loadVariantsForComponent(selectedComponent.type);
+        }
+      } catch (error) {
+        console.error('Failed to make variant global:', error);
+        alert('Failed to make variant global: ' + error.message);
+      }
     };
     
     return (
       <div className="style-controls">
         <h4>Styling</h4>
         
-        {/* Variant Management */}
+        {/* Enhanced Variant Management */}
         <div className="variant-section">
           <div className="variant-header">
-            <h5>Variants</h5>
-            <button type="button" className="add-item-btn" onClick={saveVariant}>Save Variant</button>
+            <h5>Variants ({selectedComponent.type})</h5>
+            <div className="variant-actions">
+              <button type="button" className="add-item-btn" onClick={saveVariant}>
+                Save Current Style
+              </button>
+            </div>
           </div>
-          {Object.keys(variants).length > 0 && (
+          
+          {isLoadingVariants && (
+            <div className="variant-loading">Loading variants...</div>
+          )}
+          
+          {variantError && (
+            <div className="variant-error">{variantError}</div>
+          )}
+          
+          {!isLoadingVariants && variants.length > 0 && (
             <div className="variant-list">
-              {Object.keys(variants).map(name => (
-                <div key={name} className={`variant-item ${currentVariant === name ? 'active' : ''}`}>
-                  <button type="button" className="variant-apply-btn" onClick={() => applyVariant(name)}>
-                    {name}
-                  </button>
-                  <button type="button" className="remove-item-btn" onClick={() => deleteVariant(name)}>×</button>
+              {variants.map(variant => (
+                <div 
+                  key={variant.id} 
+                  className={`variant-item ${currentVariantId === variant.id ? 'active' : ''}`}
+                >
+                  <div className="variant-info">
+                    <button 
+                      type="button" 
+                      className="variant-apply-btn" 
+                      onClick={() => applyVariant(variant.id)}
+                      title={variant.description}
+                    >
+                      {variant.name}
+                      {variant.isGlobal && <span className="global-badge">Global</span>}
+                      {variant.isDefault && <span className="default-badge">Default</span>}
+                    </button>
+                    <div className="variant-meta">
+                      {variant.tags && variant.tags.length > 0 && (
+                        <span className="variant-tags">
+                          {variant.tags.join(', ')}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="variant-controls">
+                    <button 
+                      type="button" 
+                      className="variant-action-btn" 
+                      onClick={() => duplicateVariant(variant.id)}
+                      title="Duplicate variant"
+                    >
+                      📋
+                    </button>
+                    
+                    {!variant.isGlobal && (
+                      <button 
+                        type="button" 
+                        className="variant-action-btn" 
+                        onClick={() => makeGlobalVariant(variant.id)}
+                        title="Make global (available to all projects)"
+                      >
+                        🌐
+                      </button>
+                    )}
+                    
+                    <button 
+                      type="button" 
+                      className="remove-item-btn" 
+                      onClick={() => deleteVariant(variant.id)}
+                      title="Delete variant"
+                    >
+                      ×
+                    </button>
+                  </div>
                 </div>
               ))}
+            </div>
+          )}
+          
+          {!isLoadingVariants && variants.length === 0 && (
+            <div className="no-variants">
+              No variants found for {selectedComponent.type} components.
+              <br />
+              <small>Style your component and click "Save Current Style" to create a variant.</small>
             </div>
           )}
         </div>

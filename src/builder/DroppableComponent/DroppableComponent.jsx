@@ -18,6 +18,9 @@ import NavigationLink from '../../components/NavigationLink/NavigationLink';
 import TopBar from '../../components/TopBar/TopBar';
 import SideBar from '../../components/SideBar/SideBar';
 import Grid from '../../components/Grid/Grid';
+import NavBar from '../../components/NavBar/NavBar';
+import TaskBar from '../../components/TaskBar/TaskBar';
+import CustomComponentRenderer from '../../components/CustomComponentRenderer/CustomComponentRenderer';
 import DropZone from '../DropZone/DropZone';
 import './DroppableComponent.css';
 
@@ -38,7 +41,9 @@ const componentMap = {
   navigationLink: NavigationLink,
   topbar: TopBar,
   sidebar: SideBar,
-  grid: Grid
+  grid: Grid,
+  navbar: NavBar,
+  taskbar: TaskBar
 };
 
 const DroppableComponent = ({ 
@@ -141,7 +146,10 @@ const DroppableComponent = ({
     }
   };
 
-  if (!Component) {
+  // Check if this is a custom AI-generated component
+  const isCustomComponent = !Component && component.jsx && component.css;
+  
+  if (!Component && !isCustomComponent) {
     return <div>Unknown component type: {component.type}</div>;
   }
 
@@ -270,9 +278,18 @@ const DroppableComponent = ({
         onClick={handleClick}
         style={component.props.style}
       >
-        <Component {...component.props} style={component.props.style} isPreview={isPreviewMode}>
-          {renderChildren()}
-        </Component>
+        {isCustomComponent ? (
+          <CustomComponentRenderer 
+            component={component} 
+            props={component.props}
+          >
+            {renderChildren()}
+          </CustomComponentRenderer>
+        ) : (
+          <Component {...component.props} style={component.props.style} isPreview={isPreviewMode}>
+            {renderChildren()}
+          </Component>
+        )}
       </div>
     );
   }
@@ -290,9 +307,18 @@ const DroppableComponent = ({
       className={`droppable-component ${isSelected ? 'selected' : ''} ${isDragging ? 'dragging' : ''} ${isOver ? 'drop-over' : ''} ${isDragActive ? 'canvas--dragging' : ''}`}
       onClick={handleClick}
     >
-      <Component {...component.props} style={component.props.style} isPreview={isPreviewMode}>
-        {renderChildren()}
-      </Component>
+      {isCustomComponent ? (
+        <CustomComponentRenderer 
+          component={component} 
+          props={component.props}
+        >
+          {renderChildren()}
+        </CustomComponentRenderer>
+      ) : (
+        <Component {...component.props} style={component.props.style} isPreview={isPreviewMode}>
+          {renderChildren()}
+        </Component>
+      )}
       {isSelected && !isPreviewMode && (
         <div className="component-controls">
           <div 

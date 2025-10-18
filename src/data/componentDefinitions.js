@@ -725,5 +725,153 @@ export const componentDefinitions = [
       }
     ],
     canContainChildren: false
+  },
+  {
+    id: 'topbar',
+    name: 'Top Bar',
+    category: 'Navigation',
+    icon: faBars,
+    defaultProps: {
+      height: '60px',
+      backgroundColor: '#ffffff',
+      children: []
+    },
+    props: [
+      {
+        name: 'height',
+        type: 'string',
+        defaultValue: '60px',
+        label: 'Height'
+      },
+      {
+        name: 'backgroundColor',
+        type: 'color',
+        defaultValue: '#ffffff',
+        label: 'Background Color'
+      }
+    ],
+    canContainChildren: true
+  },
+  {
+    id: 'sidebar',
+    name: 'Side Bar',
+    category: 'Navigation',
+    icon: faNavicon,
+    defaultProps: {
+      width: '250px',
+      position: 'left',
+      backgroundColor: '#f8f9fa',
+      children: []
+    },
+    props: [
+      {
+        name: 'width',
+        type: 'string',
+        defaultValue: '250px',
+        label: 'Width'
+      },
+      {
+        name: 'position',
+        type: 'select',
+        defaultValue: 'left',
+        label: 'Position',
+        options: ['left', 'right']
+      },
+      {
+        name: 'backgroundColor',
+        type: 'color',
+        defaultValue: '#f8f9fa',
+        label: 'Background Color'
+      }
+    ],
+    canContainChildren: true
+  },
+  {
+    id: 'grid',
+    name: 'Grid',
+    category: 'Layout',
+    icon: faTableCells,
+    defaultProps: {
+      columns: 3,
+      gap: 'medium',
+      children: []
+    },
+    props: [
+      {
+        name: 'columns',
+        type: 'number',
+        defaultValue: 3,
+        label: 'Columns'
+      },
+      {
+        name: 'gap',
+        type: 'select',
+        defaultValue: 'medium',
+        label: 'Gap',
+        options: ['none', 'small', 'medium', 'large']
+      }
+    ],
+    canContainChildren: true
+  },
+  {
+    id: 'navbar',
+    name: 'Nav Bar',
+    category: 'Navigation',
+    icon: faNavicon,
+    defaultProps: {
+      variant: 'horizontal',
+      backgroundColor: '#ffffff',
+      children: []
+    },
+    props: [
+      {
+        name: 'variant',
+        type: 'select',
+        defaultValue: 'horizontal',
+        label: 'Variant',
+        options: ['horizontal', 'vertical']
+      },
+      {
+        name: 'backgroundColor',
+        type: 'color',
+        defaultValue: '#ffffff',
+        label: 'Background Color'
+      }
+    ],
+    canContainChildren: true
+  },
+  {
+    id: 'taskbar',
+    name: 'Task Bar',
+    category: 'Navigation',
+    icon: faBars,
+    defaultProps: {
+      variant: 'bottom',
+      height: '48px',
+      backgroundColor: '#f8f9fa',
+      children: []
+    },
+    props: [
+      {
+        name: 'variant',
+        type: 'select',
+        defaultValue: 'bottom',
+        label: 'Position',
+        options: ['bottom', 'top', 'left', 'right']
+      },
+      {
+        name: 'height',
+        type: 'string',
+        defaultValue: '48px',
+        label: 'Height'
+      },
+      {
+        name: 'backgroundColor',
+        type: 'color',
+        defaultValue: '#f8f9fa',
+        label: 'Background Color'
+      }
+    ],
+    canContainChildren: true
   }
 ];

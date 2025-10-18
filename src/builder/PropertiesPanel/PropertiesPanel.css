@@ -385,6 +385,11 @@
   color: var(--primary);
 }
 
+.variant-actions {
+  display: flex;
+  gap: 8px;
+}
+
 .variant-list {
   display: flex;
   flex-direction: column;
@@ -406,8 +411,15 @@
   background: rgba(37, 99, 235, 0.1);
 }
 
-.variant-apply-btn {
+.variant-info {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.variant-apply-btn {
+  width: 100%;
   background: transparent;
   border: none;
   text-align: left;
@@ -416,6 +428,9 @@
   cursor: pointer;
   color: var(--text-primary);
   font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .variant-apply-btn:hover {
@@ -425,6 +440,88 @@
 .variant-item.active .variant-apply-btn {
   font-weight: 600;
   color: var(--primary);
+}
+
+.variant-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.variant-tags {
+  font-style: italic;
+}
+
+.global-badge, .default-badge {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.global-badge {
+  background: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+}
+
+.default-badge {
+  background: rgba(245, 158, 11, 0.2);
+  color: #f59e0b;
+}
+
+.variant-controls {
+  display: flex;
+  gap: 4px;
+}
+
+.variant-action-btn {
+  background: transparent;
+  border: none;
+  padding: 4px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+}
+
+.variant-action-btn:hover {
+  background: rgba(var(--text-rgb, 107, 114, 128), 0.1);
+  color: var(--text-primary);
+}
+
+.variant-loading {
+  text-align: center;
+  padding: 20px;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.variant-error {
+  text-align: center;
+  padding: 12px;
+  color: #dc2626;
+  background: rgba(220, 38, 38, 0.1);
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.no-variants {
+  text-align: center;
+  padding: 20px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.no-variants small {
+  font-size: 11px;
+  color: var(--text-tertiary);
 }
 
 /* Enhanced range input styling */
