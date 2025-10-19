@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Resizable } from 'react-resizable';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCogs } from '@fortawesome/free-solid-svg-icons';
-import { componentDefinitions } from '../../data/componentDefinitions';
 import { usePages } from '../../contexts/PageContext';
 import VisualConditionBuilder from '../VisualConditionBuilder/VisualConditionBuilder';
 import VisualValidationBuilder from '../VisualValidationBuilder/VisualValidationBuilder';
 import variantPersistence from '../../services/variantPersistence';
+import { getComponentDefinition } from '../componentRegistry';
 import './PropertiesPanel.css';
 import 'react-resizable/css/styles.css';
 
@@ -22,6 +22,13 @@ const PropertiesPanel = ({ selectedComponent, onUpdateComponent, components = []
     if (selectedComponent?.type) {
       loadVariantsForComponent(selectedComponent.type);
     }
+  }, [selectedComponent?.type]);
+
+  const componentDef = useMemo(() => {
+    if (!selectedComponent?.type) {
+      return null;
+    }
+    return getComponentDefinition(selectedComponent.type);
   }, [selectedComponent?.type]);
 
   const loadVariantsForComponent = async (componentType) => {
@@ -57,8 +64,6 @@ const PropertiesPanel = ({ selectedComponent, onUpdateComponent, components = []
     );
   }
 
-  const componentDef = componentDefinitions.find(def => def.id === selectedComponent.type);
-  
   if (!componentDef) {
     return (
       <div className="properties-panel">
@@ -1005,7 +1010,7 @@ const PropertiesPanel = ({ selectedComponent, onUpdateComponent, components = []
         </div>
         
         <div className="properties-list">
-          {componentDef.props.map(prop => (
+          {(componentDef.props || []).map(prop => (
             <div key={prop.name} className="property-item">
               <label className="property-label">{prop.label}</label>
               {renderPropInput(prop)}

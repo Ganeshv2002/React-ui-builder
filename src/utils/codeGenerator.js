@@ -1,109 +1,176 @@
-export const generateReactCode = (layout) => {
-  const imports = new Set();
-  let hasForm = false;
-  
-  const generateComponentCode = (component, depth = 0) => {
-    const indent = '  '.repeat(depth);
-    const componentName = component.type.charAt(0).toUpperCase() + component.type.slice(1);
-    
-    // Check if we have a form
-    if (component.type === 'form') {
-      hasForm = true;
-    }
-    
-    // Add import
-    imports.add(componentName);
-    
-    // Generate props
-    const props = Object.entries(component.props || {})
-      .filter(([key, value]) => key !== 'children' && value !== undefined && value !== '')
-      .map(([key, value]) => {
-        if (key === 'style' && typeof value === 'object') {
-          return `style={${JSON.stringify(value)}}`;
-        }
-        if (typeof value === 'string') {
-          return `${key}="${value}"`;
-        }
-        return `${key}={${JSON.stringify(value)}}`;
-      });
-    
-    const propsString = props.length > 0 ? ' ' + props.join(' ') : '';
-    
-    // Handle children
-    if (component.children && Array.isArray(component.children)) {
-      if (component.children.length === 0) {
-        // Self-closing tag for empty containers
-        return `${indent}<${componentName}${propsString}>
-${indent}  {/* Add components here */}
-${indent}</${componentName}>`;
-      }
-      
-      const childrenCode = component.children
-        .map(child => generateComponentCode(child, depth + 1))
-        .join('\n');
-      
-      return `${indent}<${componentName}${propsString}>
-${childrenCode}
-${indent}</${componentName}>`;
-    } else if (component.props.children) {
-      // Handle text content
-      if (typeof component.props.children === 'string') {
-        return `${indent}<${componentName}${propsString}>
-${indent}  ${component.props.children}
-${indent}</${componentName}>`;
-      }
-      return `${indent}<${componentName}${propsString}>
-${indent}  {${JSON.stringify(component.props.children)}}
-${indent}</${componentName}>`;
-    }
-    
-    return `${indent}<${componentName}${propsString} />`;
+import { ensureComponentRegistry, getComponentEntry } from '../builder/componentRegistry';
+import { validateLayout } from './layoutSchema';
+
+const toPascalCase = (value = '') =>
+  value
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .split(/[\s._-]+/)
+    .filter(Boolean)
+    .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+    .join('');
+
+const resolveComponentMeta = (type) => {
+  const entry = getComponentEntry(type);
+  if (!entry) {
+    const fallbackName = toPascalCase(type);
+    return {
+      type,
+      exportName: fallbackName,
+      sourcePath: `${fallbackName}/${fallbackName}`,
+    };
+  }
+
+  const exportName =
+    entry.options.exportName ||
+    entry.renderer?.displayName ||
+    entry.renderer?.name ||
+    toPascalCase(type);
+
+  const sourcePath = entry.options.sourcePath || `${exportName}/${exportName}`;
+
+  return {
+    type,
+    exportName,
+    sourcePath,
   };
-  
-  const componentCode = layout.map(component => generateComponentCode(component, 2)).join('\n');
-  
-  const importStatements = Array.from(imports)
-    .map(comp => `import ${comp} from './components/${comp}';`)
+};
+
+const buildPropsString = (props = {}) =>
+  Object.entries(props)
+    .filter(([key, value]) => key !== 'children' && value !== undefined && value !== '')
+    .map(([key, value]) => {
+      if (key === 'style' && typeof value === 'object') {
+        return `style={${JSON.stringify(value)}}`;
+      }
+
+      if (typeof value === 'string') {
+        return `${key}=${JSON.stringify(value)}`;
+      }
+
+      return `${key}={${JSON.stringify(value)}}`;
+    })
+    .join(' ');
+
+const normalizeLayout = (nodes) => {
+  if (!Array.isArray(nodes)) {
+    return [];
+  }
+
+  return nodes
+    .filter((node) => node && typeof node.id === 'string' && typeof node.type === 'string')
+    .map((node) => ({
+      ...node,
+      props: node.props ?? {},
+      children: normalizeLayout(node.children),
+    }));
+};
+
+const buildComponentCode = (component, depth, context) => {
+  const indent = '  '.repeat(depth);
+  const meta = context.registerImport(component.type);
+  const props = component.props || {};
+
+  if (component.type === 'form') {
+    context.hasForm = true;
+  }
+
+  const propsString = buildPropsString(props);
+  const openTag = propsString ? `<${meta.exportName} ${propsString}>` : `<${meta.exportName}>`;
+
+  if (Array.isArray(component.children) && component.children.length > 0) {
+    const childrenCode = component.children
+      .map((child) => buildComponentCode(child, depth + 1, context))
+      .join('\n');
+
+    return `${indent}${openTag}
+${childrenCode}
+${indent}</${meta.exportName}>`;
+  }
+
+  if (Array.isArray(component.children) && component.children.length === 0) {
+    return `${indent}${openTag}
+${indent}  {/* Add components here */}
+${indent}</${meta.exportName}>`;
+  }
+
+  if (props.children !== undefined && props.children !== null) {
+    if (typeof props.children === 'string') {
+      return `${indent}${openTag}
+${indent}  ${props.children}
+${indent}</${meta.exportName}>`;
+    }
+
+    return `${indent}${openTag}
+${indent}  {${JSON.stringify(props.children)}}
+${indent}</${meta.exportName}>`;
+  }
+
+  return `${indent}<${meta.exportName}${propsString ? ` ${propsString}` : ''} />`;
+};
+
+export const buildReactModule = (layout) => {
+  ensureComponentRegistry();
+  let validatedLayout;
+  try {
+    validatedLayout = validateLayout(layout);
+  } catch (error) {
+    console.warn('Layout validation failed', error);
+    validatedLayout = Array.isArray(layout) ? layout : [];
+  }
+  const normalizedLayout = normalizeLayout(validatedLayout);
+  const imports = new Map();
+  const context = {
+    hasForm: false,
+    registerImport: (type) => {
+      if (!imports.has(type)) {
+        imports.set(type, resolveComponentMeta(type));
+      }
+      return imports.get(type);
+    },
+  };
+
+  const body = normalizedLayout.map((component) => buildComponentCode(component, 2, context)).join('\n');
+
+  const importStatements = Array.from(imports.values())
+    .map(({ exportName, sourcePath }) => `import ${exportName} from './components/${sourcePath}';`)
     .join('\n');
 
-  const formHandler = hasForm ? `
+  const formHandler = context.hasForm
+    ? `
   const handleFormSubmit = (formData) => {
     console.log('Form submitted with data:', formData);
     // Add your form submission logic here
     // Example: send to API, validate data, etc.
   };
-` : '';
-  
-  return `import React from 'react';
+`
+    : '';
+
+  const code = `import React from 'react';
 ${importStatements}
 import './GeneratedLayout.css';
 
 const GeneratedLayout = () => {${formHandler}
   return (
     <div className="generated-layout">
-${componentCode}
+${body}
     </div>
   );
 };
 
 export default GeneratedLayout;`;
-};
 
-export const generateComponentImports = (layout) => {
-  const imports = new Set();
-  
-  const collectImports = (component) => {
-    imports.add(component.type);
-    if (component.children && Array.isArray(component.children)) {
-      component.children.forEach(collectImports);
-    }
+  return {
+    code,
+    imports: Array.from(imports.values()),
+    hasForm: context.hasForm,
   };
-  
-  layout.forEach(collectImports);
-  return Array.from(imports);
 };
 
-export const generateCSSCode = (layout) => {
+export const generateReactCode = (layout) => buildReactModule(layout).code;
+
+export const generateComponentImports = (layout) => buildReactModule(layout).imports;
+
+export const generateCSSCode = () => {
   return `.generated-layout {
   padding: 20px;
   max-width: 1200px;
@@ -139,9 +206,9 @@ export const generateCSSCode = (layout) => {
 };
 
 export const generateCompleteProject = (layout) => {
-  const jsxCode = generateReactCode(layout);
-  const cssCode = generateCSSCode(layout);
-  const componentImports = generateComponentImports(layout);
+  const { code: jsxCode, imports } = buildReactModule(layout);
+  const cssCode = generateCSSCode();
+  const componentImports = imports;
   
   // Generate package.json dependencies
   const dependencies = {

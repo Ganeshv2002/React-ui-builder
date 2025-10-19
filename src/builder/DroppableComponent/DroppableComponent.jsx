@@ -1,172 +1,29 @@
 import React, { useRef, useEffect } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import { v4 as uuidv4 } from 'uuid';
-import Button from '../../components/Button/Button';
-import Input from '../../components/Input/Input';
-import Card from '../../components/Card/Card';
-import Text from '../../components/Text/Text';
-import Container from '../../components/Container/Container';
-import Form from '../../components/Form/Form';
-import Image from '../../components/Image/Image';
-import Link from '../../components/Link/Link';
-import Heading from '../../components/Heading/Heading';
-import Paragraph from '../../components/Paragraph/Paragraph';
-import List from '../../components/List/List';
-import Divider from '../../components/Divider/Divider';
-import Checkbox from '../../components/Checkbox/Checkbox';
-import NavigationLink from '../../components/NavigationLink/NavigationLink';
-import TopBar from '../../components/TopBar/TopBar';
-import SideBar from '../../components/SideBar/SideBar';
-import Grid from '../../components/Grid/Grid';
-import NavBar from '../../components/NavBar/NavBar';
-import TaskBar from '../../components/TaskBar/TaskBar';
-import Badge from '../../components/Badge/Badge';
-import Alert from '../../components/Alert/Alert';
-import Avatar from '../../components/Avatar/Avatar';
-import Progress from '../../components/Progress/Progress';
-import StatCard from '../../components/StatCard/StatCard';
 import CustomComponentRenderer from '../../components/CustomComponentRenderer/CustomComponentRenderer';
 import DropZone from '../DropZone/DropZone';
+import { ensureComponentRegistry, getComponentRenderer } from '../componentRegistry';
+import { findComponentById, insertComponentIntoParent, isDescendant, removeComponentById } from '../../utils/layoutTree';
+import { telemetry, TELEMETRY_EVENTS } from '../../utils/telemetry';
 import './DroppableComponent.css';
 
-const componentMap = {
-  button: Button,
-  input: Input,
-  card: Card,
-  text: Text,
-  container: Container,
-  form: Form,
-  image: Image,
-  link: Link,
-  heading: Heading,
-  paragraph: Paragraph,
-  list: List,
-  divider: Divider,
-  checkbox: Checkbox,
-  navigationLink: NavigationLink,
-  topbar: TopBar,
-  sidebar: SideBar,
-  grid: Grid,
-  navbar: NavBar,
-  taskbar: TaskBar,
-  badge: Badge,
-  alert: Alert,
-  avatar: Avatar,
-  progress: Progress,
-  statCard: StatCard
-};
+ensureComponentRegistry();
 
-const findComponentById = (components, id) => {
-  if (!Array.isArray(components)) {
-    return null;
-  }
-
-  for (const component of components) {
-    if (component?.id === id) {
-      return component;
-    }
-
-    if (Array.isArray(component?.children)) {
-      const match = findComponentById(component.children, id);
-      if (match) {
-        return match;
-      }
-    }
-  }
-
-  return null;
-};
-
-const removeComponentById = (components, id) => {
-  if (!Array.isArray(components) || components.length === 0) {
-    return components;
-  }
-
-  let hasChanges = false;
-
-  const nextComponents = components.reduce((acc, component) => {
-    if (component?.id === id) {
-      hasChanges = true;
-      return acc;
-    }
-
-    if (!Array.isArray(component?.children) || component.children.length === 0) {
-      acc.push(component);
-      return acc;
-    }
-
-    const nextChildren = removeComponentById(component.children, id);
-    if (nextChildren !== component.children) {
-      hasChanges = true;
-      acc.push({ ...component, children: nextChildren });
-      return acc;
-    }
-
-    acc.push(component);
-    return acc;
-  }, []);
-
-  return hasChanges ? nextComponents : components;
-};
-
-const insertComponentIntoParent = (components, parentId, componentToInsert, insertIndex) => {
-  if (!Array.isArray(components) || components.length === 0) {
-    return components;
-  }
-
-  let hasChanges = false;
-
-  const nextComponents = components.map((component) => {
-    if (component.id === parentId) {
-      const currentChildren = Array.isArray(component.children) ? [...component.children] : [];
-      const safeIndex = Math.min(Math.max(insertIndex, 0), currentChildren.length);
-      currentChildren.splice(safeIndex, 0, componentToInsert);
-      hasChanges = true;
-      return { ...component, children: currentChildren };
-    }
-
-    if (Array.isArray(component.children) && component.children.length > 0) {
-      const updatedChildren = insertComponentIntoParent(component.children, parentId, componentToInsert, insertIndex);
-      if (updatedChildren !== component.children) {
-        hasChanges = true;
-        return { ...component, children: updatedChildren };
-      }
-    }
-
-    return component;
-  });
-
-  return hasChanges ? nextComponents : components;
-};
-
-const isDescendant = (component, targetId) => {
-  if (!component || !Array.isArray(component.children)) {
-    return false;
-  }
-
-  return component.children.some((child) => {
-    if (child.id === targetId) {
-      return true;
-    }
-
-    return isDescendant(child, targetId);
-  });
-};
-
-const DroppableComponent = ({ 
-  component, 
-  isSelected, 
-  onSelect, 
-  onUpdate, 
+const DroppableComponent = ({
+  component,
+  isSelected,
+  onSelect,
+  onUpdate,
   onDelete,
   onLayoutChange,
   layout,
-  selectedComponent,
+  selectedComponentId,
   onSelectComponent,
   isPreviewMode = false,
-  isDragActive = false
+  isDragActive = false,
 }) => {
-  const Component = componentMap[component.type];
+  const Component = getComponentRenderer(component.type);
   const componentRef = useRef(null);
   const clickTimeoutRef = useRef(null);
 
@@ -270,11 +127,16 @@ const DroppableComponent = ({
         children: item.component.canContainChildren ? [] : undefined
       };
       
-      const newChildren = [...(component.children || [])];
-      newChildren.splice(insertIndex, 0, newComponent);
-      
-      onUpdate(component.id, { children: newChildren });
-    } else if (item.type === 'existing') {
+    const newChildren = [...(component.children || [])];
+    newChildren.splice(insertIndex, 0, newComponent);
+    
+    onUpdate(component.id, { children: newChildren });
+    telemetry.track(TELEMETRY_EVENTS.COMPONENT_ADDED, {
+      componentType: item.componentType,
+      parentId: component.id,
+      index: insertIndex,
+    });
+  } else if (item.type === 'existing') {
       // Repositioning existing component within children
       const componentId = item.componentId;
       const children = component.children || [];
@@ -293,6 +155,11 @@ const DroppableComponent = ({
         // Insert at new position
         newChildren.splice(adjustedIndex, 0, componentToMove);
         onUpdate(component.id, { children: newChildren });
+        telemetry.track(TELEMETRY_EVENTS.COMPONENT_MOVED, {
+          componentId,
+          targetParentId: component.id,
+          index: adjustedIndex,
+        });
         return;
       }
 
@@ -310,6 +177,11 @@ const DroppableComponent = ({
       const nextLayout = insertComponentIntoParent(layoutWithoutComponent, component.id, componentFromLayout, insertIndex);
       if (nextLayout !== layoutWithoutComponent) {
         onLayoutChange(nextLayout);
+        telemetry.track(TELEMETRY_EVENTS.COMPONENT_MOVED, {
+          componentId,
+          targetParentId: component.id,
+          index: insertIndex,
+        });
       }
     }
   };
@@ -326,13 +198,13 @@ const DroppableComponent = ({
         <DroppableComponent
           key={child.id}
           component={child}
-          isSelected={!isPreviewMode && selectedComponent?.id === child.id}
-          onSelect={() => !isPreviewMode && onSelectComponent(child)}
+          isSelected={!isPreviewMode && selectedComponentId === child.id}
+          onSelect={() => !isPreviewMode && onSelectComponent(child.id)}
           onUpdate={onUpdate}
           onDelete={onDelete}
           onLayoutChange={onLayoutChange}
           layout={layout}
-          selectedComponent={selectedComponent}
+          selectedComponentId={selectedComponentId}
           onSelectComponent={onSelectComponent}
           isPreviewMode={isPreviewMode}
           isDragActive={isDragActive}
@@ -356,13 +228,13 @@ const DroppableComponent = ({
           <React.Fragment key={child.id}>
             <DroppableComponent
               component={child}
-              isSelected={!isPreviewMode && selectedComponent?.id === child.id}
-              onSelect={() => !isPreviewMode && onSelectComponent(child)}
+              isSelected={!isPreviewMode && selectedComponentId === child.id}
+              onSelect={() => !isPreviewMode && onSelectComponent(child.id)}
               onUpdate={onUpdate}
               onDelete={onDelete}
               onLayoutChange={onLayoutChange}
               layout={layout}
-              selectedComponent={selectedComponent}
+              selectedComponentId={selectedComponentId}
               onSelectComponent={onSelectComponent}
               isPreviewMode={isPreviewMode}
               isDragActive={isDragActive}

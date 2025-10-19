@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { generateReactCode, generateCSSCode, generateCompleteProject } from '../../utils/codeGenerator';
+import { generateCompleteProject } from '../../utils/codeGenerator';
 import { generateCompleteApp } from '../../utils/fullAppGenerator';
 import { createAndDownloadZip, createProjectStructureFile } from '../../utils/downloadUtils';
 import { usePages } from '../../contexts/PageContext';
@@ -50,6 +50,13 @@ const CodeViewer = ({ layout, isVisible, onClose }) => {
 
   // Download just the current page code
   const downloadPageCode = () => {
+    const componentFilesList =
+      project.componentImports.length > 0
+        ? project.componentImports
+            .map((comp) => `- ${comp.exportName}.jsx & ${comp.exportName}.css`)
+            .join('\n')
+        : '- No additional component files required';
+
     const pageInfo = `
 # ${currentPage?.name || 'Current Page'} - Code Snippet
 
@@ -75,7 +82,7 @@ ${packageJsonCode}
 4. Ensure all dependencies are installed
 
 ## Component Files Needed
-${project.componentImports.map(comp => `- ${comp}.jsx & ${comp}.css`).join('\n')}
+${componentFilesList}
 
 *Note: This is just the code for the current page. For a complete multi-page app, use "Download Complete App".*
 `;

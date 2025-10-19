@@ -5,65 +5,14 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCogs, faCode, faGridVertical, faCubes } from '@fortawesome/free-solid-svg-icons';
 import DroppableComponent from '../DroppableComponent/DroppableComponent';
 import DropZone from '../DropZone/DropZone';
+import { findComponentById, removeComponentById } from '../../utils/layoutTree';
+import { telemetry, TELEMETRY_EVENTS } from '../../utils/telemetry';
 import './Canvas.css';
-
-const findComponentById = (components, id) => {
-  if (!Array.isArray(components)) {
-    return null;
-  }
-
-  for (const component of components) {
-    if (component?.id === id) {
-      return component;
-    }
-
-    if (Array.isArray(component?.children)) {
-      const match = findComponentById(component.children, id);
-      if (match) {
-        return match;
-      }
-    }
-  }
-
-  return null;
-};
-
-const removeComponentById = (components, id) => {
-  if (!Array.isArray(components) || components.length === 0) {
-    return components;
-  }
-
-  let hasChanges = false;
-
-  const nextComponents = components.reduce((acc, component) => {
-    if (component?.id === id) {
-      hasChanges = true;
-      return acc;
-    }
-
-    if (!Array.isArray(component?.children) || component.children.length === 0) {
-      acc.push(component);
-      return acc;
-    }
-
-    const nextChildren = removeComponentById(component.children, id);
-    if (nextChildren !== component.children) {
-      hasChanges = true;
-      acc.push({ ...component, children: nextChildren });
-      return acc;
-    }
-
-    acc.push(component);
-    return acc;
-  }, []);
-
-  return hasChanges ? nextComponents : components;
-};
 
 const Canvas = ({
   layout,
   onLayoutChange,
-  selectedComponent,
+  selectedComponentId,
   onSelectComponent,
   isPreviewMode = false,
 }) => {
@@ -80,16 +29,21 @@ const Canvas = ({
         }
 
         if (item.type === 'component') {
-          const newComponent = {
-            id: uuidv4(),
-            type: item.componentType,
-            props: { ...item.component.defaultProps },
-            children: item.component.canContainChildren ? [] : undefined,
-          };
+        const newComponent = {
+          id: uuidv4(),
+          type: item.componentType,
+          props: { ...item.component.defaultProps },
+          children: item.component.canContainChildren ? [] : undefined,
+        };
 
-          onLayoutChange([...layout, newComponent]);
-          return;
-        }
+        onLayoutChange([...layout, newComponent]);
+        telemetry.track(TELEMETRY_EVENTS.COMPONENT_ADDED, {
+          componentType: item.componentType,
+          parentId: null,
+          index: layout.length,
+        });
+        return;
+      }
 
         if (item.type === 'existing') {
           const componentToMove = findComponentById(layout, item.componentId);
@@ -103,7 +57,13 @@ const Canvas = ({
             return;
           }
 
-          onLayoutChange([...layoutWithoutComponent, componentToMove]);
+          const nextLayout = [...layoutWithoutComponent, componentToMove];
+          onLayoutChange(nextLayout);
+          telemetry.track(TELEMETRY_EVENTS.COMPONENT_MOVED, {
+            componentId: componentToMove.id,
+            targetParentId: null,
+            index: layoutWithoutComponent.length,
+          });
         }
       },
       collect: (dropMonitor) => ({
@@ -125,6 +85,11 @@ const Canvas = ({
       const nextLayout = [...layout];
       nextLayout.splice(insertIndex, 0, newComponent);
       onLayoutChange(nextLayout);
+      telemetry.track(TELEMETRY_EVENTS.COMPONENT_ADDED, {
+        componentType: item.componentType,
+        parentId: null,
+        index: insertIndex,
+      });
       return;
     }
 
@@ -146,6 +111,11 @@ const Canvas = ({
       const targetIndex = currentIndex < insertIndex ? insertIndex - 1 : insertIndex;
       nextLayout.splice(targetIndex, 0, componentToMove);
       onLayoutChange(nextLayout);
+      telemetry.track(TELEMETRY_EVENTS.COMPONENT_MOVED, {
+        componentId: componentToMove.id,
+        targetParentId: null,
+        index: targetIndex,
+      });
     }
   };
 
@@ -170,13 +140,17 @@ const Canvas = ({
   };
 
   const handleComponentDelete = (componentId) => {
-    if (selectedComponent?.id === componentId) {
+    if (selectedComponentId === componentId) {
       onSelectComponent(null);
     }
 
     const nextLayout = removeComponentById(layout, componentId);
     if (nextLayout !== layout) {
       onLayoutChange(nextLayout);
+      telemetry.track(TELEMETRY_EVENTS.COMPONENT_REMOVED, {
+        componentId,
+        parentId: null,
+      });
     }
   };
 
@@ -222,17 +196,17 @@ const Canvas = ({
               <React.Fragment key={component.id}>
                 <DroppableComponent
                   component={component}
-                  isSelected={!isPreviewMode && selectedComponent?.id === component.id}
+                  isSelected={!isPreviewMode && selectedComponentId === component.id}
                   onSelect={() => {
                     if (!isPreviewMode) {
-                      onSelectComponent(component);
+                      onSelectComponent(component.id);
                     }
                   }}
                   onUpdate={handleComponentUpdate}
                   onDelete={handleComponentDelete}
                   onLayoutChange={onLayoutChange}
                   layout={layout}
-                  selectedComponent={selectedComponent}
+                  selectedComponentId={selectedComponentId}
                   onSelectComponent={onSelectComponent}
                   isPreviewMode={isPreviewMode}
                   isDragActive={isGlobalDragging}

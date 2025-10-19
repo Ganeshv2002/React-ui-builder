@@ -144,7 +144,7 @@ export default ${pageName}Page;`;
 // Generate page-specific CSS
 export const generatePageCSS = (page) => {
   const pageName = page.name.replace(/\s+/g, '');
-  const baseCss = generateCSSCode(page.layout);
+  const baseCss = generateCSSCode();
   
   return `.${pageName.toLowerCase()}-page {
   padding: 20px;

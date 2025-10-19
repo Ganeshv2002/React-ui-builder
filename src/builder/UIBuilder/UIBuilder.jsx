@@ -1,8 +1,8 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEdit, faPlay, faTrash, faFileCode, faCube, faDownload } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faPlay, faTrash, faCube, faDownload } from '@fortawesome/free-solid-svg-icons';
 import ComponentPalette from '../ComponentPalette/ComponentPalette';
 import Canvas from '../Canvas/Canvas';
 import PropertiesPanel from '../PropertiesPanel/PropertiesPanel';
@@ -12,45 +12,115 @@ import { ThemeToggle } from '../ThemeToggle/ThemeToggle';
 import { NotificationSystem, useNotifications } from '../NotificationSystem/NotificationSystem';
 import { useKeyboardShortcuts, KEYBOARD_SHORTCUTS } from '../../utils/keyboard';
 import { PageProvider, usePages } from '../../contexts/PageContext';
-import { componentDefinitions } from '../../data/componentDefinitions';
+import useEditorStore from '../../store/editorStore';
+import { ensureComponentRegistry, getComponentDefinitions } from '../componentRegistry';
+import { findComponentById, countComponents } from '../../utils/layoutTree';
+import { telemetry, TELEMETRY_EVENTS } from '../../utils/telemetry';
+import PreviewFrame from '../Preview/PreviewFrame';
 import './UIBuilder.css';
 
+ensureComponentRegistry();
+
 const UIBuilderContent = () => {
-  const [selectedComponent, setSelectedComponent] = useState(null);
-  const [showCodeViewer, setShowCodeViewer] = useState(false);
-  const [isPreviewMode, setIsPreviewMode] = useState(false);
-  const [customComponents, setCustomComponents] = useState([]);
   const notifications = useNotifications();
   const { getCurrentPage, updatePageLayout } = usePages();
-  
+
+  const selectedComponentId = useEditorStore((state) => state.selectedComponentId);
+  const isPreviewMode = useEditorStore((state) => state.isPreviewMode);
+  const isCodeViewerVisible = useEditorStore((state) => state.isCodeViewerVisible);
+  const addCustomComponent = useEditorStore((state) => state.addCustomComponent);
+  const selectComponent = useEditorStore((state) => state.selectComponent);
+  const clearSelection = useEditorStore((state) => state.clearSelection);
+  const setPreviewMode = useEditorStore((state) => state.setPreviewMode);
+  const openCodeViewer = useEditorStore((state) => state.openCodeViewer);
+  const closeCodeViewer = useEditorStore((state) => state.closeCodeViewer);
+  const customComponents = useEditorStore((state) => state.customComponents);
+
   const currentPage = getCurrentPage();
   const layout = currentPage?.layout || [];
 
-  // Combine default components with custom components
-  const allComponents = [...componentDefinitions, ...customComponents];
+  const availableComponents = useMemo(() => getComponentDefinitions(), [customComponents]);
 
-  const handleAddCustomComponent = useCallback((newComponent) => {
-    setCustomComponents(prev => [...prev, newComponent]);
-    notifications.success(`Custom component "${newComponent.name}" created successfully!`);
-  }, [notifications]);
+  const selectedComponent = useMemo(
+    () => findComponentById(layout, selectedComponentId),
+    [layout, selectedComponentId],
+  );
 
-  const handleLayoutChange = useCallback((newLayout) => {
+  const handleAddCustomComponent = useCallback(
+    (definition) => {
+      if (!definition) {
+        return;
+      }
+
+      addCustomComponent(definition);
+      notifications.success(`Custom component "${definition.name}" created successfully!`);
+    },
+    [addCustomComponent, notifications],
+  );
+
+  const handleLayoutChange = useCallback(
+    (newLayout) => {
+      const page = getCurrentPage();
+      if (page) {
+        updatePageLayout(page.id, newLayout);
+      }
+    },
+    [getCurrentPage, updatePageLayout],
+  );
+
+  const handleUpdateComponent = useCallback(
+    (componentId, updates) => {
+      const updateComponentTree = (components) =>
+        components.map((component) => {
+          if (component.id === componentId) {
+            return { ...component, ...updates };
+          }
+          if (Array.isArray(component.children) && component.children.length > 0) {
+            return { ...component, children: updateComponentTree(component.children) };
+          }
+          return component;
+        });
+
+      const page = getCurrentPage();
+      if (page) {
+        const nextLayout = updateComponentTree(page.layout || []);
+        updatePageLayout(page.id, nextLayout);
+      }
+    },
+    [getCurrentPage, updatePageLayout],
+  );
+
+  const clearLayout = useCallback(() => {
     const page = getCurrentPage();
     if (page) {
-      updatePageLayout(page.id, newLayout);
+      updatePageLayout(page.id, []);
     }
-  }, [getCurrentPage, updatePageLayout]);
+    clearSelection();
+    notifications.success('Canvas cleared successfully');
+  }, [clearSelection, getCurrentPage, notifications, updatePageLayout]);
 
-  // Keyboard shortcuts
+  const exportCode = useCallback(() => {
+    openCodeViewer();
+    telemetry.track(TELEMETRY_EVENTS.CODE_EXPORTED, {
+      componentCount: countComponents(layout),
+    });
+    notifications.success('Code exported successfully');
+  }, [layout, notifications, openCodeViewer]);
+
+  const handlePreviewToggle = useCallback(() => {
+    const nextMode = !isPreviewMode;
+    setPreviewMode(nextMode);
+    notifications.info(`${nextMode ? 'Entered' : 'Exited'} preview mode`);
+  }, [isPreviewMode, notifications, setPreviewMode]);
+
   useKeyboardShortcuts([
     {
       ...KEYBOARD_SHORTCUTS.PREVIEW,
       action: () => {
         if (layout.length > 0 || isPreviewMode) {
-          setIsPreviewMode(!isPreviewMode);
-          notifications.info(`${isPreviewMode ? 'Exited' : 'Entered'} preview mode`);
+          handlePreviewToggle();
         }
-      }
+      },
     },
     {
       ...KEYBOARD_SHORTCUTS.EXPORT,
@@ -58,7 +128,7 @@ const UIBuilderContent = () => {
         if (layout.length > 0) {
           exportCode();
         }
-      }
+      },
     },
     {
       ...KEYBOARD_SHORTCUTS.CLEAR,
@@ -66,58 +136,9 @@ const UIBuilderContent = () => {
         if (layout.length > 0) {
           clearLayout();
         }
-      }
-    }
+      },
+    },
   ]);
-
-  const handleSelectComponent = useCallback((component) => {
-    setSelectedComponent(component);
-  }, []);
-
-  const handleUpdateComponent = useCallback((componentId, updates) => {
-    const updateComponent = (components) => {
-      return components.map(component => {
-        if (component.id === componentId) {
-          return { ...component, ...updates };
-        }
-        if (component.children) {
-          return {
-            ...component,
-            children: updateComponent(component.children)
-          };
-        }
-        return component;
-      });
-    };
-    
-    const currentPage = getCurrentPage();
-    if (currentPage) {
-      const newLayout = updateComponent(currentPage.layout || []);
-      updatePageLayout(currentPage.id, newLayout);
-    }
-    
-    // Update selectedComponent only if it's the one being updated
-    setSelectedComponent(prevSelected => {
-      if (prevSelected?.id === componentId) {
-        return { ...prevSelected, ...updates };
-      }
-      return prevSelected;
-    });
-  }, [getCurrentPage, updatePageLayout]);
-
-  const clearLayout = () => {
-    const currentPage = getCurrentPage();
-    if (currentPage) {
-      updatePageLayout(currentPage.id, []);
-    }
-    setSelectedComponent(null);
-    notifications.success('Canvas cleared successfully');
-  };
-
-  const exportCode = useCallback(() => {
-    setShowCodeViewer(true);
-    notifications.success('Code exported successfully');
-  }, [notifications]);
 
   return (
     <div className="ui-builder">
@@ -132,32 +153,30 @@ const UIBuilderContent = () => {
         </div>
         <div className="header-controls">
           <ThemeToggle />
-          {/* <div className="control-group"> */}
-            <button 
-              className={`btn btn-primary`}
-              onClick={() => setIsPreviewMode(!isPreviewMode)}
-              disabled={layout.length === 0 && !isPreviewMode}
-              title={isPreviewMode ? 'Exit Preview Mode' : 'Preview Mode - Test your layout'}
-            >
-              <FontAwesomeIcon icon={isPreviewMode ? faEdit : faPlay} /> {isPreviewMode ? 'Edit' : 'Preview'}
-            </button>
-            <button 
-              className="btn btn-primary"
-              onClick={clearLayout}
-              disabled={layout.length === 0}
-              title="Clear all components from canvas"
-            >
-              <FontAwesomeIcon icon={faTrash} /> Clear
-            </button>
-            <button 
-              className="btn btn-primary"
-              onClick={exportCode}
-              disabled={layout.length === 0}
-              title="Export React code"
-            >
-              <FontAwesomeIcon icon={faDownload} /> Export
-            </button>
-          {/* </div> */}
+          <button
+            className="btn btn-primary"
+            onClick={handlePreviewToggle}
+            disabled={layout.length === 0 && !isPreviewMode}
+            title={isPreviewMode ? 'Exit Preview Mode' : 'Preview Mode - Test your layout'}
+          >
+            <FontAwesomeIcon icon={isPreviewMode ? faEdit : faPlay} /> {isPreviewMode ? 'Edit' : 'Preview'}
+          </button>
+          <button
+            className="btn btn-primary"
+            onClick={clearLayout}
+            disabled={layout.length === 0}
+            title="Clear all components from canvas"
+          >
+            <FontAwesomeIcon icon={faTrash} /> Clear
+          </button>
+          <button
+            className="btn btn-primary"
+            onClick={exportCode}
+            disabled={layout.length === 0}
+            title="Export React code"
+          >
+            <FontAwesomeIcon icon={faDownload} /> Export
+          </button>
         </div>
       </header>
 
@@ -165,19 +184,25 @@ const UIBuilderContent = () => {
         <PageManager />
         
         {!isPreviewMode && (
-          <ComponentPalette 
-            components={allComponents} 
-            onAddCustomComponent={handleAddCustomComponent}
-          />
+          <ComponentPalette components={availableComponents} onAddCustomComponent={handleAddCustomComponent} />
         )}
         
-        <Canvas
-          layout={layout}
-          onLayoutChange={handleLayoutChange}
-          selectedComponent={selectedComponent}
-          onSelectComponent={handleSelectComponent}
-          isPreviewMode={isPreviewMode}
-        />
+        {isPreviewMode ? (
+          <PreviewFrame layout={layout} />
+        ) : (
+          <Canvas
+            layout={layout}
+            onLayoutChange={handleLayoutChange}
+            selectedComponentId={selectedComponentId}
+            onSelectComponent={(id) => {
+              if (id) {
+                selectComponent(id);
+              } else {
+                clearSelection();
+              }
+            }}
+          />
+        )}
         
         {!isPreviewMode && (
           <PropertiesPanel
@@ -190,8 +215,8 @@ const UIBuilderContent = () => {
 
       <CodeViewer
         layout={layout}
-        isVisible={showCodeViewer}
-        onClose={() => setShowCodeViewer(false)}
+        isVisible={isCodeViewerVisible}
+        onClose={closeCodeViewer}
       />
 
       <NotificationSystem
