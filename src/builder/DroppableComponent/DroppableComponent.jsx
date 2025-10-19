@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import { v4 as uuidv4 } from 'uuid';
 import Button from '../../components/Button/Button';
@@ -54,6 +54,103 @@ const componentMap = {
   avatar: Avatar,
   progress: Progress,
   statCard: StatCard
+};
+
+const findComponentById = (components, id) => {
+  if (!Array.isArray(components)) {
+    return null;
+  }
+
+  for (const component of components) {
+    if (component?.id === id) {
+      return component;
+    }
+
+    if (Array.isArray(component?.children)) {
+      const match = findComponentById(component.children, id);
+      if (match) {
+        return match;
+      }
+    }
+  }
+
+  return null;
+};
+
+const removeComponentById = (components, id) => {
+  if (!Array.isArray(components) || components.length === 0) {
+    return components;
+  }
+
+  let hasChanges = false;
+
+  const nextComponents = components.reduce((acc, component) => {
+    if (component?.id === id) {
+      hasChanges = true;
+      return acc;
+    }
+
+    if (!Array.isArray(component?.children) || component.children.length === 0) {
+      acc.push(component);
+      return acc;
+    }
+
+    const nextChildren = removeComponentById(component.children, id);
+    if (nextChildren !== component.children) {
+      hasChanges = true;
+      acc.push({ ...component, children: nextChildren });
+      return acc;
+    }
+
+    acc.push(component);
+    return acc;
+  }, []);
+
+  return hasChanges ? nextComponents : components;
+};
+
+const insertComponentIntoParent = (components, parentId, componentToInsert, insertIndex) => {
+  if (!Array.isArray(components) || components.length === 0) {
+    return components;
+  }
+
+  let hasChanges = false;
+
+  const nextComponents = components.map((component) => {
+    if (component.id === parentId) {
+      const currentChildren = Array.isArray(component.children) ? [...component.children] : [];
+      const safeIndex = Math.min(Math.max(insertIndex, 0), currentChildren.length);
+      currentChildren.splice(safeIndex, 0, componentToInsert);
+      hasChanges = true;
+      return { ...component, children: currentChildren };
+    }
+
+    if (Array.isArray(component.children) && component.children.length > 0) {
+      const updatedChildren = insertComponentIntoParent(component.children, parentId, componentToInsert, insertIndex);
+      if (updatedChildren !== component.children) {
+        hasChanges = true;
+        return { ...component, children: updatedChildren };
+      }
+    }
+
+    return component;
+  });
+
+  return hasChanges ? nextComponents : components;
+};
+
+const isDescendant = (component, targetId) => {
+  if (!component || !Array.isArray(component.children)) {
+    return false;
+  }
+
+  return component.children.some((child) => {
+    if (child.id === targetId) {
+      return true;
+    }
+
+    return isDescendant(child, targetId);
+  });
 };
 
 const DroppableComponent = ({ 
@@ -196,6 +293,23 @@ const DroppableComponent = ({
         // Insert at new position
         newChildren.splice(adjustedIndex, 0, componentToMove);
         onUpdate(component.id, { children: newChildren });
+        return;
+      }
+
+      const componentFromLayout = findComponentById(layout, componentId);
+
+      if (!componentFromLayout || componentFromLayout.id === component.id || isDescendant(componentFromLayout, component.id)) {
+        return;
+      }
+
+      const layoutWithoutComponent = removeComponentById(layout, componentId);
+      if (layoutWithoutComponent === layout) {
+        return;
+      }
+
+      const nextLayout = insertComponentIntoParent(layoutWithoutComponent, component.id, componentFromLayout, insertIndex);
+      if (nextLayout !== layoutWithoutComponent) {
+        onLayoutChange(nextLayout);
       }
     }
   };
