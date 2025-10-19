@@ -1,4 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+  faCircleCheck,
+  faCircleInfo,
+  faCircleXmark,
+  faTriangleExclamation,
+} from '@fortawesome/free-solid-svg-icons';
 import './NotificationSystem.css';
 
 interface Notification {
@@ -13,50 +20,83 @@ interface NotificationSystemProps {
   onRemove: (id: string) => void;
 }
 
-export const NotificationSystem: React.FC<NotificationSystemProps> = ({ 
-  notifications, 
-  onRemove 
+const iconMap = {
+  success: faCircleCheck,
+  error: faCircleXmark,
+  warning: faTriangleExclamation,
+  info: faCircleInfo,
+} as const;
+
+const generateId = () => {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+
+  return Math.random().toString(36).slice(2, 11);
+};
+
+export const NotificationSystem: React.FC<NotificationSystemProps> = ({
+  notifications,
+  onRemove,
 }) => {
+  const timersRef = useRef<Record<string, number>>({});
+
   useEffect(() => {
-    notifications.forEach(notification => {
-      if (notification.timeout) {
-        const timer = setTimeout(() => {
-          onRemove(notification.id);
-        }, notification.timeout);
-        
-        return () => clearTimeout(timer);
+    notifications.forEach((notification) => {
+      if (!notification.timeout) {
+        return;
+      }
+
+      if (timersRef.current[notification.id]) {
+        return;
+      }
+
+      timersRef.current[notification.id] = window.setTimeout(() => {
+        onRemove(notification.id);
+        delete timersRef.current[notification.id];
+      }, notification.timeout);
+    });
+
+    Object.entries(timersRef.current).forEach(([id, timer]) => {
+      if (!notifications.some((notification) => notification.id === id)) {
+        clearTimeout(timer);
+        delete timersRef.current[id];
       }
     });
   }, [notifications, onRemove]);
 
-  const getIcon = (type: string) => {
-    switch (type) {
-      case 'success': return '✅';
-      case 'error': return '❌';
-      case 'warning': return '⚠️';
-      case 'info': return 'ℹ️';
-      default: return 'ℹ️';
-    }
-  };
+  useEffect(
+    () => () => {
+      Object.values(timersRef.current).forEach((timer) => {
+        clearTimeout(timer);
+      });
+      timersRef.current = {};
+    },
+    [],
+  );
+
+  if (notifications.length === 0) {
+    return null;
+  }
 
   return (
-    <div className="notification-container">
-      {notifications.map(notification => (
-        <div 
+    <div className="notification-container" role="status" aria-live="polite">
+      {notifications.map((notification) => (
+        <div
           key={notification.id}
           className={`notification notification--${notification.type}`}
         >
-          <span className="notification-icon">
-            {getIcon(notification.type)}
+          <span className="notification-icon" aria-hidden="true">
+            <FontAwesomeIcon icon={iconMap[notification.type]} />
           </span>
-          <span className="notification-message">
-            {notification.message}
-          </span>
-          <button 
+          <span className="notification-message">{notification.message}</span>
+          <button
+            type="button"
             className="notification-close"
+            aria-label="Dismiss notification"
             onClick={() => onRemove(notification.id)}
           >
-            ×
+            x
           </button>
         </div>
       ))}
@@ -68,12 +108,12 @@ export const useNotifications = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
   const addNotification = (notification: Omit<Notification, 'id'>) => {
-    const id = Math.random().toString(36).substr(2, 9);
-    setNotifications(prev => [...prev, { ...notification, id }]);
+    const id = generateId();
+    setNotifications((prev) => [...prev, { ...notification, id }]);
   };
 
   const removeNotification = (id: string) => {
-    setNotifications(prev => prev.filter(n => n.id !== id));
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
   };
 
   const success = (message: string, timeout = 3000) => {
@@ -99,6 +139,6 @@ export const useNotifications = () => {
     success,
     error,
     warning,
-    info
+    info,
   };
 };

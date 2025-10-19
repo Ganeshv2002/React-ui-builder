@@ -1,0 +1,39 @@
+.ui-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 10rem;
+}
+
+.ui-progress__label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
+  color: #1e293b;
+}
+
+.ui-progress__value {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.ui-progress__track {
+  position: relative;
+  height: 0.75rem;
+  width: 100%;
+  background-color: #e2e8f0;
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.ui-progress__bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 0.3s ease;
+  background-color: #2563eb;
+}

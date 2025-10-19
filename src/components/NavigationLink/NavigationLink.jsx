@@ -1,21 +1,34 @@
 import React from 'react';
 import { usePages } from '../../contexts/PageContext';
 
-const NavigationLink = ({ 
-  targetPageId, 
-  children, 
-  className = '', 
-  style = {},
-  isPreview = false,
-  ...props 
-}) => {
+const NavigationLink = (props) => {
+  const {
+    targetPageId,
+    children,
+    className = '',
+    style = {},
+    isPreview: previewProp,
+    onClick: userOnClick,
+    ...restProps
+  } = props;
+
+  const isPreviewPropProvided = Object.prototype.hasOwnProperty.call(props, 'isPreview');
+  const isPreview = Boolean(previewProp);
+
   const { setCurrentPageId, pages } = usePages();
-  
-  const targetPage = pages.find(page => page.id === targetPageId);
-  
-  const handleClick = (e) => {
-    if (isPreview && targetPage) {
-      e.preventDefault();
+  const targetPage = pages.find((page) => page.id === targetPageId);
+
+  const handleClick = (event) => {
+    if (userOnClick) {
+      userOnClick(event);
+    }
+
+    if (!targetPage || event.defaultPrevented) {
+      return;
+    }
+
+    if (isPreviewPropProvided) {
+      event.preventDefault();
       setCurrentPageId(targetPageId);
     }
   };
@@ -24,7 +37,7 @@ const NavigationLink = ({
     color: 'var(--primary)',
     textDecoration: 'underline',
     cursor: 'pointer',
-    ...style
+    ...style,
   };
 
   if (!targetPage) {
@@ -34,7 +47,6 @@ const NavigationLink = ({
       </span>
     );
   }
-
   return (
     <a
       href={targetPage.path}
@@ -42,7 +54,7 @@ const NavigationLink = ({
       className={className}
       style={linkStyle}
       title={isPreview ? `Navigate to ${targetPage.name}` : `Links to ${targetPage.name} (${targetPage.path})`}
-      {...props}
+      {...restProps}
     >
       {children || targetPage.name}
     </a>

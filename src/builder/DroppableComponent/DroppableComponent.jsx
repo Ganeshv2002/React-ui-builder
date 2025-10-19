@@ -20,6 +20,11 @@ import SideBar from '../../components/SideBar/SideBar';
 import Grid from '../../components/Grid/Grid';
 import NavBar from '../../components/NavBar/NavBar';
 import TaskBar from '../../components/TaskBar/TaskBar';
+import Badge from '../../components/Badge/Badge';
+import Alert from '../../components/Alert/Alert';
+import Avatar from '../../components/Avatar/Avatar';
+import Progress from '../../components/Progress/Progress';
+import StatCard from '../../components/StatCard/StatCard';
 import CustomComponentRenderer from '../../components/CustomComponentRenderer/CustomComponentRenderer';
 import DropZone from '../DropZone/DropZone';
 import './DroppableComponent.css';
@@ -43,7 +48,12 @@ const componentMap = {
   sidebar: SideBar,
   grid: Grid,
   navbar: NavBar,
-  taskbar: TaskBar
+  taskbar: TaskBar,
+  badge: Badge,
+  alert: Alert,
+  avatar: Avatar,
+  progress: Progress,
+  statCard: StatCard
 };
 
 const DroppableComponent = ({ 

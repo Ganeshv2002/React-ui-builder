@@ -1,11 +1,10 @@
 // Component definitions for the UI builder
-import { 
-  faSquare, 
-  faFont, 
-  faFileAlt, 
-  faListUl, 
-  faImage, 
-  faHeading, 
+import {
+  faFont,
+  faFileAlt,
+  faListUl,
+  faImage,
+  faHeading,
   faTextHeight,
   faCircle,
   faBox,
@@ -16,7 +15,12 @@ import {
   faRoute,
   faBars,
   faNavicon,
-  faTableCells
+  faTableCells,
+  faCertificate,
+  faTriangleExclamation,
+  faUserCircle,
+  faGaugeSimpleHigh,
+  faChartSimple
 } from '@fortawesome/free-solid-svg-icons';
 
 export const componentDefinitions = [
@@ -873,5 +877,244 @@ export const componentDefinitions = [
       }
     ],
     canContainChildren: true
+  },
+  {
+    id: 'badge',
+    name: 'Badge',
+    category: 'Display',
+    icon: faCertificate,
+    defaultProps: {
+      children: 'New',
+      variant: 'primary',
+      size: 'medium',
+      shape: 'rounded'
+    },
+    props: [
+      {
+        name: 'children',
+        type: 'string',
+        defaultValue: 'New',
+        label: 'Text'
+      },
+      {
+        name: 'variant',
+        type: 'select',
+        options: ['primary', 'neutral', 'success', 'warning', 'danger'],
+        defaultValue: 'primary',
+        label: 'Variant'
+      },
+      {
+        name: 'size',
+        type: 'select',
+        options: ['small', 'medium', 'large'],
+        defaultValue: 'medium',
+        label: 'Size'
+      },
+      {
+        name: 'shape',
+        type: 'select',
+        options: ['rounded', 'pill', 'square'],
+        defaultValue: 'rounded',
+        label: 'Shape'
+      }
+    ]
+  },
+  {
+    id: 'alert',
+    name: 'Alert',
+    category: 'Feedback',
+    icon: faTriangleExclamation,
+    defaultProps: {
+      title: 'Heads up!',
+      description: 'Something happened that needs your attention.',
+      variant: 'info',
+      showIcon: true
+    },
+    props: [
+      {
+        name: 'title',
+        type: 'string',
+        defaultValue: 'Heads up!',
+        label: 'Title'
+      },
+      {
+        name: 'description',
+        type: 'textarea',
+        defaultValue: 'Something happened that needs your attention.',
+        label: 'Description'
+      },
+      {
+        name: 'variant',
+        type: 'select',
+        options: ['info', 'success', 'warning', 'danger'],
+        defaultValue: 'info',
+        label: 'Variant'
+      },
+      {
+        name: 'showIcon',
+        type: 'boolean',
+        defaultValue: true,
+        label: 'Show Icon'
+      }
+    ]
+  },
+  {
+    id: 'avatar',
+    name: 'Avatar',
+    category: 'Media',
+    icon: faUserCircle,
+    defaultProps: {
+      src: '',
+      alt: 'Team member',
+      initials: 'JD',
+      size: 'md',
+      shape: 'circle',
+      status: 'none'
+    },
+    props: [
+      {
+        name: 'src',
+        type: 'string',
+        defaultValue: '',
+        label: 'Image URL',
+        placeholder: 'https://example.com/avatar.png'
+      },
+      {
+        name: 'alt',
+        type: 'string',
+        defaultValue: 'Team member',
+        label: 'Alt Text'
+      },
+      {
+        name: 'initials',
+        type: 'string',
+        defaultValue: 'JD',
+        label: 'Initials'
+      },
+      {
+        name: 'size',
+        type: 'select',
+        options: ['xs', 'sm', 'md', 'lg', 'xl'],
+        defaultValue: 'md',
+        label: 'Size'
+      },
+      {
+        name: 'shape',
+        type: 'select',
+        options: ['circle', 'square'],
+        defaultValue: 'circle',
+        label: 'Shape'
+      },
+      {
+        name: 'status',
+        type: 'select',
+        options: ['none', 'online', 'offline', 'busy'],
+        defaultValue: 'none',
+        label: 'Status Indicator'
+      }
+    ]
+  },
+  {
+    id: 'progress',
+    name: 'Progress',
+    category: 'Feedback',
+    icon: faGaugeSimpleHigh,
+    defaultProps: {
+      value: 60,
+      max: 100,
+      label: 'Progress',
+      showLabel: true,
+      color: '#2563eb'
+    },
+    props: [
+      {
+        name: 'value',
+        type: 'number',
+        defaultValue: 60,
+        label: 'Value',
+        min: 0,
+        max: 100
+      },
+      {
+        name: 'max',
+        type: 'number',
+        defaultValue: 100,
+        label: 'Maximum',
+        min: 1,
+        max: 1000
+      },
+      {
+        name: 'label',
+        type: 'string',
+        defaultValue: 'Progress',
+        label: 'Label'
+      },
+      {
+        name: 'showLabel',
+        type: 'boolean',
+        defaultValue: true,
+        label: 'Show Label'
+      },
+      {
+        name: 'color',
+        type: 'color',
+        defaultValue: '#2563eb',
+        label: 'Bar Color'
+      }
+    ]
+  },
+  {
+    id: 'statCard',
+    name: 'Stat Card',
+    category: 'Data',
+    icon: faChartSimple,
+    defaultProps: {
+      title: 'Total Revenue',
+      value: '$24,500',
+      change: '+12% vs last month',
+      trend: 'up',
+      variant: 'neutral',
+      helperText: 'Updated just now'
+    },
+    props: [
+      {
+        name: 'title',
+        type: 'string',
+        defaultValue: 'Total Revenue',
+        label: 'Title'
+      },
+      {
+        name: 'value',
+        type: 'string',
+        defaultValue: '$24,500',
+        label: 'Value'
+      },
+      {
+        name: 'change',
+        type: 'string',
+        defaultValue: '+12% vs last month',
+        label: 'Change'
+      },
+      {
+        name: 'trend',
+        type: 'select',
+        options: ['up', 'down', 'neutral'],
+        defaultValue: 'up',
+        label: 'Trend'
+      },
+      {
+        name: 'variant',
+        type: 'select',
+        options: ['neutral', 'accent'],
+        defaultValue: 'neutral',
+        label: 'Variant'
+      },
+      {
+        name: 'helperText',
+        type: 'string',
+        defaultValue: 'Updated just now',
+        label: 'Helper Text'
+      }
+    ]
   }
 ];
