@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+﻿import React, { useEffect, useMemo, useState } from 'react';
 import { useDrag } from 'react-dnd';
 import { Resizable } from 'react-resizable';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -8,7 +8,7 @@ import CreateComponentModal from '../../components/CreateComponentModal';
 import './ComponentPalette.css';
 import 'react-resizable/css/styles.css';
 
-const DraggableComponent = ({ component }) => {
+const DraggableComponent = ({ component, onInsert }) => {
   const [{ isDragging }, drag] = useDrag(
     () => ({
       type: 'component',
@@ -28,6 +28,7 @@ const DraggableComponent = ({ component }) => {
     <div
       ref={drag}
       className={`draggable-component ${isDragging ? 'dragging' : ''}`}
+      onDoubleClick={() => onInsert?.(component)}
     >
       <span className="component-icon">
         {typeof component.icon === 'string' ? (
@@ -41,9 +42,54 @@ const DraggableComponent = ({ component }) => {
   );
 };
 
-const ComponentPalette = ({ components = [], onAddCustomComponent }) => {
-  const [paletteWidth, setPaletteWidth] = useState(280);
+const ComponentPalette = ({
+  components = [],
+  onAddCustomComponent,
+  onComponentClick,
+  searchValue = '',
+  onSearchChange,
+  width,
+  minWidth = 260,
+  maxWidth = 420,
+  onWidthChange,
+}) => {
+  const defaultWidth = Math.min(Math.max(300, minWidth), maxWidth);
+  const isControlledWidth = typeof width === 'number';
+  const [uncontrolledWidth, setUncontrolledWidth] = useState(width ?? defaultWidth);
+  const paletteWidth = isControlledWidth ? width : uncontrolledWidth;
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [localSearch, setLocalSearch] = useState(searchValue);
+
+  useEffect(() => {
+    setLocalSearch(searchValue);
+  }, [searchValue]);
+
+  useEffect(() => {
+    if (!isControlledWidth && typeof width === 'number' && !Number.isNaN(width)) {
+      const bounded = Math.min(Math.max(Math.round(width), minWidth), maxWidth);
+      setUncontrolledWidth(bounded);
+    }
+  }, [isControlledWidth, maxWidth, minWidth, width]);
+
+  const updateWidth = (nextWidth) => {
+    const numeric = typeof nextWidth === 'number' ? nextWidth : Number(nextWidth);
+    if (Number.isNaN(numeric)) {
+      return;
+    }
+    const bounded = Math.min(Math.max(Math.round(numeric), minWidth), maxWidth);
+    if (typeof onWidthChange === 'function') {
+      onWidthChange(bounded);
+    }
+    if (!isControlledWidth) {
+      setUncontrolledWidth(bounded);
+    }
+  };
+
+  const handleSearchChange = (event) => {
+    const value = event.target.value;
+    setLocalSearch(value);
+    onSearchChange?.(value);
+  };
 
   const groupedComponents = useMemo(() => {
     const buckets = new Map();
@@ -64,7 +110,9 @@ const ComponentPalette = ({ components = [], onAddCustomComponent }) => {
       .sort(([categoryA], [categoryB]) => categoryA.localeCompare(categoryB))
       .map(([category, items]) => [
         category,
-        items.slice().sort((a, b) => a.name.localeCompare(b.name)),
+        items
+          .slice()
+          .sort((a, b) => a.name.localeCompare(b.name)),
       ]);
   }, [components]);
 
@@ -119,13 +167,30 @@ const ComponentPalette = ({ components = [], onAddCustomComponent }) => {
     <Resizable
       width={paletteWidth}
       height={0}
-      onResize={(event, { size }) => setPaletteWidth(size.width)}
+      onResize={(event, { size }) => updateWidth(size.width)}
+      onResizeStop={(event, { size }) => updateWidth(size.width)}
       resizeHandles={['e']}
-      minConstraints={[200, 0]}
-      maxConstraints={[400, 0]}
+      minConstraints={[minWidth, 0]}
+      maxConstraints={[maxWidth, 0]}
     >
       <div className="component-palette" style={{ width: paletteWidth }}>
-        <h3>Components</h3>
+        <div className="component-palette__header">
+          <div className="component-palette__header-meta">
+            <h3>Components</h3>
+            <p>Browse the library and drag to canvas</p>
+          </div>
+          <span className="component-palette__count">{components.length}</span>
+        </div>
+
+        <div className="component-palette__search">
+          <input
+            type="search"
+            value={localSearch}
+            onChange={handleSearchChange}
+            placeholder="Search components..."
+            aria-label="Search components"
+          />
+        </div>
 
         <div className="create-component-section">
           <button
@@ -144,16 +209,31 @@ const ComponentPalette = ({ components = [], onAddCustomComponent }) => {
           </p>
         </div>
 
-        {groupedComponents.map(([category, categoryComponents]) => (
-          <div key={category} className="component-category">
-            <h4>{category}</h4>
-            <div className="component-list">
-              {categoryComponents.map((component) => (
-                <DraggableComponent key={component.id} component={component} />
-              ))}
+        <div className="component-palette__scroll">
+          {groupedComponents.length === 0 ? (
+            <div className="component-palette__empty">
+              <p>No components match "{localSearch.trim()}".</p>
             </div>
-          </div>
-        ))}
+          ) : (
+            groupedComponents.map(([category, categoryComponents]) => (
+              <div key={category} className="component-category">
+                <header className="component-category__header">
+                  <h4>{category}</h4>
+                  <span>{categoryComponents.length}</span>
+                </header>
+                <div className="component-list">
+                  {categoryComponents.map((component) => (
+                    <DraggableComponent
+                      key={component.id}
+                      component={component}
+                      onInsert={(item) => onComponentClick?.(item.id)}
+                    />
+                  ))}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
 
         <div className="palette-footer">
           <p className="help-text">

@@ -1,42 +1,45 @@
 .drop-zone {
   position: relative;
-  height: 2px;
   width: 100%;
-  transition: all 0.2s ease;
-  opacity: 0;
-  margin: 2px 0;
+  height: 4px;
+  margin: 6px 0;
+  border-radius: 8px;
   background: transparent;
-  border-radius: 2px;
+  opacity: 0;
+  transition: opacity 0.15s ease, height 0.2s ease, background 0.2s ease;
 }
 
 .drop-zone--visible {
   opacity: 0;
-  height: 2px;
 }
 
 .canvas--dragging .drop-zone {
-  opacity: 0.2;
-  height: 4px;
-  background: linear-gradient(90deg, transparent, var(--primary), transparent);
+  opacity: 0.35;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(var(--primary-rgb, 59, 130, 246), 0.35) 50%,
+    transparent 100%
+  );
 }
 
-/* Drop zones within containers should be more subtle */
-.droppable-component.canvas--dragging .drop-zone {
-  opacity: 0.15;
-  height: 3px;
-  margin: 1px 0;
-  background: linear-gradient(90deg, transparent, var(--primary), transparent);
+.canvas--dragging .drop-zone:hover {
+  opacity: 0.7;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(var(--primary-rgb, 59, 130, 246), 0.6) 50%,
+    transparent 100%
+  );
 }
 
 .drop-zone--over {
   opacity: 1;
-  height: 40px;
-  background: linear-gradient(135deg, 
-    rgba(var(--primary-rgb), 0.1) 0%, 
-    rgba(var(--primary-rgb), 0.05) 100%);
-  border: 2px dashed var(--primary);
-  border-radius: 8px;
-  margin: 8px 0;
+  height: 48px;
+  background: rgba(var(--primary-rgb, 59, 130, 246), 0.1);
+  border: 2px dashed rgba(var(--primary-rgb, 59, 130, 246), 0.4);
+  border-radius: 16px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.45);
 }
 
 .drop-zone-indicator {
@@ -44,35 +47,13 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: var(--primary);
-  color: white;
-  padding: 4px 12px;
-  border-radius: 16px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--bg, #ffffff);
+  border: 1px solid rgba(var(--primary-rgb, 59, 130, 246), 0.35);
+  color: var(--primary, #3b82f6);
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 600;
+  box-shadow: 0 12px 24px rgba(var(--primary-rgb, 59, 130, 246), 0.2);
   white-space: nowrap;
-  box-shadow: 0 2px 8px rgba(var(--primary-rgb), 0.3);
-  animation: dropZonePulse 0.6s ease-in-out infinite alternate;
-}
-
-@keyframes dropZonePulse {
-  0% {
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 0.8;
-  }
-  100% {
-    transform: translate(-50%, -50%) scale(1.05);
-    opacity: 1;
-  }
-}
-
-/* Show drop zones when dragging */
-.canvas--dragging .drop-zone {
-  opacity: 0.3;
-  background: linear-gradient(90deg, transparent, var(--border), transparent);
-}
-
-.canvas--dragging .drop-zone:hover {
-  opacity: 0.6;
-  background: linear-gradient(90deg, transparent, var(--primary), transparent);
 }

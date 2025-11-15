@@ -1,15 +1,12 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { 
-  faPlus, 
-  faHome, 
-  faTrash, 
-  faCopy, 
-  faEdit, 
-  faEye,
-  faCode,
+import {
+  faPlus,
+  faHome,
+  faTrash,
+  faCopy,
+  faEdit,
   faRoute,
-  faGlobe
 } from '@fortawesome/free-solid-svg-icons';
 import { usePages } from '../../contexts/PageContext';
 import './PageManager.css';
@@ -23,195 +20,186 @@ const PageManager = () => {
     deletePage,
     updatePage,
     duplicatePage,
-    getPageRoutes
+    getPageRoutes,
   } = usePages();
 
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [showRoutes, setShowRoutes] = useState(false);
+  const [isCreateVisible, setIsCreateVisible] = useState(false);
   const [newPageName, setNewPageName] = useState('');
   const [newPagePath, setNewPagePath] = useState('');
   const [editingPage, setEditingPage] = useState(null);
 
-  const handleAddPage = () => {
-    if (newPageName.trim()) {
-      const page = addPage(newPageName.trim(), newPagePath.trim());
-      setCurrentPageId(page.id);
-      setNewPageName('');
-      setNewPagePath('');
-      setShowAddForm(false);
-    }
-  };
+  const routes = useMemo(() => getPageRoutes(), [getPageRoutes, pages]);
 
-  const handleEditPage = (page) => {
-    setEditingPage(page);
-    setNewPageName(page.name);
-    setNewPagePath(page.path);
-  };
-
-  const handleUpdatePage = () => {
-    if (editingPage && newPageName.trim()) {
-      updatePage(editingPage.id, {
-        name: newPageName.trim(),
-        path: newPagePath.trim() || `/${newPageName.toLowerCase().replace(/\s+/g, '-')}`
-      });
-      setEditingPage(null);
-      setNewPageName('');
-      setNewPagePath('');
-    }
-  };
-
-  const handleDuplicatePage = (pageId) => {
-    const newPage = duplicatePage(pageId);
-    if (newPage) {
-      setCurrentPageId(newPage.id);
-    }
+  const resetForm = () => {
+    setIsCreateVisible(false);
+    setEditingPage(null);
+    setNewPageName('');
+    setNewPagePath('');
   };
 
   const generatePathFromName = (name) => {
+    if (!name) {
+      return '/';
+    }
     return `/${name.toLowerCase().replace(/\s+/g, '-')}`;
   };
 
-  const routes = getPageRoutes();
+  const handleCreateOrUpdate = () => {
+    if (!newPageName.trim()) {
+      return;
+    }
+
+    if (editingPage) {
+      updatePage(editingPage.id, {
+        name: newPageName.trim(),
+        path: newPagePath.trim() || generatePathFromName(newPageName),
+      });
+      resetForm();
+      return;
+    }
+
+    const page = addPage(newPageName.trim(), newPagePath.trim());
+    setCurrentPageId(page.id);
+    resetForm();
+  };
+
+  const handleEdit = (page) => {
+    setEditingPage(page);
+    setNewPageName(page.name);
+    setNewPagePath(page.path);
+    setIsCreateVisible(true);
+  };
 
   return (
-    <div className="page-manager">
-      <div className="page-manager-header">
-        <h3>
-          <FontAwesomeIcon icon={faGlobe} />
-          Pages & Routes
-        </h3>
-        <div className="page-actions">
-          <button
-            className="btn-icon"
-            onClick={() => setShowRoutes(!showRoutes)}
-            title="View all routes"
-          >
-            <FontAwesomeIcon icon={faRoute} />
-          </button>
-          <button
-            className="btn-icon btn-primary"
-            onClick={() => setShowAddForm(!showAddForm)}
-            title="Add new page"
-          >
-            <FontAwesomeIcon icon={faPlus} />
-          </button>
+    <div className="page-panel">
+      <div className="page-panel__header">
+        <div>
+          <h3>Pages & Routes</h3>
+          <span>{pages.length} total</span>
         </div>
+        <button
+          type="button"
+          className="page-panel__add"
+          onClick={() => {
+            setIsCreateVisible((value) => !value);
+            setEditingPage(null);
+            setNewPageName('');
+            setNewPagePath('');
+          }}
+        >
+          <FontAwesomeIcon icon={faPlus} />
+          <span>Add page</span>
+        </button>
       </div>
 
-      {showRoutes && (
-        <div className="routes-panel">
-          <h4>Available Routes</h4>
-          <div className="routes-list">
-            {routes.map(route => (
-              <div key={route.id} className="route-item">
-                <code>{route.path}</code>
-                <span>→ {route.name}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {(showAddForm || editingPage) && (
-        <div className="add-page-form">
-          <h4>{editingPage ? 'Edit Page' : 'Add New Page'}</h4>
-          <div className="form-group">
-            <label>Page Name</label>
+      {isCreateVisible && (
+        <div className="page-panel__form">
+          <div className="page-panel__form-field">
+            <label>Page name</label>
             <input
               type="text"
               value={newPageName}
-              onChange={(e) => {
-                setNewPageName(e.target.value);
-                if (!editingPage && !newPagePath) {
-                  setNewPagePath(generatePathFromName(e.target.value));
+              onChange={(event) => {
+                setNewPageName(event.target.value);
+                if (!editingPage) {
+                  setNewPagePath(generatePathFromName(event.target.value));
                 }
               }}
-              placeholder="e.g., About Us"
+              placeholder="e.g. Pricing"
               autoFocus
             />
           </div>
-          <div className="form-group">
-            <label>Route Path</label>
+          <div className="page-panel__form-field">
+            <label>Route path</label>
             <input
               type="text"
               value={newPagePath}
-              onChange={(e) => setNewPagePath(e.target.value)}
-              placeholder="e.g., /about-us"
+              onChange={(event) => setNewPagePath(event.target.value)}
+              placeholder="e.g. /pricing"
             />
           </div>
-          <div className="form-actions">
-            <button
-              className="btn-secondary"
-              onClick={() => {
-                setShowAddForm(false);
-                setEditingPage(null);
-                setNewPageName('');
-                setNewPagePath('');
-              }}
-            >
+          <div className="page-panel__form-actions">
+            <button type="button" onClick={resetForm}>
               Cancel
             </button>
             <button
-              className="btn-primary"
-              onClick={editingPage ? handleUpdatePage : handleAddPage}
+              type="button"
+              className="primary"
+              onClick={handleCreateOrUpdate}
               disabled={!newPageName.trim()}
             >
-              {editingPage ? 'Update' : 'Create'} Page
+              {editingPage ? 'Save changes' : 'Create page'}
             </button>
           </div>
         </div>
       )}
 
-      <div className="pages-list">
-        {pages.map(page => (
-          <div
-            key={page.id}
-            className={`page-item ${currentPageId === page.id ? 'active' : ''}`}
-          >
+      <div className="page-panel__routes">
+        <FontAwesomeIcon icon={faRoute} aria-hidden="true" />
+        <span>{routes.length} routes generated</span>
+      </div>
+
+      <div className="page-panel__list">
+        {pages.map((page) => {
+          const isActive = currentPageId === page.id;
+          return (
             <div
-              className="page-info"
+              key={page.id}
+              className={`page-card ${isActive ? 'is-active' : ''}`}
+              role="button"
+              tabIndex={0}
               onClick={() => setCurrentPageId(page.id)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  setCurrentPageId(page.id);
+                }
+              }}
             >
-              <div className="page-name">
-                {page.isHome && <FontAwesomeIcon icon={faHome} />}
-                <span>{page.name}</span>
-                <small>{page.path}</small>
+              <div className="page-card__icon">
+                <FontAwesomeIcon icon={page.isHome ? faHome : faRoute} />
               </div>
-              <div className="page-meta">
-                <span className="component-count">
-                  {page.layout.length} components
-                </span>
+              <div className="page-card__meta">
+                <div className="page-card__title">{page.name}</div>
+                <div className="page-card__path">{page.path}</div>
               </div>
-            </div>
-            
-            <div className="page-actions">
-              <button
-                className="btn-icon"
-                onClick={() => handleEditPage(page)}
-                title="Edit page"
-                disabled={page.isHome}
-              >
-                <FontAwesomeIcon icon={faEdit} />
-              </button>
-              <button
-                className="btn-icon"
-                onClick={() => handleDuplicatePage(page.id)}
-                title="Duplicate page"
-              >
-                <FontAwesomeIcon icon={faCopy} />
-              </button>
-              {!page.isHome && (
+              <div className="page-card__actions">
                 <button
-                  className="btn-icon btn-danger"
-                  onClick={() => deletePage(page.id)}
-                  title="Delete page"
+                  type="button"
+                  title="Rename page"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    handleEdit(page);
+                  }}
+                  disabled={page.isHome}
                 >
-                  <FontAwesomeIcon icon={faTrash} />
+                  <FontAwesomeIcon icon={faEdit} />
                 </button>
-              )}
+                <button
+                  type="button"
+                  title="Duplicate page"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    duplicatePage(page.id);
+                  }}
+                >
+                  <FontAwesomeIcon icon={faCopy} />
+                </button>
+                {!page.isHome && (
+                  <button
+                    type="button"
+                    title="Delete page"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      deletePage(page.id);
+                    }}
+                  >
+                    <FontAwesomeIcon icon={faTrash} />
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

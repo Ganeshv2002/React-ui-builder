@@ -3,6 +3,8 @@ import { useDrag, useDrop } from 'react-dnd';
 import { v4 as uuidv4 } from 'uuid';
 import CustomComponentRenderer from '../../components/CustomComponentRenderer/CustomComponentRenderer';
 import DropZone from '../DropZone/DropZone';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faGripVertical, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { ensureComponentRegistry, getComponentRenderer } from '../componentRegistry';
 import { findComponentById, insertComponentIntoParent, isDescendant, removeComponentById } from '../../utils/layoutTree';
 import { telemetry, TELEMETRY_EVENTS } from '../../utils/telemetry';
@@ -261,7 +263,7 @@ const DroppableComponent = ({
   // In preview mode, render without resize functionality
   if (isPreviewMode) {
     return (
-      <div 
+      <div
         ref={(node) => {
           if (node) {
             componentRef.current = node;
@@ -291,7 +293,7 @@ const DroppableComponent = ({
   }
 
   return (
-    <div 
+    <div
       ref={(node) => {
         if (node && !isPreviewMode) {
           componentRef.current = node;
@@ -316,8 +318,9 @@ const DroppableComponent = ({
         </Component>
       )}
       {isSelected && !isPreviewMode && (
-        <div className="component-controls">
-          <div 
+        <div className="component-controls" onClick={(event) => event.stopPropagation()}>
+          <button
+            type="button"
             ref={(node) => {
               if (node && !isPreviewMode) {
                 drag(node);
@@ -325,26 +328,19 @@ const DroppableComponent = ({
             }}
             className="drag-handle"
             title="Drag to move"
-            onClick={(e) => e.stopPropagation()}
           >
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
-              <circle cx="3" cy="3" r="1"/>
-              <circle cx="9" cy="3" r="1"/>
-              <circle cx="3" cy="9" r="1"/>
-              <circle cx="9" cy="9" r="1"/>
-              <circle cx="6" cy="3" r="1"/>
-              <circle cx="3" cy="6" r="1"/>
-              <circle cx="9" cy="6" r="1"/>
-              <circle cx="6" cy="9" r="1"/>
-              <circle cx="6" cy="6" r="1"/>
-            </svg>
-          </div>
-          <button 
+            <FontAwesomeIcon icon={faGripVertical} />
+          </button>
+          <button
+            type="button"
             className="delete-btn"
-            onClick={handleDelete}
+            onClick={(event) => {
+              event.stopPropagation();
+              handleDelete(event);
+            }}
             title="Delete component"
           >
-            ×
+            <FontAwesomeIcon icon={faTrash} />
           </button>
         </div>
       )}
@@ -353,3 +349,4 @@ const DroppableComponent = ({
 };
 
 export default DroppableComponent;
+

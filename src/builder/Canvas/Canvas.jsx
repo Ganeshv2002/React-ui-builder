@@ -1,8 +1,8 @@
-import React from 'react';
+﻿import React from 'react';
 import { useDrop, useDragDropManager } from 'react-dnd';
 import { v4 as uuidv4 } from 'uuid';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCogs, faCode, faGridVertical, faCubes } from '@fortawesome/free-solid-svg-icons';
+import { faCubes } from '@fortawesome/free-solid-svg-icons';
 import DroppableComponent from '../DroppableComponent/DroppableComponent';
 import DropZone from '../DropZone/DropZone';
 import { findComponentById, removeComponentById } from '../../utils/layoutTree';
@@ -15,10 +15,15 @@ const Canvas = ({
   selectedComponentId,
   onSelectComponent,
   isPreviewMode = false,
+  canvasDimensions = { width: 1440, height: 900 },
+  canvasZoom = 1,
 }) => {
   const manager = useDragDropManager();
   const monitor = manager.getMonitor();
   const isGlobalDragging = monitor.isDragging();
+  const { width, height } = canvasDimensions;
+  const scaledWidth = width * canvasZoom;
+  const scaledHeight = height * canvasZoom;
 
   const [{ isOver }, drop] = useDrop(
     () => ({
@@ -156,69 +161,70 @@ const Canvas = ({
 
   return (
     <div className="canvas-container">
-      <div
-        ref={!isPreviewMode ? drop : null}
-        className={`canvas ${isPreviewMode ? 'canvas--preview' : ''} ${isOver ? 'canvas--over' : ''} ${
-          layout.length === 0 ? 'canvas--empty' : ''
-        } ${isGlobalDragging ? 'canvas--dragging' : ''}`}
-        onClick={(event) => {
-          if (!isPreviewMode && event.target === event.currentTarget) {
-            onSelectComponent(null);
-          }
-        }}
-      >
-        {layout.length === 0 ? (
-          !isPreviewMode && (
-            <div className="canvas-placeholder">
-              <div className="placeholder-icon">
-                <FontAwesomeIcon icon={faCubes} />
-              </div>
-              <p>Start Building Your UI</p>
-              <small>Drag components from the left panel to create your layout</small>
-              <div className="placeholder-features">
-                <span>
-                  <FontAwesomeIcon icon={faGridVertical} /> Drag & Drop
-                </span>
-                <span>
-                  <FontAwesomeIcon icon={faCogs} /> Live Preview
-                </span>
-                <span>
-                  <FontAwesomeIcon icon={faCode} /> Code Export
-                </span>
-              </div>
+      <div className="canvas-stage">
+        <div className="canvas-frame-viewport" style={{ width: scaledWidth, height: scaledHeight }}>
+          <div
+            className={`canvas-frame ${isGlobalDragging ? 'canvas-frame--dragging' : ''}`}
+            style={{ width, height, transform: `scale(${canvasZoom})`, transformOrigin: 'top left' }}
+          >
+            <div
+              ref={!isPreviewMode ? drop : null}
+              className={`canvas ${isPreviewMode ? 'canvas--preview' : ''} ${isOver ? 'canvas--over' : ''} ${
+                layout.length === 0 ? 'canvas--empty' : ''
+              }`}
+              style={{ width, height }}
+              onClick={(event) => {
+                if (!isPreviewMode && event.target === event.currentTarget) {
+                  onSelectComponent(null);
+                }
+              }}
+            >
+              {layout.length === 0 ? (
+                !isPreviewMode && (
+                  <div className="canvas-placeholder">
+                    <div className="canvas-placeholder__card">
+                      <div className="canvas-placeholder__icon">
+                        <FontAwesomeIcon icon={faCubes} />
+                      </div>
+                      <h2>Drag and drop components here</h2>
+                      <p>or use AI to generate your UI</p>
+                    </div>
+                  </div>
+                )
+              ) : (
+                <div className="canvas-components">
+                  {!isPreviewMode && <DropZone onDrop={handleDropZoneDrop} index={0} isVisible />}
+
+                  {layout.map((component, index) => (
+                    <React.Fragment key={component.id}>
+                      <DroppableComponent
+                        component={component}
+                        isSelected={!isPreviewMode && selectedComponentId === component.id}
+                        onSelect={() => {
+                          if (!isPreviewMode) {
+                            onSelectComponent(component.id);
+                          }
+                        }}
+                        onUpdate={handleComponentUpdate}
+                        onDelete={handleComponentDelete}
+                        onLayoutChange={onLayoutChange}
+                        layout={layout}
+                        selectedComponentId={selectedComponentId}
+                        onSelectComponent={onSelectComponent}
+                        isPreviewMode={isPreviewMode}
+                        isDragActive={isGlobalDragging}
+                      />
+
+                      {!isPreviewMode && (
+                        <DropZone onDrop={handleDropZoneDrop} index={index + 1} isVisible />
+                      )}
+                    </React.Fragment>
+                  ))}
+                </div>
+              )}
             </div>
-          )
-        ) : (
-          <div className="canvas-components">
-            {!isPreviewMode && <DropZone onDrop={handleDropZoneDrop} index={0} isVisible />}
-
-            {layout.map((component, index) => (
-              <React.Fragment key={component.id}>
-                <DroppableComponent
-                  component={component}
-                  isSelected={!isPreviewMode && selectedComponentId === component.id}
-                  onSelect={() => {
-                    if (!isPreviewMode) {
-                      onSelectComponent(component.id);
-                    }
-                  }}
-                  onUpdate={handleComponentUpdate}
-                  onDelete={handleComponentDelete}
-                  onLayoutChange={onLayoutChange}
-                  layout={layout}
-                  selectedComponentId={selectedComponentId}
-                  onSelectComponent={onSelectComponent}
-                  isPreviewMode={isPreviewMode}
-                  isDragActive={isGlobalDragging}
-                />
-
-                {!isPreviewMode && (
-                  <DropZone onDrop={handleDropZoneDrop} index={index + 1} isVisible />
-                )}
-              </React.Fragment>
-            ))}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

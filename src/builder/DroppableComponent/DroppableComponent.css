@@ -1,26 +1,26 @@
 .droppable-component {
   position: relative;
-  margin: 4px;
-  border-radius: 4px;
-  transition: all 0.2s ease;
+  margin: 0;
+  border-radius: 12px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 
 /* Only show hover and selection styles when NOT in preview mode */
 .droppable-component:not(.preview-mode):hover {
-  outline: 2px solid #007bff;
-  outline-offset: 2px;
+  background: rgba(var(--primary-rgb, 59, 130, 246), 0.05);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.12);
+  transform: translateY(-1px);
 }
 
 .droppable-component.selected:not(.preview-mode) {
-  outline: 3px solid #007bff;
-  outline-offset: 2px;
-  background: rgba(0, 123, 255, 0.1);
-  box-shadow: 0 0 0 1px rgba(0, 123, 255, 0.3);
+  background: rgba(var(--primary-rgb, 59, 130, 246), 0.12);
+  box-shadow: 0 0 0 2px rgba(var(--primary-rgb, 59, 130, 246), 0.4),
+    0 22px 44px rgba(var(--primary-rgb, 59, 130, 246), 0.2);
 }
 
 /* Prevent hover effect on selected components */
 .droppable-component.selected:not(.preview-mode):hover {
-  outline: 3px solid #007bff;
+  transform: translateY(-1px);
 }
 
 /* In preview mode, remove all builder-specific styling */
@@ -32,70 +32,77 @@
 }
 
 .droppable-component.dragging {
-  opacity: 0.5;
+  opacity: 0.6;
+  transform: scale(0.98);
+  box-shadow: 0 20px 36px rgba(15, 23, 42, 0.18);
 }
 
 .droppable-component.drop-over {
-  background: rgba(0, 123, 255, 0.1);
-  border: 2px dashed #007bff;
+  background: rgba(var(--primary-rgb, 59, 130, 246), 0.1);
+  border: 2px dashed rgba(var(--primary-rgb, 59, 130, 246), 0.45);
+  border-radius: 16px;
 }
 
 .component-controls {
   position: absolute;
-  top: -8px;
-  right: -8px;
-  display: flex;
-  gap: 4px;
-  z-index: 1001;
-}
-
-.drag-handle {
-  width: 20px;
-  height: 20px;
-  background: #6c757d;
-  color: white;
-  border-radius: 4px;
-  cursor: move;
+  top: 8px;
+  right: 8px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  font-size: 10px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-  border: 1px solid #ffffff;
-  transition: all 0.2s ease;
+  gap: 8px;
+  padding: 4px 6px;
+  border-radius: 999px;
+  background: rgba(var(--primary-rgb, 59, 130, 246), 0.92);
+  color: #ffffff;
+  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.18);
+  z-index: 1001;
+  border: 1px solid rgba(var(--primary-rgb, 59, 130, 246), 0.5);
+  backdrop-filter: blur(14px);
 }
 
-.drag-handle:hover {
-  background: #5a6268;
-  transform: scale(1.05);
-}
-
-.drag-handle:active {
-  background: #495057;
-  transform: scale(0.95);
-}
-
-.drag-handle svg {
-  opacity: 0.9;
-}
-
+.drag-handle,
 .delete-btn {
-  width: 20px;
-  height: 20px;
-  border: none;
-  background: #dc3545;
-  color: white;
-  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  border-radius: 10px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
-  font-weight: bold;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  font-size: 14px;
+  border: 1px solid transparent;
+  transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  color: #ffffff;
+}
+
+.drag-handle {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.28);
+  cursor: grab;
+}
+
+.drag-handle:hover {
+  background: rgba(255, 255, 255, 0.22);
+  transform: translateY(-1px);
+}
+
+.drag-handle:active {
+  background: rgba(255, 255, 255, 0.18);
+  transform: scale(0.96);
+  cursor: grabbing;
+}
+
+.delete-btn {
+  background: rgba(239, 68, 68, 0.22);
+  border-color: rgba(239, 68, 68, 0.45);
 }
 
 .delete-btn:hover {
-  background: #c82333;
-  transform: scale(1.1);
+  background: rgba(239, 68, 68, 0.3);
+  transform: translateY(-1px);
+}
+
+.delete-btn:active {
+  background: rgba(239, 68, 68, 0.24);
+  transform: scale(0.96);
 }

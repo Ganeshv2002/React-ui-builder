@@ -10,12 +10,53 @@ import { getComponentDefinition } from '../componentRegistry';
 import './PropertiesPanel.css';
 import 'react-resizable/css/styles.css';
 
-const PropertiesPanel = ({ selectedComponent, onUpdateComponent, components = [] }) => {
-  const [panelWidth, setPanelWidth] = useState(300);
+const PropertiesPanel = ({
+  selectedComponent,
+  onUpdateComponent,
+  components = [],
+  width,
+  minWidth = 260,
+  maxWidth = 520,
+  onWidthChange,
+}) => {
+  const defaultWidth = Math.min(Math.max(320, minWidth), maxWidth);
+  const isControlledWidth = typeof width === 'number';
+  const [uncontrolledWidth, setUncontrolledWidth] = useState(width ?? defaultWidth);
+  const panelWidth = isControlledWidth ? width : uncontrolledWidth;
   const [variants, setVariants] = useState([]);
   const [isLoadingVariants, setIsLoadingVariants] = useState(false);
   const [variantError, setVariantError] = useState(null);
   const { pages } = usePages();
+
+  useEffect(() => {
+    if (!isControlledWidth && typeof width === 'number' && !Number.isNaN(width)) {
+      const bounded = Math.min(Math.max(Math.round(width), minWidth), maxWidth);
+      setUncontrolledWidth(bounded);
+    }
+  }, [isControlledWidth, maxWidth, minWidth, width]);
+
+  useEffect(() => {
+    if (!isControlledWidth) {
+      setUncontrolledWidth((current) => {
+        const numeric = Number.isNaN(current) ? defaultWidth : Math.round(current);
+        return Math.min(Math.max(numeric, minWidth), maxWidth);
+      });
+    }
+  }, [defaultWidth, isControlledWidth, maxWidth, minWidth]);
+
+  const updateWidth = (nextWidth) => {
+    const numeric = typeof nextWidth === 'number' ? nextWidth : Number(nextWidth);
+    if (Number.isNaN(numeric)) {
+      return;
+    }
+    const bounded = Math.min(Math.max(Math.round(numeric), minWidth), maxWidth);
+    if (typeof onWidthChange === 'function') {
+      onWidthChange(bounded);
+    }
+    if (!isControlledWidth) {
+      setUncontrolledWidth(bounded);
+    }
+  };
 
   // Load variants for the selected component type
   useEffect(() => {
@@ -51,10 +92,11 @@ const PropertiesPanel = ({ selectedComponent, onUpdateComponent, components = []
       <Resizable
         width={panelWidth}
         height={0}
-        onResize={(e, { size }) => setPanelWidth(size.width)}
+        onResize={(e, { size }) => updateWidth(size.width)}
+        onResizeStop={(e, { size }) => updateWidth(size.width)}
         resizeHandles={['w']}
-        minConstraints={[250, 0]}
-        maxConstraints={[500, 0]}
+        minConstraints={[minWidth, 0]}
+        maxConstraints={[maxWidth, 0]}
       >
         <div className="properties-panel" style={{ width: panelWidth }}>
           <h3><FontAwesomeIcon icon={faCogs} /> Properties</h3>
@@ -997,10 +1039,11 @@ const PropertiesPanel = ({ selectedComponent, onUpdateComponent, components = []
     <Resizable
       width={panelWidth}
       height={0}
-      onResize={(e, { size }) => setPanelWidth(size.width)}
+      onResize={(e, { size }) => updateWidth(size.width)}
+      onResizeStop={(e, { size }) => updateWidth(size.width)}
       resizeHandles={['w']}
-      minConstraints={[250, 0]}
-      maxConstraints={[500, 0]}
+      minConstraints={[minWidth, 0]}
+      maxConstraints={[maxWidth, 0]}
     >
       <div className="properties-panel" style={{ width: panelWidth }}>
         <h3><FontAwesomeIcon icon={faCogs} /> Properties</h3>
