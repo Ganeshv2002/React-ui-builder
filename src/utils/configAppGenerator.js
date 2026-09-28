@@ -1,5 +1,5 @@
 import { parseProject, projectJSONSchema } from '../runtime/project.js';
-const sources = import.meta.glob(['../runtime/*.{js,jsx}', '../components/*/*.{jsx,css}', '../utils/theme.css', '../contexts/FormContext.jsx'], { query: '?raw', import: 'default', eager: true });
+const sources = import.meta.glob(['../runtime/*.{js,jsx,css}', '../components/*/*.{jsx,css}', '../utils/theme.css', '../contexts/FormContext.jsx'], { query: '?raw', import: 'default', eager: true });
 
 export function generateConfigApp(input) {
   const project = parseProject(input);
@@ -12,7 +12,7 @@ export function generateConfigApp(input) {
   files['src/app.config.json'] = JSON.stringify(project, null, 2);
   files['app.schema.json'] = JSON.stringify(projectJSONSchema(), null, 2);
   files['package.json'] = JSON.stringify({ name: 'framewright-app', version: '1.0.0', private: true, type: 'module', scripts: { dev: 'vite --host 127.0.0.1', build: 'vite build', preview: 'vite preview' }, dependencies: { react: '^19.1.1', 'react-dom': '^19.1.1', zod: '^4.1.1', '@fortawesome/fontawesome-svg-core': '^7.0.0', '@fortawesome/free-solid-svg-icons': '^7.0.0', '@fortawesome/react-fontawesome': '^0.2.3' }, devDependencies: { vite: '^7.1.0', '@vitejs/plugin-react': '^4.7.0' } }, null, 2);
-  files['index.html'] = '<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Framewright App</title></head><body><div id="root"></div><script type="module" src="/src/main.jsx"></script></body></html>';
+  files['index.html'] = '<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Framewright App</title></head><body class="fw-artboard"><div id="root"></div><script type="module" src="/src/main.jsx"></script></body></html>';
   files['vite.config.js'] = "import { defineConfig } from 'vite';\nimport react from '@vitejs/plugin-react';\nexport default defineConfig({ plugins: [react()] });\n";
   files['src/main.jsx'] = `import React from 'react';
 import { createRoot } from 'react-dom/client';
@@ -22,6 +22,7 @@ import { parseProject } from './runtime/project.js';
 import config from './app.config.json';
 import { handlers } from './handlers.js';
 import './utils/theme.css';
+import './runtime/artboard.css';
 import './app.css';
 const project = parseProject(config);
 createRoot(document.getElementById('root')).render(<Runtime project={project} registry={registry} handlers={handlers} />);

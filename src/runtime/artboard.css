@@ -1,0 +1,37 @@
+/* Page base shared by the editor canvas, the Preview iframe and the exported app,
+   so a layout renders the same in all three. Keep editor-only styles out of here. */
+.fw-artboard {
+  --bg: #ffffff;
+  --fg: #0b0f14;
+  --muted: #6b7280;
+  --primary: #2563eb;
+  --radius: 5px;
+  --gap: 8px;
+  --bg-surface: #f8f9fa;
+  --bg-hover: #f1f3f4;
+  --border: #e1e5e9;
+  --error: #dc2626;
+  --success: #16a34a;
+  --warning: #d97706;
+  --border-rgb: 225, 229, 233;
+  --primary-rgb: 37, 99, 235;
+  color-scheme: light;
+  font-family: Inter, 'Segoe UI', Roboto, sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #333333;
+  background-color: #ffffff;
+  text-align: left;
+}
+
+/* Zero specificity so component styles always win. */
+:where(.fw-artboard) *,
+:where(.fw-artboard) *::before,
+:where(.fw-artboard) *::after {
+  box-sizing: border-box;
+}
+
+:where(.fw-artboard) :where(button, input, select, textarea) {
+  font: inherit;
+}

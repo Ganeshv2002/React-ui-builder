@@ -140,9 +140,8 @@
 }
 
 .canvas-components {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
+  /* Block flow, like the page root in Preview and the exported app. */
+  display: block;
   width: 100%;
   min-height: 100%;
 }

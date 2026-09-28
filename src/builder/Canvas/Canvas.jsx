@@ -1,5 +1,5 @@
 ﻿import React from 'react';
-import { useDrop, useDragDropManager } from 'react-dnd';
+import { useDrop, useDragLayer } from 'react-dnd';
 import { v4 as uuidv4 } from 'uuid';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCubes } from '@fortawesome/free-solid-svg-icons';
@@ -8,6 +8,7 @@ import DropZone from '../DropZone/DropZone';
 import { findComponentById, removeComponentById } from '../../utils/layoutTree';
 import { telemetry, TELEMETRY_EVENTS } from '../../utils/telemetry';
 import './Canvas.css';
+import '../../runtime/artboard.css';
 
 const Canvas = ({
   layout,
@@ -20,9 +21,8 @@ const Canvas = ({
   onQuickAdd,
   themeStyle = {},
 }) => {
-  const manager = useDragDropManager();
-  const monitor = manager.getMonitor();
-  const isGlobalDragging = monitor.isDragging();
+  // Subscribe so drop zones appear as soon as any drag starts.
+  const isGlobalDragging = useDragLayer((monitor) => monitor.isDragging());
   const { width, height } = canvasDimensions;
   const scaledWidth = width * canvasZoom;
   const scaledHeight = height * canvasZoom;
@@ -171,7 +171,7 @@ const Canvas = ({
           >
             <div
               ref={!isPreviewMode ? drop : null}
-              className={`canvas ${isPreviewMode ? 'canvas--preview' : ''} ${isOver ? 'canvas--over' : ''} ${
+              className={`canvas fw-artboard ${isPreviewMode ? 'canvas--preview' : ''} ${isOver ? 'canvas--over' : ''} ${
                 layout.length === 0 ? 'canvas--empty' : ''
               }`}
               style={{ width, height, ...themeStyle }}

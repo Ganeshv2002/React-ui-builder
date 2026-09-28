@@ -1,5 +1,6 @@
 .droppable-component {
   position: relative;
+  min-width: 0;
   margin: 0;
   border-radius: 12px;
   transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
@@ -105,4 +106,23 @@
 .delete-btn:active {
   background: rgba(239, 68, 68, 0.24);
   transform: scale(0.96);
+}
+
+/* Controls on the canvas are for selecting, not using; Preview is interactive. */
+.droppable-component:not(.preview-mode) :where(input, textarea, select, a, button:not(.drag-handle):not(.delete-btn)) {
+  pointer-events: none;
+}
+
+/* Let the component inside a wrapper stretch the way it would as a direct child in Preview. */
+:is(.ui-container--vertical, .ui-form) > .droppable-component {
+  display: flex;
+  flex-direction: column;
+}
+
+.ui-container--horizontal > .droppable-component {
+  display: flex;
+}
+
+.ui-grid > .droppable-component {
+  display: grid;
 }

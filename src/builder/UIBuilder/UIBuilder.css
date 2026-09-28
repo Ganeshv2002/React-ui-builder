@@ -32,9 +32,10 @@
 .ui-builder .inspector-tabs { gap: 1px; }
 .ui-builder .inspector-tabs button { padding: 8px 5px; font-size: 11px; }
 @media (max-width: 1200px) { .editor-header .editor-project, .editor-header .editor-beta { display: none; } .editor-header .editor-save { font-size: 10px; } }
-.ui-builder button,
-.ui-builder input,
-.ui-builder select {
+/* Editor controls only; the artboard keeps component typography. */
+.ui-builder button:not(.fw-artboard *),
+.ui-builder input:not(.fw-artboard *),
+.ui-builder select:not(.fw-artboard *) {
   font: inherit;
 }
 .ui-builder button {

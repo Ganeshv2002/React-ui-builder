@@ -15,12 +15,15 @@ export function ButtonAdapter({ runtime, targetPageId, navigateOnValidation, chi
 export function InputAdapter({ runtime: RuntimeContext, label, value, onChange, readonly, showConditions, disableConditions, validationRules, type = 'text', children: Children, ...props }) {
   void RuntimeContext; void Children;
   const [local, setLocal] = useState(value ?? '');
+  // Without a change binding, `value` is only the starting value; otherwise the field could never be edited.
+  const [seed, setSeed] = useState(value);
+  if (seed !== value) { setSeed(value); setLocal(value ?? ''); }
   const form = useFormContext();
   const parse = input => { try { return typeof input === 'string' ? JSON.parse(input || '[]') : input || []; } catch { return []; } };
   const shown = parse(showConditions), disabled = parse(disableConditions), rules = parse(validationRules);
   if (shown.length && form && !form.checkConditions(shown)) return null;
   const Tag = type === 'textarea' ? 'textarea' : type === 'select' ? 'select' : 'input';
-  const current = value ?? local;
+  const current = onChange ? (value ?? '') : local;
   const handleChange = e => {
     const next = ['checkbox', 'radio'].includes(type) ? e.target.checked : e.target.value;
     setLocal(next); onChange?.(e);

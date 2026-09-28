@@ -24,6 +24,16 @@ describe('shared editor/export runtime', () => {
     await screen.findByText('Finished');
     expect(window.location.hash).toBe('#/done');
   });
+  it('lets users edit an input that only has a default value, and renders editor heading levels', () => {
+    const project = createProject([{ id: 'home', name: 'Home', path: '/', layout: [
+      { id: 'title', type: 'heading', props: { text: 'Sign up', level: 'h2' } },
+      { id: 'name', type: 'input', props: { label: 'Name', value: 'prefilled' } },
+    ] }]);
+    render(<Runtime project={project} initialPageId="home" registry={registry} />);
+    expect(screen.getByRole('heading', { level: 2, name: 'Sign up' })).toBeTruthy();
+    fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Ada' } });
+    expect(screen.getByLabelText('Name').value).toBe('Ada');
+  });
   it('replaces a React implementation through a versioned adapter without editing JSON', async () => {
     const project = createProject([{ id: 'home', name: 'Home', path: '/', layout: [{ id: 'title', type: 'title', contractVersion: 1, props: { text: 'Durable config' } }] }]);
     const Adapter = ({ label }) => <h1>{label}</h1>;

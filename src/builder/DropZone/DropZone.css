@@ -1,7 +1,9 @@
+/* Drop zones take no space until a drag starts, so the canvas lays out like Preview. */
 .drop-zone {
+  display: none;
   position: relative;
   width: 100%;
-  height: 4px;
+  height: 12px;
   border-radius: 8px;
   background: transparent;
   opacity: 0;
@@ -12,7 +14,11 @@
   opacity: 0;
 }
 
-.canvas--dragging .drop-zone {
+.canvas-frame--dragging .drop-zone {
+  display: block;
+}
+
+.canvas-frame--dragging .drop-zone {
   opacity: 0.35;
   background: linear-gradient(
     90deg,
@@ -22,7 +28,7 @@
   );
 }
 
-.canvas--dragging .drop-zone:hover {
+.canvas-frame--dragging .drop-zone:hover {
   opacity: 0.7;
   background: linear-gradient(
     90deg,

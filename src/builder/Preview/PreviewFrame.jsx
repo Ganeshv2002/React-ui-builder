@@ -5,27 +5,19 @@ import { registry } from '../../runtime/registry';
 import { createProject } from '../../runtime/project';
 import './PreviewFrame.css';
 import themeStyles from '../../utils/theme.css?raw';
+import artboardStyles from '../../runtime/artboard.css?raw';
 const componentStyles = Object.values(import.meta.glob('../../components/*/*.css', { query: '?raw', import: 'default', eager: true })).join('\n');
 
 
 const BASE_STYLES = `
-  :root {
-    color-scheme: light;
-    font-family: 'Inter', 'Segoe UI', Roboto, sans-serif;
-    background-color: #f8fafc;
-  }
-
   body {
     margin: 0;
     min-height: 100vh;
-    background-color: #f8fafc;
   }
 
+  /* No padding: the canvas artboard has none, and Preview must match it. */
   .preview-container {
     min-height: 100vh;
-    padding: 32px;
-    box-sizing: border-box;
-    background-color: #fff;
   }
 
   .preview-empty {
@@ -47,9 +39,9 @@ const PREVIEW_DOCUMENT = `
     <meta charset="utf-8" />
     <title>Preview</title>
     <base target="_blank" />
-    <style>${themeStyles}\n${componentStyles}\n${BASE_STYLES}</style>
+    <style>${themeStyles}\n${componentStyles}\n${artboardStyles}\n${BASE_STYLES}</style>
   </head>
-  <body>
+  <body class="fw-artboard">
     <div id="preview-root" class="preview-container"></div>
   </body>
 </html>

@@ -10,9 +10,50 @@ import { findComponentById, insertComponentIntoParent, isDescendant, removeCompo
 import { telemetry, TELEMETRY_EVENTS } from '../../utils/telemetry';
 import { usePages } from '../../contexts/PageContext';
 import { resolveValue } from '../../runtime/engine';
+import { registry as runtimeRegistry } from '../../runtime/registry';
+import useEditorStore from '../../store/editorStore';
 import './DroppableComponent.css';
 
 ensureComponentRegistry();
+
+const VIEWPORT_UNITS = /(-?\d*\.?\d+)[dsl]?(vh|vw|vmin|vmax)\b/g;
+const noop = () => {};
+
+// On the canvas, viewport units must measure the artboard rather than the editor window.
+// Preview needs no conversion because its iframe is exactly the artboard size.
+const toArtboardUnits = (style, { width, height }) => {
+  if (!style || typeof style !== 'object') return style;
+  const unit = { vh: height, vw: width, vmin: Math.min(width, height), vmax: Math.max(width, height) };
+  return Object.fromEntries(Object.entries(style).map(([key, value]) => [
+    key,
+    typeof value === 'string'
+      ? value.replace(VIEWPORT_UNITS, (_, amount, name) => `${+(Number(amount) * unit[name] / 100).toFixed(2)}px`)
+      : value,
+  ]));
+};
+
+// The canvas wraps each component for selection, while Preview renders it directly.
+// Sizing, spacing and flex/grid placement move to the wrapper so the parent lays it out the same way.
+const WRAPPER_KEYS = [
+  'width', 'minWidth', 'maxWidth', 'height', 'minHeight', 'maxHeight',
+  'margin', 'marginTop', 'marginRight', 'marginBottom', 'marginLeft',
+  'flex', 'flexGrow', 'flexShrink', 'flexBasis', 'alignSelf', 'justifySelf', 'order',
+  'gridColumn', 'gridRow', 'gridArea',
+  'position', 'inset', 'top', 'right', 'bottom', 'left', 'zIndex',
+];
+const splitWrapperStyle = (style = {}) => {
+  const wrapper = {};
+  const inner = { ...style };
+  for (const key of WRAPPER_KEYS) {
+    if (inner[key] !== undefined && inner[key] !== '') wrapper[key] = inner[key];
+    delete inner[key];
+  }
+  // The component fills the box its wrapper now takes.
+  if (wrapper.width !== undefined || wrapper.minWidth !== undefined) inner.width = '100%';
+  if (wrapper.height !== undefined) inner.height = '100%';
+  if (wrapper.minHeight !== undefined) inner.minHeight = 'inherit';
+  return { wrapper, inner };
+};
 
 const DroppableComponent = ({
   component,
@@ -27,11 +68,20 @@ const DroppableComponent = ({
   isPreviewMode = false,
   isDragActive = false,
 }) => {
-  const Component = getComponentRenderer(component.type);
-  const { theme, getCurrentPage } = usePages();
+  // Render with the same adapters as Preview and the exported app so markup matches.
+  const runtimeAdapter = runtimeRegistry[component.type];
+  const Component = runtimeAdapter?.component ?? getComponentRenderer(component.type);
+  const { theme, getCurrentPage, pages } = usePages();
+  const canvasDimensions = useEditorStore((state) => state.canvasDimensions);
   let renderProps;
   try { renderProps = resolveValue({ ...component.props, ...component.bindings }, { theme, state: getCurrentPage()?.logic?.state || {} }); }
   catch { renderProps = { ...component.props, style: {} }; }
+  renderProps = { ...renderProps, style: toArtboardUnits(renderProps.style, canvasDimensions) };
+  for (const key of Object.keys(renderProps)) if (/^on[A-Z]|^dangerouslySetInnerHTML$/.test(key)) delete renderProps[key];
+  const placement = isPreviewMode ? { wrapper: undefined, inner: renderProps.style } : splitWrapperStyle(renderProps.style);
+  const componentProps = runtimeAdapter
+    ? { ...renderProps, style: placement.inner, runtime: { navigate: noop, pages } }
+    : { ...renderProps, style: placement.inner, isPreview: isPreviewMode };
   const componentRef = useRef(null);
   const clickTimeoutRef = useRef(null);
 
@@ -89,6 +139,8 @@ const DroppableComponent = ({
   const handleClick = (e) => {
     if (!isPreviewMode) {
       e.stopPropagation();
+      // Selecting must not activate the component (label focus, link follow, checkbox toggle).
+      e.preventDefault();
       
       // Clear any existing timeout
       if (clickTimeoutRef.current) {
@@ -291,7 +343,7 @@ const DroppableComponent = ({
             {renderChildren()}
           </CustomComponentRenderer>
         ) : (
-          <Component {...renderProps} style={renderProps.style} isPreview={isPreviewMode}>
+          <Component {...componentProps}>
             {renderChildren()}
           </Component>
         )}
@@ -310,6 +362,7 @@ const DroppableComponent = ({
         }
       }}
       className={`droppable-component ${isSelected ? 'selected' : ''} ${isDragging ? 'dragging' : ''} ${isOver ? 'drop-over' : ''} ${isDragActive ? 'canvas--dragging' : ''}`}
+      style={placement.wrapper}
       onClick={handleClick}
     >
       {isCustomComponent ? (
@@ -320,7 +373,7 @@ const DroppableComponent = ({
           {renderChildren()}
         </CustomComponentRenderer>
       ) : (
-        <Component {...renderProps} style={renderProps.style} isPreview={isPreviewMode}>
+        <Component {...componentProps}>
           {renderChildren()}
         </Component>
       )}
