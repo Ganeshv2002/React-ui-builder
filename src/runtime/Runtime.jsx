@@ -1,8 +1,11 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { readPath, resolveValue, runActions, safeURL } from './engine.js';
 import { themeVariables } from './theme.js';
+import { evaluateConditions } from './conditions.js';
+import { FieldsContext } from './fields.js';
 
 function RuntimeNode({ node, registry, context, dispatch, navigate, pages }) {
+  const fields = useContext(FieldsContext);
   const adapter = registry[node.type];
   if (!adapter) return <div role="alert">Component “{node.type}” is not registered. Its configuration has been preserved.</div>;
   const version = node.contractVersion || 1;
@@ -16,6 +19,10 @@ function RuntimeNode({ node, registry, context, dispatch, navigate, pages }) {
     for (const key of Object.keys(props)) if (/^on[A-Z]|^dangerouslySetInnerHTML$|^srcDoc$|^ref$|^key$/.test(key)) delete props[key];
     for (const key of ['href', 'src', 'action']) if (props[key]) safeURL(props[key]);
   } catch (error) { return <div role="alert">{error.message}</div>; }
+  const { showConditions, disableConditions, ...rest } = props;
+  props = rest;
+  if (evaluateConditions(showConditions, fields?.values) === false) return null;
+  if (evaluateConditions(disableConditions, fields?.values)) props.disabled = true;
   const eventProps = {};
   for (const [eventName, names] of Object.entries(node.events || {})) {
     eventProps[`on${eventName[0].toUpperCase()}${eventName.slice(1)}`] = event => {
@@ -71,14 +78,19 @@ function RuntimePage({ page, project, registry, handlers, navigate, allowNetwork
     const active = controllers.current;
     return () => { active.forEach(c => c.abort()); active.clear(); };
   }, []);
+  const [fieldValues, setFieldValues] = useState({});
+  const [showAllErrors, setShowAllErrors] = useState(false);
+  const setField = useCallback((name, value) => setFieldValues(prev => Object.is(prev[name], value) ? prev : { ...prev, [name]: value }), []);
+  const revealErrors = useCallback(() => setShowAllErrors(true), []);
+  const fields = useMemo(() => ({ values: fieldValues, setField, showAllErrors, revealErrors }), [fieldValues, setField, showAllErrors, revealErrors]);
   const context = { state, theme: project.theme };
-  return <div className="fw-page" style={themeVariables(project.theme)}>
+  return <FieldsContext.Provider value={fields}><div className="fw-page" style={themeVariables(project.theme)}>
     {(page.logic?.effects || []).map(effect => <RuntimeEffect key={effect.id} effect={effect} state={state} dispatch={dispatch} />)}
     {pending > 0 && <div role="status">Working…</div>}
     {error && <div role="alert" className="fw-runtime-error">{error}</div>}
     {Object.keys(errors).length > 0 && <ul role="alert">{Object.entries(errors).map(([field, message]) => <li key={field}>{message}</li>)}</ul>}
     {page.layout.map(node => <RuntimeNode key={node.id} node={node} registry={registry} context={context} dispatch={dispatch} navigate={navigate} pages={project.pages} />)}
-  </div>;
+  </div></FieldsContext.Provider>;
 }
 
 export default function Runtime({ project, registry, handlers = {}, initialPageId, onNavigate, allowNetwork = true }) {

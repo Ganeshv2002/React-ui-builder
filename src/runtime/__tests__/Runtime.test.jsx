@@ -34,6 +34,26 @@ describe('shared editor/export runtime', () => {
     fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Ada' } });
     expect(screen.getByLabelText('Name').value).toBe('Ada');
   });
+  it('applies show/disable conditions across the page and shows validation errors', async () => {
+    const project = createProject([{ id: 'home', name: 'Home', path: '/', layout: [
+      { id: 'role', type: 'input', props: { label: 'Role', name: 'role' } },
+      { id: 'company', type: 'input', props: { label: 'Company', name: 'company', showConditions: JSON.stringify([{ field: 'role', operator: 'equals', value: 'employee' }]) } },
+      { id: 'form', type: 'form', props: {}, children: [
+        { id: 'email', type: 'input', props: { label: 'Email', name: 'email', validationRules: JSON.stringify([{ type: 'required', message: 'Email needed' }, { type: 'email' }]), disableConditions: JSON.stringify([{ field: 'role', operator: 'equals', value: 'guest' }]) } },
+        { id: 'go', type: 'button', props: { children: 'Send', type: 'submit' } },
+      ] },
+    ] }]);
+    render(<Runtime project={project} initialPageId="home" registry={registry} />);
+    expect(screen.queryByLabelText('Company')).toBeNull();
+    fireEvent.change(screen.getByLabelText('Role'), { target: { value: 'employee' } });
+    expect(await screen.findByLabelText('Company')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Send' }));
+    expect(await screen.findByText('Email needed')).toBeTruthy();
+    fireEvent.change(screen.getByLabelText(/Email/), { target: { value: 'nope' } });
+    expect(await screen.findByText('Enter a valid email')).toBeTruthy();
+    fireEvent.change(screen.getByLabelText('Role'), { target: { value: 'guest' } });
+    await waitFor(() => expect(screen.getByLabelText(/Email/).disabled).toBe(true));
+  });
   it('replaces a React implementation through a versioned adapter without editing JSON', async () => {
     const project = createProject([{ id: 'home', name: 'Home', path: '/', layout: [{ id: 'title', type: 'title', contractVersion: 1, props: { text: 'Durable config' } }] }]);
     const Adapter = ({ label }) => <h1>{label}</h1>;

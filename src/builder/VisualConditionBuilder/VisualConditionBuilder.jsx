@@ -64,6 +64,7 @@ const VisualConditionBuilder = ({ value, onChange, label, formComponents = [] })
     setConditions(updated);
   };
 
+  // Keep in sync with testCondition in src/runtime/conditions.js.
   const operators = [
     { value: 'equals', label: 'Equals' },
     { value: 'not_equals', label: 'Not Equals' },
@@ -75,18 +76,24 @@ const VisualConditionBuilder = ({ value, onChange, label, formComponents = [] })
     { value: 'less_than', label: 'Less Than' },
     { value: 'greater_equal', label: 'Greater or Equal' },
     { value: 'less_equal', label: 'Less or Equal' },
+    { value: 'in', label: 'Is One Of (comma separated)' },
+    { value: 'not_in', label: 'Is Not One Of (comma separated)' },
+    { value: 'empty', label: 'Is Empty', noValue: true },
+    { value: 'not_empty', label: 'Is Not Empty', noValue: true },
     { value: 'array_contains', label: 'Array Contains' },
     { value: 'array_length_equals', label: 'Array Length Equals' },
     { value: 'array_length_greater', label: 'Array Length Greater' }
   ];
 
   const getFieldOptions = () => {
-    // Get all form field names from components
-    const fieldNames = formComponents
-      .filter(comp => comp.type === 'Input' && comp.props?.name)
-      .map(comp => comp.props.name);
-    
-    return [...new Set(fieldNames)].sort();
+    // Every named input or checkbox on the page, including those nested in containers and forms.
+    const names = [];
+    const visit = (nodes = []) => nodes.forEach(node => {
+      if (['input', 'checkbox'].includes(String(node.type).toLowerCase()) && node.props?.name) names.push(node.props.name);
+      visit(node.children);
+    });
+    visit(formComponents);
+    return [...new Set(names)].sort();
   };
 
   return (
@@ -174,6 +181,7 @@ const VisualConditionBuilder = ({ value, onChange, label, formComponents = [] })
                   <label className="field-label">Value</label>
                   <input
                     type="text"
+                    disabled={operators.find(op => op.value === condition.operator)?.noValue}
                     value={condition.value}
                     onChange={(e) => updateCondition(index, { value: e.target.value })}
                     className="value-input"

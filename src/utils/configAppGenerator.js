@@ -1,5 +1,5 @@
 import { parseProject, projectJSONSchema } from '../runtime/project.js';
-const sources = import.meta.glob(['../runtime/*.{js,jsx,css}', '../components/*/*.{jsx,css}', '../utils/theme.css', '../contexts/FormContext.jsx'], { query: '?raw', import: 'default', eager: true });
+const sources = import.meta.glob(['../runtime/*.{js,jsx,css}', '../components/*/*.{jsx,css}', '../utils/theme.css'], { query: '?raw', import: 'default', eager: true });
 
 export function generateConfigApp(input) {
   const project = parseProject(input);
