@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Resizable } from 'react-resizable';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCogs } from '@fortawesome/free-solid-svg-icons';
+import { IconAdjustmentsHorizontal } from '@tabler/icons-react';
+import TokenField from '../ProjectPanel/TokenField';
+import JsonEditor from '../ProjectPanel/JsonEditor';
+import { behaviorSchema, parseProject } from '../../runtime/project';
 import { usePages } from '../../contexts/PageContext';
 import VisualConditionBuilder from '../VisualConditionBuilder/VisualConditionBuilder';
 import VisualValidationBuilder from '../VisualValidationBuilder/VisualValidationBuilder';
@@ -26,7 +28,8 @@ const PropertiesPanel = ({
   const [variants, setVariants] = useState([]);
   const [isLoadingVariants, setIsLoadingVariants] = useState(false);
   const [variantError, setVariantError] = useState(null);
-  const { pages } = usePages();
+  const [inspectorTab, setInspectorTab] = useState('content');
+  const { pages, exportProject } = usePages();
 
   useEffect(() => {
     if (!isControlledWidth && typeof width === 'number' && !Number.isNaN(width)) {
@@ -99,7 +102,7 @@ const PropertiesPanel = ({
         maxConstraints={[maxWidth, 0]}
       >
         <div className="properties-panel" style={{ width: panelWidth }}>
-          <h3><FontAwesomeIcon icon={faCogs} /> Properties</h3>
+          <h3><IconAdjustmentsHorizontal size={18} stroke={1.7} /> Properties</h3>
           <p className="no-selection">Select a component to edit its properties</p>
         </div>
       </Resizable>
@@ -227,12 +230,7 @@ const PropertiesPanel = ({
         );
       case 'color':
         return (
-          <input
-            type="color"
-            value={currentValue || '#000000'}
-            onChange={(e) => handlePropChange(prop.name, e.target.value)}
-            className="prop-color"
-          />
+          <TokenField label={prop.label} type="color" value={currentValue} onChange={next => handlePropChange(prop.name, next)} />
         );
       case 'number':
         return (
@@ -555,43 +553,19 @@ const PropertiesPanel = ({
           <div className="style-grid">
             <div className="style-item">
               <label>Width</label>
-              <input
-                type="text"
-                value={currentStyle.width || ''}
-                onChange={(e) => handleStyleChange('width', e.target.value)}
-                className="prop-input"
-                placeholder="auto, 100px, 50%"
-              />
+              <TokenField label="width" type="dimension" value={currentStyle.width ?? ''} onChange={value => handleStyleChange('width', value)} />
             </div>
             <div className="style-item">
               <label>Height</label>
-              <input
-                type="text"
-                value={currentStyle.height || ''}
-                onChange={(e) => handleStyleChange('height', e.target.value)}
-                className="prop-input"
-                placeholder="auto, 200px, 100vh"
-              />
+              <TokenField label="height" type="dimension" value={currentStyle.height ?? ''} onChange={value => handleStyleChange('height', value)} />
             </div>
             <div className="style-item">
               <label>Min Width</label>
-              <input
-                type="text"
-                value={currentStyle.minWidth || ''}
-                onChange={(e) => handleStyleChange('minWidth', e.target.value)}
-                className="prop-input"
-                placeholder="0, 200px"
-              />
+              <TokenField label="minWidth" type="dimension" value={currentStyle.minWidth ?? ''} onChange={value => handleStyleChange('minWidth', value)} />
             </div>
             <div className="style-item">
               <label>Max Width</label>
-              <input
-                type="text"
-                value={currentStyle.maxWidth || ''}
-                onChange={(e) => handleStyleChange('maxWidth', e.target.value)}
-                className="prop-input"
-                placeholder="none, 500px"
-              />
+              <TokenField label="maxWidth" type="dimension" value={currentStyle.maxWidth ?? ''} onChange={value => handleStyleChange('maxWidth', value)} />
             </div>
             <div className="style-item">
               <label>Display</label>
@@ -633,33 +607,15 @@ const PropertiesPanel = ({
           <div className="style-grid">
             <div className="style-item">
               <label>Padding</label>
-              <input
-                type="text"
-                value={currentStyle.padding || ''}
-                onChange={(e) => handleStyleChange('padding', e.target.value)}
-                className="prop-input"
-                placeholder="8px, 1rem, 10px 20px"
-              />
+              <TokenField label="padding" type="dimension" value={currentStyle.padding ?? ''} onChange={value => handleStyleChange('padding', value)} />
             </div>
             <div className="style-item">
               <label>Margin</label>
-              <input
-                type="text"
-                value={currentStyle.margin || ''}
-                onChange={(e) => handleStyleChange('margin', e.target.value)}
-                className="prop-input"
-                placeholder="8px, 1rem, auto"
-              />
+              <TokenField label="margin" type="dimension" value={currentStyle.margin ?? ''} onChange={value => handleStyleChange('margin', value)} />
             </div>
             <div className="style-item">
               <label>Gap</label>
-              <input
-                type="text"
-                value={currentStyle.gap || ''}
-                onChange={(e) => handleStyleChange('gap', e.target.value)}
-                className="prop-input"
-                placeholder="10px, 1rem"
-              />
+              <TokenField label="gap" type="dimension" value={currentStyle.gap ?? ''} onChange={value => handleStyleChange('gap', value)} />
             </div>
           </div>
         </div>
@@ -670,21 +626,11 @@ const PropertiesPanel = ({
           <div className="style-grid">
             <div className="style-item">
               <label>Background Color</label>
-              <input
-                type="color"
-                value={currentStyle.backgroundColor || '#ffffff'}
-                onChange={(e) => handleStyleChange('backgroundColor', e.target.value)}
-                className="prop-color"
-              />
+              <TokenField label="backgroundColor" type="color" value={currentStyle.backgroundColor ?? ''} onChange={value => handleStyleChange('backgroundColor', value)} />
             </div>
             <div className="style-item">
               <label>Text Color</label>
-              <input
-                type="color"
-                value={currentStyle.color || '#000000'}
-                onChange={(e) => handleStyleChange('color', e.target.value)}
-                className="prop-color"
-              />
+              <TokenField label="color" type="color" value={currentStyle.color ?? ''} onChange={value => handleStyleChange('color', value)} />
             </div>
             <div className="style-item">
               <label>Background Image</label>
@@ -741,13 +687,7 @@ const PropertiesPanel = ({
             </div>
             <div className="style-item">
               <label>Border Radius</label>
-              <input
-                type="text"
-                value={currentStyle.borderRadius || ''}
-                onChange={(e) => handleStyleChange('borderRadius', e.target.value)}
-                className="prop-input"
-                placeholder="4px, 50%, 10px 5px"
-              />
+              <TokenField label="borderRadius" type="dimension" value={currentStyle.borderRadius ?? ''} onChange={value => handleStyleChange('borderRadius', value)} />
             </div>
             <div className="style-item">
               <label>Box Shadow</label>
@@ -778,23 +718,11 @@ const PropertiesPanel = ({
           <div className="style-grid">
             <div className="style-item">
               <label>Font Family</label>
-              <input
-                type="text"
-                value={currentStyle.fontFamily || ''}
-                onChange={(e) => handleStyleChange('fontFamily', e.target.value)}
-                className="prop-input"
-                placeholder="Arial, sans-serif"
-              />
+              <TokenField label="fontFamily" type="fontFamily" value={currentStyle.fontFamily ?? ''} onChange={value => handleStyleChange('fontFamily', value)} />
             </div>
             <div className="style-item">
               <label>Font Size</label>
-              <input
-                type="text"
-                value={currentStyle.fontSize || ''}
-                onChange={(e) => handleStyleChange('fontSize', e.target.value)}
-                className="prop-input"
-                placeholder="16px, 1rem, 1.2em"
-              />
+              <TokenField label="fontSize" type="dimension" value={currentStyle.fontSize ?? ''} onChange={value => handleStyleChange('fontSize', value)} />
             </div>
             <div className="style-item">
               <label>Font Weight</label>
@@ -831,13 +759,7 @@ const PropertiesPanel = ({
             </div>
             <div className="style-item">
               <label>Line Height</label>
-              <input
-                type="text"
-                value={currentStyle.lineHeight || ''}
-                onChange={(e) => handleStyleChange('lineHeight', e.target.value)}
-                className="prop-input"
-                placeholder="1.5, 24px"
-              />
+              <TokenField label="lineHeight" type="dimension" value={currentStyle.lineHeight ?? ''} onChange={value => handleStyleChange('lineHeight', value)} />
             </div>
             <div className="style-item">
               <label>Text Decoration</label>
@@ -1046,12 +968,21 @@ const PropertiesPanel = ({
       maxConstraints={[maxWidth, 0]}
     >
       <div className="properties-panel" style={{ width: panelWidth }}>
-        <h3><FontAwesomeIcon icon={faCogs} /> Properties</h3>
+        <h3><IconAdjustmentsHorizontal size={18} stroke={1.7} /> Properties</h3>
         <div className="component-info">
           <strong>{componentDef.name}</strong>
           <span className="component-id">#{selectedComponent.id.slice(0, 8)}</span>
         </div>
         
+        <div className="inspector-tabs" aria-label="Inspector sections">{[['content', 'Content'], ['design', 'Design'], ['variants', 'Variants'], ['behavior', 'Behavior']].map(([id, label]) => <button key={id} type="button" className={inspectorTab === id ? 'is-active' : ''} aria-pressed={inspectorTab === id} onClick={() => setInspectorTab(id)}>{label}</button>)}</div>
+        {inspectorTab === 'behavior' && <JsonEditor key={selectedComponent.id} label="Component behavior JSON" value={{ bindings: selectedComponent.bindings || {}, events: selectedComponent.events || {}, ...(selectedComponent.visibleWhen !== undefined ? { visibleWhen: selectedComponent.visibleWhen } : {}) }} validate={v => {
+          const parsed = behaviorSchema.parse(v);
+          const visit = nodes => nodes.map(n => n.id === selectedComponent.id ? { ...n, bindings: {}, events: {}, visibleWhen: true, ...parsed } : { ...n, ...(n.children ? { children: visit(n.children) } : {}) });
+          const project = exportProject();
+          parseProject({ ...project, pages: project.pages.map(p => ({ ...p, layout: visit(p.layout) })) });
+          return parsed;
+        }} onApply={v => onUpdateComponent(selectedComponent.id, { bindings: {}, events: {}, visibleWhen: true, ...v })} hint='Example: bindings: {"value":{"$state":"email"}}, events: {"change":["updateEmail"]}. Define named actions in Project → Page behavior.' />}
+        <div hidden={inspectorTab !== 'content'}>
         <div className="properties-list">
           {(componentDef.props || []).map(prop => (
             <div key={prop.name} className="property-item">
@@ -1061,7 +992,8 @@ const PropertiesPanel = ({
           ))}
         </div>
         
-        {renderStyleControls()}
+        </div>
+        <div hidden={inspectorTab === 'content' || inspectorTab === 'behavior'} className={`inspector-style-view inspector-style-view--${inspectorTab}`}>{renderStyleControls()}</div>
       </div>
     </Resizable>
   );

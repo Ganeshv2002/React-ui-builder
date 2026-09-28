@@ -2,6 +2,8 @@ import React, { createContext, useContext, useState, useCallback, useMemo, useEf
 import { v4 as uuidv4 } from 'uuid';
 import { telemetry, TELEMETRY_EVENTS } from '../utils/telemetry';
 import { countComponents } from '../utils/layoutTree';
+import { defaultTheme } from '../runtime/theme';
+import { createProject, parseProject } from '../runtime/project';
 
 const STATE_STORAGE_KEY = 'react-ui-builder:pages-state';
 const MAX_HISTORY_ENTRIES = 20;
@@ -108,6 +110,8 @@ export const PageProvider = ({ children }) => {
       pages: initialPages,
       currentPageId,
       history,
+      theme: persisted?.theme || defaultTheme,
+      metadata: persisted?.metadata || { name: 'My app' },
     };
   }, []);
 
@@ -115,6 +119,27 @@ export const PageProvider = ({ children }) => {
   const [currentPageId, setCurrentPageId] = useState(initialState.currentPageId);
   const [layoutHistory, setLayoutHistory] = useState(initialState.history);
   const persistHandleRef = useRef(null);
+  const [saveStatus, setSaveStatus] = useState('saving');
+  const [theme, setTheme] = useState(initialState.theme);
+  const [metadata, setMetadata] = useState(initialState.metadata);
+  const [previousProject, setPreviousProject] = useState(null);
+  const exportProject = useCallback(() => createProject(pages, theme, metadata), [pages, theme, metadata]);
+  const importProject = useCallback((input) => {
+    const next = parseProject(input);
+    setPreviousProject({ pages: cloneLayout(pages), theme, metadata, currentPageId });
+    const { pages: importedPages, theme: importedTheme, ...rest } = next;
+    setPages(importedPages);
+    setTheme(importedTheme);
+    setMetadata(rest);
+    setCurrentPageId(importedPages.find(p => p.isHome)?.id || importedPages[0].id);
+    setLayoutHistory(buildInitialHistory(importedPages));
+  }, [pages, theme, metadata, currentPageId]);
+  const restorePreviousProject = useCallback(() => {
+    if (!previousProject) return;
+    setPages(previousProject.pages); setTheme(previousProject.theme); setMetadata(previousProject.metadata);
+    setCurrentPageId(previousProject.currentPageId); setLayoutHistory(buildInitialHistory(previousProject.pages));
+    setPreviousProject(null);
+  }, [previousProject]);
 
   const pushLayoutToHistory = useCallback((pageId, layout) => {
     setLayoutHistory((prevHistory) => {
@@ -323,15 +348,20 @@ export const PageProvider = ({ children }) => {
       clearTimeout(persistHandleRef.current);
     }
 
+    setSaveStatus('saving');
     persistHandleRef.current = window.setTimeout(() => {
       try {
         const payload = {
           pages,
           currentPageId,
           history: serializeHistory(layoutHistory),
+          theme,
+          metadata,
         };
         window.localStorage.setItem(STATE_STORAGE_KEY, JSON.stringify(payload));
+        setSaveStatus('saved');
       } catch (error) {
+        setSaveStatus('error');
         console.warn('Failed to persist builder state', error);
       }
     }, 200);
@@ -342,9 +372,11 @@ export const PageProvider = ({ children }) => {
         persistHandleRef.current = null;
       }
     };
-  }, [pages, currentPageId, layoutHistory]);
+  }, [pages, currentPageId, layoutHistory, theme, metadata]);
 
   const providerValue = useMemo(() => ({
+    theme, setTheme, metadata, setMetadata, exportProject, importProject, restorePreviousProject, previousProject,
+    saveStatus,
     pages,
     currentPageId,
     setCurrentPageId,
@@ -359,6 +391,8 @@ export const PageProvider = ({ children }) => {
     undoPageLayout,
     redoPageLayout,
   }), [
+    theme, metadata, exportProject, importProject, restorePreviousProject, previousProject,
+    saveStatus,
     pages,
     currentPageId,
     getCurrentPage,

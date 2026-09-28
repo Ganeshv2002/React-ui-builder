@@ -1,8 +1,8 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
-import { v4 as uuidv4 } from 'uuid';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { DndProvider } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
+import { v4 as uuidv4 } from "uuid";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faCube,
   faRotateLeft,
@@ -10,58 +10,112 @@ import {
   faDesktop,
   faTabletScreenButton,
   faMobileScreen,
-  faMagnifyingGlassMinus,
-  faMagnifyingGlassPlus,
-  faMaximize,
+  faMinus,
+  faPlus,
+  faExpand,
   faLayerGroup,
   faCode,
   faTrash,
-  faPlay,
-  faDownload,
-  faRulerCombined,
-} from '@fortawesome/free-solid-svg-icons';
-import ComponentPalette from '../ComponentPalette/ComponentPalette';
-import Canvas from '../Canvas/Canvas';
-import PropertiesPanel from '../PropertiesPanel/PropertiesPanel';
-import CodeViewer from '../CodeViewer/CodeViewer';
-import PageManager from '../PageManager/PageManager';
-import { ThemeToggle } from '../ThemeToggle/ThemeToggle';
-import { NotificationSystem, useNotifications } from '../NotificationSystem/NotificationSystem';
-import { useKeyboardShortcuts, KEYBOARD_SHORTCUTS } from '../../utils/keyboard';
-import { PageProvider, usePages } from '../../contexts/PageContext';
-import useEditorStore from '../../store/editorStore';
-import { ensureComponentRegistry, getComponentDefinitions } from '../componentRegistry';
-import { findComponentById, countComponents } from '../../utils/layoutTree';
-import { telemetry, TELEMETRY_EVENTS } from '../../utils/telemetry';
-import PreviewFrame from '../Preview/PreviewFrame';
-import { ZOOM_LEVELS, MIN_ZOOM_PERCENT, MAX_ZOOM_PERCENT } from '../constants/zoomLevels';
+  faShapes,
+  faFileLines,
+  faChevronRight,
+  faCircleQuestion,
+} from "@fortawesome/free-solid-svg-icons";
+import ComponentPalette from "../ComponentPalette/ComponentPalette";
+import Canvas from "../Canvas/Canvas";
+import PropertiesPanel from "../PropertiesPanel/PropertiesPanel";
+import CodeViewer from "../CodeViewer/CodeViewer";
+import PageManager from "../PageManager/PageManager";
+import { ThemeToggle } from "../ThemeToggle/ThemeToggle";
+import {
+  NotificationSystem,
+  useNotifications,
+} from "../NotificationSystem/NotificationSystem";
+import { useKeyboardShortcuts, KEYBOARD_SHORTCUTS } from "../../utils/keyboard";
+import { PageProvider, usePages } from "../../contexts/PageContext";
+import useEditorStore from "../../store/editorStore";
+import {
+  ensureComponentRegistry,
+  getComponentDefinitions,
+} from "../componentRegistry";
+import { findComponentById, countComponents } from "../../utils/layoutTree";
+import PreviewFrame from "../Preview/PreviewFrame";
+import { MIN_ZOOM_PERCENT, MAX_ZOOM_PERCENT } from "../constants/zoomLevels";
+import { IconPlayerPlay, IconDownload, IconSettings2, IconPalette, IconFolder } from '@tabler/icons-react';
+import ProjectPanel from '../ProjectPanel/ProjectPanel';
+import { themeVariables } from '../../runtime/theme';
 import './UIBuilder.css';
 
 ensureComponentRegistry();
-
-const clampWidth = (value, min, max) => {
-  if (typeof value !== 'number' || Number.isNaN(value)) {
-    return min;
-  }
-  return Math.min(Math.max(Math.round(value), min), max);
-};
-
-const dimensionPresets = [
-  { id: 'desktop', label: 'Desktop', width: 1440, height: 900, icon: faDesktop },
-  { id: 'tablet', label: 'Tablet', width: 1024, height: 768, icon: faTabletScreenButton },
-  { id: 'mobile', label: 'Mobile', width: 375, height: 667, icon: faMobileScreen },
+const DEVICES = [
+  {
+    id: "desktop",
+    label: "Desktop",
+    width: 1440,
+    height: 900,
+    icon: faDesktop,
+  },
+  {
+    id: "tablet",
+    label: "Tablet",
+    width: 1024,
+    height: 768,
+    icon: faTabletScreenButton,
+  },
+  {
+    id: "mobile",
+    label: "Mobile",
+    width: 375,
+    height: 667,
+    icon: faMobileScreen,
+  },
 ];
-
-const zoomLevels = ZOOM_LEVELS;
-
-const createComponentInstance = (definition) => ({
-  id: uuidv4(),
-  type: definition.id,
-  props: { ...(definition.defaultProps || {}) },
-  children: definition.canContainChildren ? [] : undefined,
-});
-
-const UIBuilderContent = () => {
+const TABS = [
+  { id: "components", label: "Insert", icon: faShapes },
+  { id: "pages", label: "Pages", icon: faFileLines },
+  { id: "layers", label: "Layers", icon: faLayerGroup },
+];
+function ToolButton({ icon, label, active, children, ...props }) {
+  return (
+    <button
+      type="button"
+      className={`editor-tool ${active ? "is-active" : ""}`}
+      title={label}
+      aria-label={label}
+      {...props}
+    >
+      <FontAwesomeIcon icon={icon} />
+      {children}
+    </button>
+  );
+}
+function LayerTree({ nodes, selectedId, onSelect }) {
+  return (
+    <ul className="editor-layer-tree">
+      {nodes.map((node) => (
+        <li key={node.id}>
+          <button
+            type="button"
+            className={selectedId === node.id ? "is-active" : ""}
+            onClick={() => onSelect(node.id)}
+          >
+            <FontAwesomeIcon icon={node.children ? faLayerGroup : faCube} />
+            <span>{node.name || node.type}</span>
+            {node.children?.length > 0 && <small>{node.children.length}</small>}
+          </button>
+          {node.children?.length > 0 && (
+            <LayerTree
+              nodes={node.children}
+              selectedId={selectedId}
+              onSelect={onSelect}
+            />
+          )}
+        </li>
+      ))}
+    </ul>
+  );
+}
+function UIBuilderContent() {
   const notifications = useNotifications();
   const {
     pages,
@@ -72,686 +126,589 @@ const UIBuilderContent = () => {
     undoPageLayout,
     redoPageLayout,
     layoutHistory,
+    saveStatus, theme, exportProject,
   } = usePages();
-
-  const [activeSidebarTab, setActiveSidebarTab] = useState('pages');
-  const [isLayersPanelVisible, setLayersPanelVisible] = useState(false);
-  const [componentSearch, setComponentSearch] = useState('');
-  const [paletteWidth, setPaletteWidth] = useState(300);
-  const [propertiesWidth, setPropertiesWidth] = useState(320);
-
-  const selectedIds = useEditorStore((state) => {
-    if (Array.isArray(state.selectedComponentIds) && state.selectedComponentIds.length > 0) {
-      return state.selectedComponentIds;
-    }
-    return state.selectedComponentId ? [state.selectedComponentId] : [];
-  });
-  const primarySelectedId = selectedIds[0] ?? null;
-
-  const selectComponent = useEditorStore((state) => state.selectComponent);
-  const toggleComponentSelection = useEditorStore((state) => state.toggleComponentSelection);
-  const clearSelection = useEditorStore((state) => state.clearSelection);
-  const isPreviewMode = useEditorStore((state) => state.isPreviewMode);
-  const setPreviewMode = useEditorStore((state) => state.setPreviewMode);
-  const isCodeViewerVisible = useEditorStore((state) => state.isCodeViewerVisible);
-  const openCodeViewer = useEditorStore((state) => state.openCodeViewer);
-  const closeCodeViewer = useEditorStore((state) => state.closeCodeViewer);
-  const addCustomComponent = useEditorStore((state) => state.addCustomComponent);
-  const customComponents = useEditorStore((state) => state.customComponents);
-  const canvasDimensions = useEditorStore((state) => state.canvasDimensions);
-  const setCanvasDimensions = useEditorStore((state) => state.setCanvasDimensions);
-  const canvasZoom = useEditorStore((state) => state.canvasZoom);
-  const setCanvasZoom = useEditorStore((state) => state.setCanvasZoom);
-  const zoomCanvasIn = useEditorStore((state) => state.zoomCanvasIn);
-  const zoomCanvasOut = useEditorStore((state) => state.zoomCanvasOut);
-
-  const zoomValue = Math.round(canvasZoom * 100);
-  const [zoomInputValue, setZoomInputValue] = useState(() => String(zoomValue));
-
+  const editor = useEditorStore();
+  const { clearSelection, canvasDimensions, setCanvasZoom } = editor;
+  const [tab, setTab] = useState("components");
+  const [search, setSearch] = useState("");
+  const [paletteWidth, setPaletteWidth] = useState(280);
+  const [propertiesWidth, setPropertiesWidth] = useState(300);
+  const [autoFit, setAutoFit] = useState(true);
+  const [projectPanel, setProjectPanel] = useState(null);
+  const [showHelp, setShowHelp] = useState(false);
+  const viewportRef = useRef(null);
+  const helpRef = useRef(null);
+  const page = getCurrentPage();
+  const layout = page?.layout || [];
+  const selectedId = editor.selectedComponentId;
+  const selected = findComponentById(layout, selectedId);
+  const total = countComponents(layout);
+  const history = layoutHistory[currentPageId];
+  const canUndo = history?.pointer > 0;
+  const canRedo = history?.pointer < history?.stack.length - 1;
+  const definitions = getComponentDefinitions();
+  const filtered = definitions.filter((item) =>
+    `${item.name} ${item.category}`
+      .toLowerCase()
+      .includes(search.trim().toLowerCase()),
+  );
+  const device = DEVICES.find(
+    (item) =>
+      item.width === editor.canvasDimensions.width &&
+      item.height === editor.canvasDimensions.height,
+  );
+  const [zoomText, setZoomText] = useState(
+    String(Math.round(editor.canvasZoom * 100)),
+  );
+  useEffect(
+    () => setZoomText(String(Math.round(editor.canvasZoom * 100))),
+    [editor.canvasZoom],
+  );
   useEffect(() => {
-    setZoomInputValue(String(zoomValue));
-  }, [zoomValue]);
-
-  const currentPage = getCurrentPage();
-  const layout = currentPage?.layout || [];
-
-  const historyEntry = layoutHistory[currentPageId] ?? { stack: [], pointer: -1 };
-  const canUndo = historyEntry.pointer > 0;
-  const canRedo =
-    historyEntry.pointer >= 0 && historyEntry.pointer < historyEntry.stack.length - 1;
-
-  const availableComponents = useMemo(() => getComponentDefinitions(), [customComponents]);
-
-  const filteredComponents = useMemo(() => {
-    if (!componentSearch.trim()) {
-      return availableComponents;
-    }
-    const term = componentSearch.trim().toLowerCase();
-    return availableComponents.filter((component) => {
-      const name = component.name?.toLowerCase() ?? '';
-      const category = component.category?.toLowerCase() ?? '';
-      return name.includes(term) || category.includes(term);
-    });
-  }, [availableComponents, componentSearch]);
-
-  const handlePaletteWidthChange = useCallback((nextWidth) => {
-    setPaletteWidth((prev) => {
-      const clamped = clampWidth(nextWidth, 260, 420);
-      return prev === clamped ? prev : clamped;
-    });
-  }, []);
-
-  const handlePropertiesWidthChange = useCallback((nextWidth) => {
-    setPropertiesWidth((prev) => {
-      const clamped = clampWidth(nextWidth, 260, 520);
-      return prev === clamped ? prev : clamped;
-    });
-  }, []);
-
-  const gridTemplateColumns = useMemo(() => {
-    const columns = [`${paletteWidth}px`];
-    if (isLayersPanelVisible) {
-      columns.push('240px');
-    }
-    columns.push('minmax(0, 1fr)', `${propertiesWidth}px`);
-    return columns.join(' ');
-  }, [isLayersPanelVisible, paletteWidth, propertiesWidth]);
-
-  const builderGridStyle = useMemo(
-    () => ({ '--grid-template-columns': gridTemplateColumns }),
-    [gridTemplateColumns],
-  );
-
-  const selectedComponent = useMemo(
-    () => findComponentById(layout, primarySelectedId),
-    [layout, primarySelectedId],
-  );
-
-  const handleAddCustomComponent = useCallback(
-    (definition) => {
-      if (!definition) {
-        return;
-      }
-
-      addCustomComponent(definition);
-      notifications.success(`Custom component "${definition.name}" created successfully!`);
-    },
-    [addCustomComponent, notifications],
-  );
-
-  const handleLayoutChange = useCallback(
-    (newLayout) => {
-      const page = getCurrentPage();
-      if (page) {
-        updatePageLayout(page.id, newLayout);
-      }
-    },
-    [getCurrentPage, updatePageLayout],
-  );
-
-  const handleUpdateComponent = useCallback(
-    (componentId, updates) => {
-      const updateComponentTree = (components) =>
-        components.map((component) => {
-          if (component.id === componentId) {
-            return { ...component, ...updates };
-          }
-          if (Array.isArray(component.children) && component.children.length > 0) {
-            return {
-              ...component,
-              children: updateComponentTree(component.children),
-            };
-          }
-          return component;
-        });
-
-      const page = getCurrentPage();
-      if (page) {
-        const nextLayout = updateComponentTree(page.layout || []);
-        updatePageLayout(page.id, nextLayout);
-      }
-    },
-    [getCurrentPage, updatePageLayout],
-  );
-
-  const handleClearLayout = useCallback(() => {
-    const page = getCurrentPage();
-    if (page) {
-      updatePageLayout(page.id, []);
-    }
     clearSelection();
-    notifications.success('Canvas cleared successfully');
-  }, [clearSelection, getCurrentPage, notifications, updatePageLayout]);
-
-  const handleExport = useCallback(() => {
-    openCodeViewer();
-    telemetry.track(TELEMETRY_EVENTS.CODE_EXPORTED, {
-      componentCount: countComponents(layout),
-    });
-    notifications.success('Code exported successfully');
-  }, [layout, notifications, openCodeViewer]);
-
-  const handlePreviewToggle = useCallback(() => {
-    const nextMode = !isPreviewMode;
-    setPreviewMode(nextMode);
-    notifications.info(`${nextMode ? 'Entered' : 'Exited'} preview mode`);
-  }, [isPreviewMode, notifications, setPreviewMode]);
-
-  const handleUndo = useCallback(() => {
-    if (!currentPage?.id || !canUndo) {
-      return;
-    }
-    undoPageLayout(currentPage.id);
-    notifications.info('Reverted to previous layout state');
-  }, [canUndo, currentPage?.id, notifications, undoPageLayout]);
-
-  const handleRedo = useCallback(() => {
-    if (!currentPage?.id || !canRedo) {
-      return;
-    }
-    redoPageLayout(currentPage.id);
-    notifications.info('Restored next layout state');
-  }, [canRedo, currentPage?.id, notifications, redoPageLayout]);
-
-  const handleDevicePreset = useCallback(
-    (preset) => {
-      setCanvasDimensions({ width: preset.width, height: preset.height });
+  }, [currentPageId, clearSelection]);
+  useEffect(() => {
+    if (showHelp) helpRef.current?.showModal();
+    else helpRef.current?.close();
+  }, [showHelp]);
+  const fitCanvas = useCallback(() => {
+    const viewport = viewportRef.current;
+    if (!viewport) return;
+    const { width, height } = canvasDimensions;
+    setCanvasZoom(
+      Math.min(
+        1,
+        Math.max(0.1, (viewport.clientWidth - 80) / width),
+        Math.max(0.1, (viewport.clientHeight - 96) / height),
+      ),
+    );
+  }, [canvasDimensions, setCanvasZoom]);
+  useEffect(() => {
+    if (!autoFit || !viewportRef.current) return;
+    const observer = new ResizeObserver(fitCanvas);
+    observer.observe(viewportRef.current);
+    fitCanvas();
+    return () => observer.disconnect();
+  }, [autoFit, fitCanvas]);
+  const changeLayout = useCallback(
+    (next) => {
+      if (page) updatePageLayout(page.id, next);
     },
-    [setCanvasDimensions],
+    [page, updatePageLayout],
   );
-
-  const handleDimensionPresetChange = useCallback(
-    (event) => {
-      const value = event.target.value;
-      const preset = dimensionPresets.find((item) => `${item.width}x${item.height}` === value);
-      if (preset) {
-        setCanvasDimensions({ width: preset.width, height: preset.height });
-      }
-    },
-    [setCanvasDimensions],
-  );
-
-  const handleCustomDimensionChange = useCallback(
-    (dimension, value) => {
-      const numeric = Number(value);
-      if (Number.isNaN(numeric) || numeric <= 0) {
-        return;
-      }
-      setCanvasDimensions({ ...canvasDimensions, [dimension]: Math.round(numeric) });
-    },
-    [canvasDimensions, setCanvasDimensions],
-  );
-
-  const handleZoomInputChange = useCallback(
-    (event) => {
-      const { value } = event.target;
-      setZoomInputValue(value);
-
-      const numeric = Number(value);
-      if (value !== '' && Number.isFinite(numeric) && zoomLevels.includes(numeric)) {
-        setCanvasZoom(numeric / 100);
-      }
-    },
-    [setCanvasZoom],
-  );
-
-  const commitZoomInput = useCallback(() => {
-    const trimmed = zoomInputValue.trim();
-    if (trimmed === '') {
-      setZoomInputValue(String(zoomValue));
-      return;
-    }
-
-    const numeric = Number(trimmed);
-    if (!Number.isFinite(numeric)) {
-      setZoomInputValue(String(zoomValue));
-      return;
-    }
-
-    setCanvasZoom(numeric / 100);
-  }, [setCanvasZoom, zoomInputValue, zoomValue]);
-
-  const handleZoomInputBlur = useCallback(() => {
-    commitZoomInput();
-  }, [commitZoomInput]);
-
-  const handleZoomInputKeyDown = useCallback(
-    (event) => {
-      if (event.key === 'Enter') {
-        event.preventDefault();
-        commitZoomInput();
-      }
-
-      if (event.key === 'Escape') {
-        event.preventDefault();
-        setZoomInputValue(String(zoomValue));
-      }
-    },
-    [commitZoomInput, zoomValue],
-  );
-
-  const handleFitToScreen = useCallback(() => {
-    setCanvasZoom(1);
-  }, [setCanvasZoom]);
-
-  const handleAddComponentFromPalette = useCallback(
-    (definitionId) => {
-      const definition = availableComponents.find((item) => item.id === definitionId);
-      const page = getCurrentPage();
-      if (!definition || !page) {
-        return;
-      }
-
-      const instance = createComponentInstance(definition);
-      const nextLayout = [...(page.layout || []), instance];
-      updatePageLayout(page.id, nextLayout);
-      telemetry.track(TELEMETRY_EVENTS.COMPONENT_ADDED, {
-        componentType: definition.id,
-        parentId: null,
-        index: nextLayout.length - 1,
-        source: 'palette-click',
-      });
-      notifications.success(`${definition.name} added to canvas`);
-    },
-    [availableComponents, getCurrentPage, notifications, updatePageLayout],
-  );
-
-  const renderLayerTree = useCallback(
-    (components, depth = 0) =>
-      components.map((component) => {
-        const isActive = component.id === primarySelectedId;
-        const hasChildren = Array.isArray(component.children) && component.children.length > 0;
-
-        return (
-          <li key={component.id} className="layer-item">
-            <button
-              type="button"
-              className={`layer-item__button ${isActive ? 'is-active' : ''}`}
-              style={{ paddingLeft: depth * 16 + 12 }}
-              onClick={() => selectComponent(component.id)}
-            >
-              <span className="layer-item__bullet" aria-hidden="true" />
-              <span className="layer-item__label">{component.name || component.type}</span>
-            </button>
-            {hasChildren && (
-              <ul className="layers-panel__list">{renderLayerTree(component.children, depth + 1)}</ul>
-            )}
-          </li>
-        );
-      }),
-    [primarySelectedId, selectComponent],
-  );
-
+  const updateComponent = (id, updates) => {
+    const visit = (nodes) =>
+      nodes.map((node) =>
+        node.id === id
+          ? { ...node, ...updates }
+          : {
+              ...node,
+              ...(node.children ? { children: visit(node.children) } : {}),
+            },
+      );
+    changeLayout(visit(layout));
+  };
+  const insertComponent = (id) => {
+    const def = definitions.find((item) => item.id === id);
+    if (!def || !page) return;
+    const instance = {
+      id: uuidv4(),
+      type: def.id,
+      props: structuredClone(def.defaultProps || {}),
+      ...(def.canContainChildren ? { children: [] } : {}),
+    };
+    changeLayout([...layout, instance]);
+    editor.selectComponent(instance.id);
+  };
+  const undo = () => {
+    if (canUndo) undoPageLayout(currentPageId);
+  };
+  const redo = () => {
+    if (canRedo) redoPageLayout(currentPageId);
+  };
+  const preview = () => {
+    if (layout.length || editor.isPreviewMode) editor.togglePreviewMode();
+  };
+  const exportCode = () => {
+    if (layout.length) editor.openCodeViewer();
+  };
+  const clear = () => {
+    changeLayout([]);
+    editor.clearSelection();
+    notifications.info("Canvas cleared. Use Undo to restore it.");
+  };
   useKeyboardShortcuts([
+    { ...KEYBOARD_SHORTCUTS.PREVIEW, action: preview },
+    { ...KEYBOARD_SHORTCUTS.EXPORT, action: exportCode },
+    { key: "z", ctrlKey: true, action: undo, description: "Undo" },
     {
-      ...KEYBOARD_SHORTCUTS.PREVIEW,
-      action: () => {
-        if (layout.length > 0 || isPreviewMode) {
-          handlePreviewToggle();
-        }
-      },
-    },
-    {
-      ...KEYBOARD_SHORTCUTS.EXPORT,
-      action: () => {
-        if (layout.length > 0) {
-          handleExport();
-        }
-      },
-    },
-    {
-      ...KEYBOARD_SHORTCUTS.CLEAR,
-      action: () => {
-        if (layout.length > 0) {
-          handleClearLayout();
-        }
-      },
-    },
-    {
-      key: 'z',
-      ctrlKey: true,
-      action: handleUndo,
-      description: 'Undo last action',
-    },
-    {
-      key: 'z',
+      key: "z",
       ctrlKey: true,
       shiftKey: true,
-      action: handleRedo,
-      description: 'Redo last action',
+      action: redo,
+      description: "Redo",
+    },
+    {
+      key: "Escape",
+      action: () => {
+        editor.clearSelection();
+        editor.closeCodeViewer();
+        if (editor.isPreviewMode) editor.setPreviewMode(false);
+      },
+      description: "Close preview or selection",
     },
   ]);
-
-  const dimensionValue = useMemo(() => {
-    const preset = dimensionPresets.find(
-      (item) => item.width === canvasDimensions.width && item.height === canvasDimensions.height,
-    );
-    return preset ? `${preset.width}x${preset.height}` : 'custom';
-  }, [canvasDimensions.height, canvasDimensions.width]);
-
-  const activeDeviceId = useMemo(() => {
-    const preset = dimensionPresets.find(
-      (item) => item.width === canvasDimensions.width && item.height === canvasDimensions.height,
-    );
-    return preset?.id ?? 'custom';
-  }, [canvasDimensions.height, canvasDimensions.width]);
-
-  const totalLayerCount = useMemo(() => countComponents(layout), [layout]);
-
-  const autosaveLabel = 'Autosaved moments ago';
-
-  const handleCanvasSelection = useCallback(
-    (componentId, event) => {
-      if (!componentId) {
-        clearSelection();
-        return;
-      }
-
-      if (event?.metaKey || event?.ctrlKey) {
-        toggleComponentSelection(componentId);
-      } else {
-        selectComponent(componentId);
-      }
-    },
-    [clearSelection, selectComponent, toggleComponentSelection],
-  );
-
+  const commitZoom = () => {
+    const value = Number(zoomText);
+    if (Number.isFinite(value) && value > 0) {
+      setAutoFit(false);
+      editor.setCanvasZoom(value / 100);
+    }
+    setZoomText(String(Math.round(useEditorStore.getState().canvasZoom * 100)));
+  };
+  const statusText =
+    saveStatus === "error"
+      ? "Could not save locally"
+      : saveStatus === "saving"
+        ? "Saving…"
+        : "Saved in this browser";
   return (
     <div className="ui-builder">
-      <header className="ui-builder-header">
-        <div className="header-brand">
-          <div className="brand-icon">
-            <FontAwesomeIcon icon={faCube} />
+      <header className="editor-header">
+        <div className="editor-brand">
+          <span className="editor-logo">
+            <svg viewBox="0 0 32 32" width="25" height="25" fill="none" aria-hidden="true"><path d="M7 25V7h18M7 16h13M16 25V16h9" stroke="currentColor" strokeWidth="2.6" strokeLinecap="square" /></svg>
+          </span>
+          <div>
+            <strong>Framewright</strong>
+            <small>The visual React workspace.</small>
           </div>
-          <div className="brand-meta">
-            <span className="brand-title">React UI Builder</span>
-            <span className="brand-badge">BETA</span>
+          <span className="editor-beta">BETA</span>
+        </div>
+        <div className="editor-project">
+          <span>Workspace</span>
+          <FontAwesomeIcon icon={faChevronRight} />
+          <strong>{page?.name || "Untitled"}</strong>
+        </div>
+        <div className="editor-header-actions">
+          <span
+            className={`editor-save editor-save--${saveStatus || "saved"}`}
+            role="status"
+          >
+            <i />
+            {statusText}
+          </span>
+          <button className="editor-button editor-header-project" onClick={() => setProjectPanel('project')}><IconFolder size={17} />Project</button>
+          <button className="editor-tool" title="Theme tokens" aria-label="Theme tokens" onClick={() => setProjectPanel('theme')}><IconPalette size={18} /></button>
+          <ThemeToggle />
+          <button
+            type="button"
+            className="editor-button"
+            onClick={preview}
+            disabled={!total && !editor.isPreviewMode}
+          >
+            <IconPlayerPlay size={16} />
+            {editor.isPreviewMode ? "Back to editor" : "Preview"}
+          </button>
+          <button
+            type="button"
+            className="editor-button editor-button--primary"
+            onClick={() => setProjectPanel("project")}
+          >
+            <IconDownload size={16} />
+            Export
+          </button>
+        </div>
+      </header>
+      <div
+        className="editor-workspace"
+        style={{
+          "--palette-width": `${paletteWidth}px`,
+          "--inspector-width": `${propertiesWidth}px`,
+        }}
+      >
+        <aside className="editor-sidebar" aria-label="Library and navigation">
+          <div className="editor-sidebar-tabs" aria-label="Workspace panels">
+            {TABS.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                aria-pressed={tab === item.id}
+                className={tab === item.id ? "is-active" : ""}
+                onClick={() => setTab(item.id)}
+              >
+                <FontAwesomeIcon icon={item.icon} />
+                {item.label}
+                {item.id === "pages" && <small>{pages.length}</small>}
+              </button>
+            ))}
           </div>
-          <div className="page-context">
-            <span className="page-context__label">Editing</span>
+          <div className="editor-page-picker">
+            <FontAwesomeIcon icon={faFileLines} />
             <select
-              value={currentPageId || ''}
-              onChange={(event) => {
-                setCurrentPageId(event.target.value);
-                clearSelection();
-              }}
+              aria-label="Current page"
+              value={currentPageId || ""}
+              onChange={(e) => setCurrentPageId(e.target.value)}
             >
-              {pages.map((page) => (
-                <option value={page.id} key={page.id}>
-                  {page.name}
+              {pages.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
                 </option>
               ))}
             </select>
+            <span>{page?.path}</span>
           </div>
-          <span className="autosave-indicator">{autosaveLabel}</span>
-        </div>
-        <div className="header-controls">
-          <div className="control-group">
-            <button
-              type="button"
-              className="icon-button"
-              onClick={handleUndo}
-              disabled={!canUndo}
-              title="Undo (Ctrl+Z)"
-            >
-              <FontAwesomeIcon icon={faRotateLeft} />
-            </button>
-            <button
-              type="button"
-              className="icon-button"
-              onClick={handleRedo}
-              disabled={!canRedo}
-              title="Redo (Ctrl+Shift+Z)"
-            >
-              <FontAwesomeIcon icon={faRotateRight} />
-            </button>
-            <button
-              type="button"
-              className={`icon-button ${isLayersPanelVisible ? 'is-active' : ''}`}
-              onClick={() => setLayersPanelVisible((value) => !value)}
-              title="Toggle layers"
-            >
-              <FontAwesomeIcon icon={faLayerGroup} />
-            </button>
-            <button
-              type="button"
-              className="icon-button"
-              onClick={handleExport}
-              disabled={layout.length === 0}
-              title="View generated code"
-            >
-              <FontAwesomeIcon icon={faCode} />
-            </button>
-            <ThemeToggle />
-          </div>
-          <div className="action-group">
-            <button
-              type="button"
-              className={`header-action header-action--primary ${isPreviewMode ? 'is-active' : ''}`}
-              onClick={handlePreviewToggle}
-              disabled={layout.length === 0 && !isPreviewMode}
-              title={isPreviewMode ? 'Return to editing' : 'Preview layout'}
-            >
-              <FontAwesomeIcon icon={faPlay} />
-              <span>{isPreviewMode ? 'Back to Edit' : 'Preview'}</span>
-            </button>
-            <button
-              type="button"
-              className="header-action header-action--ghost"
-              onClick={handleClearLayout}
-              disabled={layout.length === 0}
-              title="Clear canvas"
-            >
-              <FontAwesomeIcon icon={faTrash} />
-              <span>Clear</span>
-            </button>
-            <button
-              type="button"
-              className="header-action header-action--outline"
-              onClick={handleExport}
-              disabled={layout.length === 0}
-              title="Export React code"
-            >
-              <FontAwesomeIcon icon={faDownload} />
-              <span>Export</span>
-            </button>
-          </div>
-        </div>
-      </header>
-
-      <div className="ui-builder-body" style={builderGridStyle}>
-        <aside className="builder-sidebar">
-          <div className="sidebar-tabs">
-            <button
-              type="button"
-              className={`sidebar-tab ${activeSidebarTab === 'pages' ? 'is-active' : ''}`}
-              onClick={() => setActiveSidebarTab('pages')}
-            >
-              Pages
-            </button>
-            <button
-              type="button"
-              className={`sidebar-tab ${activeSidebarTab === 'components' ? 'is-active' : ''}`}
-              onClick={() => setActiveSidebarTab('components')}
-            >
-              Components
-            </button>
-          </div>
-          <div className="sidebar-content">
-            {activeSidebarTab === 'pages' ? (
-              <PageManager />
-            ) : (
+          <div className="editor-sidebar-content">
+            {tab === "components" && (
               <ComponentPalette
-                components={filteredComponents}
-                onAddCustomComponent={handleAddCustomComponent}
-                onComponentClick={handleAddComponentFromPalette}
-                searchValue={componentSearch}
-                onSearchChange={setComponentSearch}
+                components={filtered}
+                onAddCustomComponent={(def) => {
+                  editor.addCustomComponent(def);
+                  notifications.success(`Added ${def.name} to your library`);
+                }}
+                onComponentClick={insertComponent}
+                searchValue={search}
+                onSearchChange={setSearch}
                 width={paletteWidth}
-                onWidthChange={handlePaletteWidthChange}
+                onWidthChange={setPaletteWidth}
               />
             )}
+            {tab === "pages" && <PageManager />}
+            {tab === "layers" && (
+              <section className="editor-layers">
+                <div className="editor-section-heading">
+                  <h2>Layers</h2>
+                  <span>{total}</span>
+                </div>
+                <p>Everything on {page?.name}.</p>
+                {total ? (
+                  <LayerTree
+                    nodes={layout}
+                    selectedId={selectedId}
+                    onSelect={editor.selectComponent}
+                  />
+                ) : (
+                  <div className="editor-panel-empty">
+                    <FontAwesomeIcon icon={faLayerGroup} />
+                    <h3>Your page starts here</h3>
+                    <p>Add a component to see its place in the layer tree.</p>
+                    <button
+                      type="button"
+                      className="editor-button"
+                      onClick={() => setTab("components")}
+                    >
+                      Browse components
+                    </button>
+                  </div>
+                )}
+              </section>
+            )}
+          </div>
+          <div className="editor-sidebar-bottom">
+            <button type="button" onClick={() => setShowHelp(true)}>
+              <FontAwesomeIcon icon={faCircleQuestion} />
+              Quick guide & shortcuts<span>?</span>
+            </button>
           </div>
         </aside>
-
-        {isLayersPanelVisible && (
-          <aside className="layers-panel">
-            <div className="layers-panel__header">
-              <FontAwesomeIcon icon={faLayerGroup} />
-              <span>Layers</span>
-              <span className="layers-panel__count">{totalLayerCount}</span>
+        <main className="editor-main" aria-label="Design canvas">
+          <div className="editor-toolbar">
+            <div className="editor-tool-group">
+              <ToolButton
+                icon={faRotateLeft}
+                label="Undo (Ctrl+Z)"
+                onClick={undo}
+                disabled={!canUndo}
+              />
+              <ToolButton
+                icon={faRotateRight}
+                label="Redo (Ctrl+Shift+Z)"
+                onClick={redo}
+                disabled={!canRedo}
+              />
             </div>
-            <div className="layers-panel__body">
-              {layout.length === 0 ? (
-                <div className="layers-panel__empty">
-                  <FontAwesomeIcon icon={faLayerGroup} />
-                  <p>No layers yet. Drop components on the canvas to get started.</p>
-                </div>
-              ) : (
-                <ul className="layers-panel__tree">{renderLayerTree(layout)}</ul>
-              )}
-            </div>
-          </aside>
-        )}
-
-        <main className="builder-canvas-area">
-          <div className="canvas-toolbar">
-            <div className="device-switcher">
-              {dimensionPresets.map((preset) => (
-                <button
-                  type="button"
-                  key={preset.id}
-                  className={`icon-button ${activeDeviceId === preset.id ? 'is-active' : ''}`}
-                  onClick={() => handleDevicePreset(preset)}
-                  title={preset.label}
+            <div className="editor-device-group">
+              {DEVICES.map((d) => (
+                <ToolButton
+                  key={d.id}
+                  icon={d.icon}
+                  label={d.label}
+                  active={device?.id === d.id}
+                  aria-pressed={device?.id === d.id}
+                  onClick={() => {
+                    editor.setCanvasDimensions({
+                      width: d.width,
+                      height: d.height,
+                    });
+                    setAutoFit(true);
+                  }}
                 >
-                  <FontAwesomeIcon icon={preset.icon} />
-                </button>
+                  <span>{d.label}</span>
+                </ToolButton>
               ))}
             </div>
-            <div className="dimension-select">
-              <FontAwesomeIcon icon={faRulerCombined} aria-hidden="true" />
-              <select value={dimensionValue} onChange={handleDimensionPresetChange}>
-                {dimensionPresets.map((preset) => (
-                  <option key={preset.id} value={`${preset.width}x${preset.height}`}>
-                    {preset.width} x {preset.height} - {preset.label}
-                  </option>
-                ))}
-                <option value="custom">Custom size</option>
-              </select>
-              {dimensionValue === 'custom' && (
-                <div className="dimension-inputs">
-                  <input
-                    type="number"
-                    min="100"
-                    value={canvasDimensions.width}
-                    onChange={(event) => handleCustomDimensionChange('width', event.target.value)}
-                  />
-                  <span>x</span>
-                  <input
-                    type="number"
-                    min="100"
-                    value={canvasDimensions.height}
-                    onChange={(event) => handleCustomDimensionChange('height', event.target.value)}
-                  />
-                </div>
-              )}
-            </div>
-            <div className="canvas-zoom">
-              <button
-                type="button"
-                className="icon-button"
-                onClick={zoomCanvasOut}
-                title="Zoom out (Ctrl+-)"
-              >
-                <FontAwesomeIcon icon={faMagnifyingGlassMinus} />
-              </button>
-              <div className="canvas-zoom__field">
+            <div className="editor-tool-group editor-zoom">
+              <ToolButton
+                icon={faMinus}
+                label="Zoom out"
+                onClick={() => {
+                  setAutoFit(false);
+                  editor.zoomCanvasOut();
+                }}
+              />
+              <label>
                 <input
+                  aria-label="Canvas zoom percentage"
                   type="number"
-                  inputMode="decimal"
                   min={MIN_ZOOM_PERCENT}
                   max={MAX_ZOOM_PERCENT}
-                  step="1"
-                  list="canvas-zoom-options"
-                  value={zoomInputValue}
-                  onChange={handleZoomInputChange}
-                  onBlur={handleZoomInputBlur}
-                  onKeyDown={handleZoomInputKeyDown}
-                  aria-label="Canvas zoom percentage"
+                  value={zoomText}
+                  onChange={(e) => setZoomText(e.target.value)}
+                  onBlur={commitZoom}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") e.currentTarget.blur();
+                  }}
                 />
-                <span className="canvas-zoom__suffix">%</span>
-                {/* <datalist id="canvas-zoom-options">
-                  {zoomLevels.map((level) => (
-                    <option key={level} value={level}>
-                      {level}
-                    </option>
-                  ))}
-                </datalist> */}
-              </div>
-              <button
-                type="button"
-                className="icon-button"
-                onClick={zoomCanvasIn}
-                title="Zoom in (Ctrl+=)"
+                <span>%</span>
+              </label>
+              <ToolButton
+                icon={faPlus}
+                label="Zoom in"
+                onClick={() => {
+                  setAutoFit(false);
+                  editor.zoomCanvasIn();
+                }}
+              />
+              <ToolButton
+                icon={faExpand}
+                label="Fit canvas to available space"
+                active={autoFit}
+                onClick={() => {
+                  setAutoFit(true);
+                  fitCanvas();
+                }}
               >
-                <FontAwesomeIcon icon={faMagnifyingGlassPlus} />
-              </button>
-              <button
-                type="button"
-                className="icon-button"
-                title="Reset zoom"
-                onClick={handleFitToScreen}
-              >
-                <FontAwesomeIcon icon={faMaximize} />
-              </button>
+                <span>Fit</span>
+              </ToolButton>
             </div>
           </div>
-
-          <div className="canvas-wrapper">
-            {isPreviewMode ? (
-              <PreviewFrame layout={layout} />
+          <div className="editor-canvas-viewport" ref={viewportRef}>
+            <div className="editor-artboard-label">
+              <span>
+                <FontAwesomeIcon icon={faDesktop} />
+                {page?.name}{" "}
+                <span>
+                  /{" "}
+                  {editor.isPreviewMode ? "Preview" : device?.label || "Custom"}
+                </span>
+              </span>
+              <span>
+                {editor.canvasDimensions.width} ×{" "}
+                {editor.canvasDimensions.height}
+              </span>
+            </div>
+            {editor.isPreviewMode ? (
+              <PreviewFrame
+                layout={layout}
+                project={exportProject()}
+                currentPageId={currentPageId}
+                onNavigate={setCurrentPageId}
+                canvasDimensions={editor.canvasDimensions}
+                canvasZoom={editor.canvasZoom}
+              />
             ) : (
               <Canvas
                 layout={layout}
-                onLayoutChange={handleLayoutChange}
-                selectedComponentId={primarySelectedId}
-                onSelectComponent={handleCanvasSelection}
-                isPreviewMode={isPreviewMode}
-                canvasDimensions={canvasDimensions}
-                canvasZoom={canvasZoom}
+                onLayoutChange={changeLayout}
+                selectedComponentId={selectedId}
+                onSelectComponent={(id, event) => {
+                  if (!id) editor.clearSelection();
+                  else if (event?.ctrlKey || event?.metaKey)
+                    editor.toggleComponentSelection(id);
+                  else editor.selectComponent(id);
+                }}
+                canvasDimensions={editor.canvasDimensions}
+                canvasZoom={editor.canvasZoom}
+                onQuickAdd={() => insertComponent("container")}
+                themeStyle={themeVariables(theme)}
               />
             )}
           </div>
+          <div className="editor-canvas-footer">
+            <span>
+              <i />
+              {editor.isPreviewMode
+                ? "Preview mode · Interact with your app"
+                : "Design mode"}
+            </span>
+            <span>
+              {total} {total === 1 ? "component" : "components"}
+              <span className="editor-footer-divider">/</span>
+              {selected
+                ? `Selected: ${selected.type}`
+                : "Click a component to edit"}
+            </span>
+            <ToolButton
+              icon={faCode}
+              label="View generated code"
+              onClick={exportCode}
+              disabled={!total}
+            />
+            <ToolButton
+              icon={faTrash}
+              label="Clear canvas (can be undone)"
+              onClick={clear}
+              disabled={!total}
+            />
+          </div>
         </main>
-
-        <aside className="builder-properties">
-          <PropertiesPanel
-            selectedComponent={selectedComponent}
-            onUpdateComponent={handleUpdateComponent}
-            components={layout}
-            width={propertiesWidth}
-            onWidthChange={handlePropertiesWidthChange}
-          />
+        <aside className="editor-inspector" aria-label="Component inspector">
+          {selected ? (
+            <PropertiesPanel
+              selectedComponent={selected}
+              onUpdateComponent={updateComponent}
+              components={layout}
+              width={propertiesWidth}
+              onWidthChange={setPropertiesWidth}
+            />
+          ) : (
+            <div className="editor-inspector-empty">
+              <div className="editor-inspector-title">
+                <IconSettings2 size={18} />
+                <strong>Design</strong>
+                <span>Page settings</span>
+              </div>
+              <section>
+                <div className="editor-section-heading">
+                  <h2>Canvas</h2>
+                  <span>{device?.label || "Custom"}</span>
+                </div>
+                <p>Set the frame for your next idea.</p>
+                <div className="editor-dimensions">
+                  {["width", "height"].map((dimension, i) => (
+                    <label key={dimension}>
+                      <span>{i ? "H" : "W"}</span>
+                      <input
+                        aria-label={`Canvas ${dimension}`}
+                        type="number"
+                        min="100"
+                        value={editor.canvasDimensions[dimension]}
+                        onChange={(e) => {
+                          const value = Number(e.target.value);
+                          if (value >= 100) {
+                            editor.setCanvasDimensions({ [dimension]: value });
+                            setAutoFit(true);
+                          }
+                        }}
+                      />
+                    </label>
+                  ))}
+                </div>
+              </section>
+              <section className="editor-workflow">
+                <span className="editor-eyebrow">FROM IDEA TO APP</span>
+                <h2>Make it yours.</h2>
+                <p>
+                  Everything you need to build a real interface, in one
+                  workspace.
+                </p>
+                <ol>
+                  <li>
+                    <strong>Add your building blocks</strong>
+                    <span>Drag from the library or click to insert.</span>
+                  </li>
+                  <li>
+                    <strong>Dial in the details</strong>
+                    <span>Edit content, layout, styles and variants.</span>
+                  </li>
+                  <li>
+                    <strong>Bring it to life</strong>
+                    <span>Connect pages, forms and conditions.</span>
+                  </li>
+                  <li>
+                    <strong>Take your code with you</strong>
+                    <span>Preview and export your React app.</span>
+                  </li>
+                </ol>
+              </section>
+              <section className="editor-shortcuts">
+                <h3>Work a little faster</h3>
+                <p>
+                  Undo <kbd>Ctrl Z</kbd>
+                </p>
+                <p>
+                  Redo <kbd>Ctrl Shift Z</kbd>
+                </p>
+                <p>
+                  Preview <kbd>Ctrl P</kbd>
+                </p>
+                <p>
+                  Export <kbd>Ctrl E</kbd>
+                </p>
+              </section>
+            </div>
+          )}
         </aside>
       </div>
-
-      <CodeViewer layout={layout} isVisible={isCodeViewerVisible} onClose={closeCodeViewer} />
-
+      {projectPanel && <ProjectPanel section={projectPanel} onClose={() => setProjectPanel(null)} />}
+      <CodeViewer
+        layout={layout}
+        isVisible={editor.isCodeViewerVisible}
+        onClose={editor.closeCodeViewer}
+      />
       <NotificationSystem
         notifications={notifications.notifications}
         onRemove={notifications.removeNotification}
       />
+      <dialog
+        ref={helpRef}
+        className="editor-help"
+        onCancel={() => setShowHelp(false)}
+        onClick={(e) => {
+          if (e.target === e.currentTarget) setShowHelp(false);
+        }}
+      >
+        <h2>Your idea, built with React.</h2>
+        <p>
+          Use Insert to find components. Drag them into the canvas or a
+          container, or click to add them to the page. Open Layers to select
+          nested components and Pages to manage routes.
+        </p>
+        <p>
+          The inspector includes content, styling, saved variants, form
+          validation and conditional visibility. Preview lets you interact with
+          the result. Export React opens your code and app download options.
+        </p>
+        <dl>
+          <dt>Undo / Redo</dt>
+          <dd>Ctrl Z / Ctrl Shift Z</dd>
+          <dt>Preview / Export</dt>
+          <dd>Ctrl P / Ctrl E</dd>
+          <dt>Exit preview / Deselect</dt>
+          <dd>Escape</dd>
+        </dl>
+        <p className="editor-help-note">
+          On macOS, use Command instead of Ctrl. Your pages save in this
+          browser. AI creation may download a model the first time you use it.
+        </p>
+        <button
+          type="button"
+          className="editor-button editor-button--primary"
+          onClick={() => setShowHelp(false)}
+        >
+          Got it
+        </button>
+      </dialog>
     </div>
   );
-};
-
-const UIBuilder = () => (
-  <PageProvider>
-    <DndProvider backend={HTML5Backend}>
-      <UIBuilderContent />
-    </DndProvider>
-  </PageProvider>
-);
-
-export default UIBuilder;
+}
+export default function UIBuilder() {
+  return (
+    <PageProvider>
+      <DndProvider backend={HTML5Backend}>
+        <UIBuilderContent />
+      </DndProvider>
+    </PageProvider>
+  );
+}

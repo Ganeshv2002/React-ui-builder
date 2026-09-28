@@ -1,0 +1,37 @@
+{
+  "name": "Emerald",
+  "tokens": {
+    "color.brand": {
+      "type": "color",
+      "value": "#0f766e"
+    },
+    "color.text": {
+      "type": "color",
+      "value": "#172033"
+    },
+    "color.surface": {
+      "type": "color",
+      "value": "#ffffff"
+    },
+    "space.md": {
+      "type": "dimension",
+      "value": "16px"
+    },
+    "space.lg": {
+      "type": "dimension",
+      "value": "32px"
+    },
+    "radius.md": {
+      "type": "dimension",
+      "value": "8px"
+    },
+    "font.body": {
+      "type": "fontFamily",
+      "value": "Inter, Segoe UI, sans-serif"
+    },
+    "font.size.body": {
+      "type": "dimension",
+      "value": "16px"
+    }
+  }
+}

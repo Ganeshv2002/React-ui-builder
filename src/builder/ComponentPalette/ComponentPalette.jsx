@@ -25,10 +25,13 @@ const DraggableComponent = ({ component, onInsert }) => {
   );
 
   return (
-    <div
+    <button
+      type="button"
+      aria-label={`Add ${component.name}`}
+      title={`Drag to place or click to add ${component.name}`}
       ref={drag}
       className={`draggable-component ${isDragging ? 'dragging' : ''}`}
-      onDoubleClick={() => onInsert?.(component)}
+      onClick={() => onInsert?.(component)}
     >
       <span className="component-icon">
         {typeof component.icon === 'string' ? (
@@ -38,7 +41,7 @@ const DraggableComponent = ({ component, onInsert }) => {
         )}
       </span>
       <span className="component-name">{component.name}</span>
-    </div>
+    </button>
   );
 };
 
@@ -107,7 +110,10 @@ const ComponentPalette = ({
     });
 
     return Array.from(buckets.entries())
-      .sort(([categoryA], [categoryB]) => categoryA.localeCompare(categoryB))
+      .sort(([a], [b]) => {
+        const order = ['Layout', 'Typography', 'Interactive', 'Form', 'Navigation', 'Data', 'Display', 'Feedback', 'Media', 'AI Generated'];
+        return (order.indexOf(a) === -1 ? 99 : order.indexOf(a)) - (order.indexOf(b) === -1 ? 99 : order.indexOf(b));
+      })
       .map(([category, items]) => [
         category,
         items
@@ -177,7 +183,7 @@ const ComponentPalette = ({
         <div className="component-palette__header">
           <div className="component-palette__header-meta">
             <h3>Components</h3>
-            <p>Browse the library and drag to canvas</p>
+            <p>Drag to place. Click to add.</p>
           </div>
           <span className="component-palette__count">{components.length}</span>
         </div>

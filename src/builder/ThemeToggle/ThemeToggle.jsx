@@ -1,30 +1,9 @@
 import React from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSun, faMoon } from '@fortawesome/free-solid-svg-icons';
+import { IconMoon, IconSun } from '@tabler/icons-react';
 import { useTheme } from '../ThemeProvider/ThemeProvider';
-import './ThemeToggle.css';
-
 export const ThemeToggle = () => {
   const { colorScheme, toggleColorScheme } = useTheme();
-
-  return (
-    <button
-      className={`theme-toggle ${colorScheme === 'dark' ? 'theme-toggle--dark' : 'theme-toggle--light'}`}
-      onClick={toggleColorScheme}
-      aria-label="Toggle theme"
-      title={`Switch to ${colorScheme === 'dark' ? 'light' : 'dark'} theme`}
-    >
-      <div className="theme-toggle__track">
-        <div className="theme-toggle__thumb">
-          <FontAwesomeIcon 
-            icon={colorScheme === 'dark' ? faMoon : faSun} 
-            className="theme-toggle__icon"
-          />
-        </div>
-      </div>
-      {/* <span className="theme-toggle__label">
-        {colorScheme === 'dark' ? 'Dark' : 'Light'}
-      </span> */}
-    </button>
-  );
+  const Icon = colorScheme === 'dark' ? IconSun : IconMoon;
+  const label = 'Switch to ' + (colorScheme === 'dark' ? 'light' : 'dark') + ' theme';
+  return <button type="button" className="editor-tool editor-theme-toggle" onClick={toggleColorScheme} aria-label={label} title={label}><Icon size={18} stroke={1.7} /></button>;
 };

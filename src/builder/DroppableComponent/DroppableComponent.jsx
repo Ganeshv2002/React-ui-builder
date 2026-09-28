@@ -8,6 +8,8 @@ import { faGripVertical, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { ensureComponentRegistry, getComponentRenderer } from '../componentRegistry';
 import { findComponentById, insertComponentIntoParent, isDescendant, removeComponentById } from '../../utils/layoutTree';
 import { telemetry, TELEMETRY_EVENTS } from '../../utils/telemetry';
+import { usePages } from '../../contexts/PageContext';
+import { resolveValue } from '../../runtime/engine';
 import './DroppableComponent.css';
 
 ensureComponentRegistry();
@@ -26,6 +28,10 @@ const DroppableComponent = ({
   isDragActive = false,
 }) => {
   const Component = getComponentRenderer(component.type);
+  const { theme, getCurrentPage } = usePages();
+  let renderProps;
+  try { renderProps = resolveValue({ ...component.props, ...component.bindings }, { theme, state: getCurrentPage()?.logic?.state || {} }); }
+  catch { renderProps = { ...component.props, style: {} }; }
   const componentRef = useRef(null);
   const clickTimeoutRef = useRef(null);
 
@@ -113,7 +119,8 @@ const DroppableComponent = ({
   };
 
   // Check if this is a custom AI-generated component
-  const isCustomComponent = !Component && component.jsx && component.css;
+  // Portable JSON can retain old source metadata, but only registered components execute.
+  const isCustomComponent = false;
   
   if (!Component && !isCustomComponent) {
     return <div>Unknown component type: {component.type}</div>;
@@ -189,7 +196,7 @@ const DroppableComponent = ({
   };
 
   const renderChildren = () => {
-    if (!component.children) return component.props.children;
+    if (!component.children?.length && component.children === undefined) return renderProps.children;
     
     const children = component.children;
     const canAcceptChildren = component.type === 'container' || component.type === 'form';
@@ -274,7 +281,7 @@ const DroppableComponent = ({
         }}
         className={`droppable-component preview-mode`}
         onClick={handleClick}
-        style={component.props.style}
+        style={renderProps.style}
       >
         {isCustomComponent ? (
           <CustomComponentRenderer 
@@ -284,7 +291,7 @@ const DroppableComponent = ({
             {renderChildren()}
           </CustomComponentRenderer>
         ) : (
-          <Component {...component.props} style={component.props.style} isPreview={isPreviewMode}>
+          <Component {...renderProps} style={renderProps.style} isPreview={isPreviewMode}>
             {renderChildren()}
           </Component>
         )}
@@ -313,7 +320,7 @@ const DroppableComponent = ({
           {renderChildren()}
         </CustomComponentRenderer>
       ) : (
-        <Component {...component.props} style={component.props.style} isPreview={isPreviewMode}>
+        <Component {...renderProps} style={renderProps.style} isPreview={isPreviewMode}>
           {renderChildren()}
         </Component>
       )}

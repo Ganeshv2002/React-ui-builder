@@ -10,6 +10,10 @@ A drag-and-drop React component builder that allows you to visually create layou
 - 📝 **Code Generation**: Export clean React JSX and CSS code
 - 🔧 **Nested Components**: Support for container components with children
 - 📱 **Responsive**: Built with responsive design principles
+- 🗂️ **Portable JSON projects**: Export or import the whole app (routes, layouts, theme, validation, API calls, effects) as one JSON file, and download a React boilerplate that renders it
+- 🎨 **Theme tokens**: Import a JSON or CSS `:root` theme file and pick its colors, sizes and fonts in the inspector
+
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for how the editor and the JSON runtime fit together, and [examples/](examples/) for a sample project and theme files.
 
 ## Getting Started
 

@@ -44,7 +44,7 @@ const buildPropsString = (props = {}) =>
       }
 
       if (typeof value === 'string') {
-        return `${key}=${JSON.stringify(value)}`;
+        return `${key}={${JSON.stringify(value)}}`;
       }
 
       return `${key}={${JSON.stringify(value)}}`;
@@ -61,7 +61,7 @@ const normalizeLayout = (nodes) => {
     .map((node) => ({
       ...node,
       props: node.props ?? {},
-      children: normalizeLayout(node.children),
+      ...(Array.isArray(node.children) ? { children: normalizeLayout(node.children) } : {}),
     }));
 };
 
@@ -87,7 +87,7 @@ ${childrenCode}
 ${indent}</${meta.exportName}>`;
   }
 
-  if (Array.isArray(component.children) && component.children.length === 0) {
+  if (Array.isArray(component.children) && component.children.length === 0 && props.children == null) {
     return `${indent}${openTag}
 ${indent}  {/* Add components here */}
 ${indent}</${meta.exportName}>`;
@@ -96,7 +96,7 @@ ${indent}</${meta.exportName}>`;
   if (props.children !== undefined && props.children !== null) {
     if (typeof props.children === 'string') {
       return `${indent}${openTag}
-${indent}  ${props.children}
+${indent}  {${JSON.stringify(props.children)}}
 ${indent}</${meta.exportName}>`;
     }
 

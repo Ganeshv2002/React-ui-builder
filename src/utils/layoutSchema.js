@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const propsSchema = z.record(z.any()).default({});
+const propsSchema = z.record(z.string(), z.any()).default({});
 
 export const layoutComponentSchema = z.object({
   id: z.string(),

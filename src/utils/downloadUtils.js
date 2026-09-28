@@ -6,7 +6,7 @@
 export const createAndDownloadZip = async (files, filename = 'generated-app.zip') => {
   try {
     // Dynamic import of JSZip for browser compatibility
-    const JSZip = (await import('https://cdn.skypack.dev/jszip')).default;
+    const JSZip = (await import('jszip')).default;
     
     const zip = new JSZip();
     

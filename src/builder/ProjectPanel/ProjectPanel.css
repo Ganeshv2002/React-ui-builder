@@ -1,0 +1,40 @@
+.project-dialog { width: min(850px, 92vw); max-height: 86dvh; padding: 0; border: 1px solid var(--border); border-radius: 14px; color: var(--fg); background: var(--bg); box-shadow: 0 24px 100px #0003; }
+.project-dialog::backdrop { background: #0f172a70; backdrop-filter: blur(3px); }
+.project-dialog > header { display: flex; align-items: center; justify-content: space-between; padding: 24px 28px 20px; }
+.project-dialog h2 { margin: 5px 0 0; font-size: 23px; letter-spacing: -.7px; }
+.project-dialog nav { display: flex; padding: 0 28px; border-bottom: 1px solid var(--border); gap: 24px; }
+.project-dialog nav button { background: none; color: var(--muted); border: 0; border-bottom: 2px solid transparent; padding: 12px 0; display: flex; align-items: center; gap: 7px; }
+.project-dialog nav button.is-active { color: var(--primary); border-color: var(--primary); }
+.project-dialog-body { padding: 24px 28px 30px; overflow: auto; max-height: 62dvh; }
+.project-dialog h3 { font-size: 18px; margin: 0 0 10px; }
+.project-dialog p { color: var(--muted); line-height: 1.7; }
+.project-name { display: flex; flex-direction: column; gap: 7px; max-width: 340px; margin-top: 20px; }
+.project-name input, .config-editor textarea, .token-field input, .token-field select { border: 1px solid var(--border); border-radius: 6px; background: var(--bg-surface); color: var(--fg); padding: 9px; min-width: 0; }
+.project-file-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 22px 0; }
+.project-file-cards > button { display: flex; flex-direction: column; text-align: left; padding: 18px; gap: 10px; border: 1px solid var(--border); border-radius: 9px; background: var(--bg); color: var(--fg); }
+.project-file-cards > button:hover { border-color: var(--primary); background: var(--editor-accent-soft); }
+.project-file-cards svg { color: var(--primary); width: 22px; }
+.project-file-cards span { color: var(--muted); font-size: 12px; line-height: 1.6; }
+.project-note { padding: 14px; background: var(--bg-surface); border-radius: 8px; font-size: 12px; }
+.config-actions { display: flex; flex-wrap: wrap; gap: 9px; margin: 14px 0; }
+.config-editor { margin-top: 20px; }
+.config-editor label { display: flex; flex-direction: column; gap: 10px; }
+.config-editor textarea { width: 100%; min-height: 260px; resize: vertical; box-sizing: border-box; font: 12px/1.6 Consolas, monospace; tab-size: 2; }
+.config-editor p { font-size: 12px; color: var(--muted); line-height: 1.7; }
+.config-message { white-space: pre-wrap; padding: 12px 14px; background: var(--bg-surface); border-left: 3px solid var(--primary); border-radius: 3px; overflow-wrap: anywhere; }
+.import-review { border: 1px solid var(--primary); border-radius: 9px; padding: 18px; margin-top: 20px; }
+.theme-token-list { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.theme-token-list > div { display: grid; grid-template-columns: 20px 1fr 1.3fr 80px; gap: 10px; padding: 13px; align-items: center; border-bottom: 1px solid var(--border); }
+.theme-token-list > div:last-child { border-bottom: 0; }
+.theme-token-list i { width: 18px; height: 18px; border: 1px solid var(--border); border-radius: 5px; }
+.theme-token-list strong { font-size: 12px; overflow-wrap: anywhere; }
+.theme-token-list span, .theme-token-list small { font-size: 11px; color: var(--muted); overflow-wrap: anywhere; }
+.token-count { float: right; color: var(--muted); font-weight: 400; }
+.token-field { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.token-field-value { display: flex; gap: 4px; min-width: 0; }
+.token-field-value input[type=text] { width: 100%; font-size: 11px; padding: 8px; }
+.token-field-value input[type=color] { width: 30px; min-width: 30px; height: 33px; padding: 2px; }
+.token-field select { width: 100%; font-size: 10px; padding: 5px; color: var(--primary); }
+.project-dialog details { padding: 12px; background: var(--bg-surface); border-radius: 8px; }
+.project-dialog pre { overflow: auto; font-size: 12px; }
+.fw-runtime-error { padding: 12px; background: #fef2f2; color: #991b1b; }

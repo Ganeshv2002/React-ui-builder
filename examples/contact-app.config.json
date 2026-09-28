@@ -1,0 +1,260 @@
+{
+  "format": "framewright",
+  "schemaVersion": 1,
+  "name": "Portable contact app",
+  "theme": {
+    "name": "Framewright",
+    "tokens": {
+      "color.brand": {
+        "type": "color",
+        "value": "#2563eb"
+      },
+      "color.text": {
+        "type": "color",
+        "value": "#172033"
+      },
+      "color.surface": {
+        "type": "color",
+        "value": "#ffffff"
+      },
+      "space.md": {
+        "type": "dimension",
+        "value": "16px"
+      },
+      "space.lg": {
+        "type": "dimension",
+        "value": "32px"
+      },
+      "radius.md": {
+        "type": "dimension",
+        "value": "8px"
+      },
+      "font.body": {
+        "type": "fontFamily",
+        "value": "Inter, Segoe UI, sans-serif"
+      },
+      "font.size.body": {
+        "type": "dimension",
+        "value": "16px"
+      }
+    }
+  },
+  "pages": [
+    {
+      "id": "home",
+      "name": "Contact",
+      "path": "/",
+      "isHome": true,
+      "layout": [
+        {
+          "id": "frame",
+          "type": "container",
+          "contractVersion": 1,
+          "props": {
+            "direction": "vertical",
+            "style": {
+              "padding": {
+                "$token": "space.lg"
+              },
+              "maxWidth": "640px",
+              "margin": "40px auto",
+              "backgroundColor": {
+                "$token": "color.surface"
+              },
+              "fontFamily": {
+                "$token": "font.body"
+              },
+              "borderRadius": {
+                "$token": "radius.md"
+              }
+            }
+          },
+          "children": [
+            {
+              "id": "heading",
+              "type": "heading",
+              "contractVersion": 1,
+              "props": {
+                "level": 1,
+                "style": {
+                  "color": {
+                    "$token": "color.brand"
+                  }
+                },
+                "text": "Build something lasting."
+              }
+            },
+            {
+              "id": "intro",
+              "type": "paragraph",
+              "contractVersion": 1,
+              "props": {
+                "text": "A portable page. Your components. One configuration."
+              }
+            },
+            {
+              "id": "contact",
+              "type": "form",
+              "contractVersion": 1,
+              "props": {},
+              "children": [
+                {
+                  "id": "email",
+                  "type": "input",
+                  "contractVersion": 1,
+                  "props": {
+                    "label": "Email address",
+                    "name": "email",
+                    "placeholder": "you@example.com",
+                    "style": {
+                      "marginBottom": "20px"
+                    }
+                  },
+                  "bindings": {
+                    "value": {
+                      "$state": "email"
+                    }
+                  },
+                  "events": {
+                    "change": [
+                      "editEmail"
+                    ]
+                  }
+                },
+                {
+                  "id": "submit",
+                  "type": "button",
+                  "contractVersion": 1,
+                  "props": {
+                    "type": "submit",
+                    "children": "Continue",
+                    "style": {
+                      "backgroundColor": {
+                        "$token": "color.brand"
+                      }
+                    }
+                  }
+                }
+              ],
+              "events": {
+                "submit": [
+                  "submit"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "logic": {
+        "state": {
+          "email": "",
+          "status": "Ready"
+        },
+        "resources": {
+          "saveContact": {
+            "url": "/api/contacts",
+            "method": "POST",
+            "headers": {},
+            "body": {
+              "email": {
+                "$state": "email"
+              }
+            },
+            "response": "json"
+          }
+        },
+        "actions": {
+          "editEmail": [
+            {
+              "type": "setState",
+              "path": "email",
+              "value": {
+                "$event": "value"
+              }
+            }
+          ],
+          "submit": [
+            {
+              "type": "validate",
+              "rules": "contact"
+            },
+            {
+              "type": "navigate",
+              "pageId": "thanks"
+            }
+          ],
+          "saveToAPI": [
+            {
+              "type": "validate",
+              "rules": "contact"
+            },
+            {
+              "type": "request",
+              "resource": "saveContact",
+              "assignTo": "response"
+            },
+            {
+              "type": "setState",
+              "path": "status",
+              "value": "Saved"
+            }
+          ]
+        },
+        "effects": [],
+        "validation": {
+          "contact": [
+            {
+              "field": "email",
+              "rule": "required",
+              "message": "Enter your email."
+            },
+            {
+              "field": "email",
+              "rule": "email",
+              "message": "Enter a valid email."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "thanks",
+      "name": "Thank you",
+      "path": "/thanks",
+      "layout": [
+        {
+          "id": "thanks-frame",
+          "type": "container",
+          "contractVersion": 1,
+          "props": {
+            "style": {
+              "padding": {
+                "$token": "space.lg"
+              }
+            }
+          },
+          "children": [
+            {
+              "id": "thanks-title",
+              "type": "heading",
+              "contractVersion": 1,
+              "props": {
+                "level": 1,
+                "text": "You’re all set."
+              }
+            },
+            {
+              "id": "back",
+              "type": "navigationLink",
+              "contractVersion": 1,
+              "props": {
+                "targetPageId": "home",
+                "children": "Back to the form"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

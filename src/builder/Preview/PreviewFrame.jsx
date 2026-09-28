@@ -1,11 +1,12 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import ReactDOM from 'react-dom';
-import CustomComponentRenderer from '../../components/CustomComponentRenderer/CustomComponentRenderer';
-import { ensureComponentRegistry, getComponentRenderer } from '../componentRegistry';
-import { validateLayout } from '../../utils/layoutSchema';
+import React, { useState } from "react";
+import ReactDOM from "react-dom";
+import Runtime from '../../runtime/Runtime';
+import { registry } from '../../runtime/registry';
+import { createProject } from '../../runtime/project';
 import './PreviewFrame.css';
+import themeStyles from '../../utils/theme.css?raw';
+const componentStyles = Object.values(import.meta.glob('../../components/*/*.css', { query: '?raw', import: 'default', eager: true })).join('\n');
 
-ensureComponentRegistry();
 
 const BASE_STYLES = `
   :root {
@@ -46,7 +47,7 @@ const PREVIEW_DOCUMENT = `
     <meta charset="utf-8" />
     <title>Preview</title>
     <base target="_blank" />
-    <style>${BASE_STYLES}</style>
+    <style>${themeStyles}\n${componentStyles}\n${BASE_STYLES}</style>
   </head>
   <body>
     <div id="preview-root" class="preview-container"></div>
@@ -54,113 +55,43 @@ const PREVIEW_DOCUMENT = `
 </html>
 `;
 
-const PreviewNode = ({ component }) => {
-  const Component = getComponentRenderer(component.type);
-  const isCustomComponent = !Component && component.jsx && component.css;
-  const props = component.props || {};
-  const childNodes = Array.isArray(component.children) ? component.children : [];
-  const { children: propsChildren, ...restProps } = props;
-
-  const renderedChildren =
-    childNodes.length > 0
-      ? childNodes.map((child) => <PreviewNode key={child.id} component={child} />)
-      : propsChildren;
-
-  if (isCustomComponent) {
-    return (
-      <CustomComponentRenderer component={component} props={restProps}>
-        {renderedChildren}
-      </CustomComponentRenderer>
-    );
-  }
-
-  if (!Component) {
-    return (
-      <div className="preview-unknown-component">
-        Unknown component: <code>{component.type}</code>
-      </div>
-    );
-  }
-
-  return (
-    <Component {...restProps}>
-      {renderedChildren}
-    </Component>
-  );
-};
-
-const PreviewSurface = ({ layout }) => {
-  const { nodes, error } = useMemo(() => {
-    try {
-      return { nodes: validateLayout(layout), error: null };
-    } catch (validationError) {
-      console.warn('Preview validation failed', validationError);
-      const message =
-        validationError instanceof Error ? validationError.message : 'Unknown layout error';
-      return { nodes: [], error: message };
-    }
-  }, [layout]);
-
-  if (error) {
-    return (
-      <div className="preview-empty">
-        Unable to render preview.
-        <br />
-        <small>{error}</small>
-      </div>
-    );
-  }
-
-  if (nodes.length === 0) {
-    return <div className="preview-empty">Add components to preview your page.</div>;
-  }
-
-  return nodes.map((component) => <PreviewNode key={component.id} component={component} />);
-};
-
-const PreviewFrame = ({ layout }) => {
-  const iframeRef = useRef(null);
+const PreviewFrame = ({
+  layout,
+  project,
+  currentPageId,
+  onNavigate,
+  canvasDimensions = { width: 1440, height: 900 },
+  canvasZoom = 1,
+}) => {
+  const [allowNetwork, setAllowNetwork] = useState(false);
   const [mountNode, setMountNode] = useState(null);
-
-  useEffect(() => {
-    const iframe = iframeRef.current;
-    if (!iframe) {
-      return undefined;
-    }
-
-    const attach = () => {
-      const node = iframe.contentDocument?.getElementById('preview-root');
-      setMountNode(node);
-    };
-
-    if (iframe.contentDocument?.readyState === 'complete') {
-      attach();
-    } else {
-      iframe.addEventListener('load', attach);
-      return () => {
-        iframe.removeEventListener('load', attach);
-      };
-    }
-
-    return undefined;
-  }, []);
-
+  const { width, height } = canvasDimensions;
   return (
-    <div className="preview-frame">
+    <div
+      className="preview-frame"
+      style={{ width: width * canvasZoom, height: height * canvasZoom }}
+    >
+      <label className="preview-network-control"><input type="checkbox" checked={allowNetwork} onChange={e => setAllowNetwork(e.target.checked)} />Enable API calls</label>
       <iframe
-        ref={iframeRef}
         title="Application Preview"
         className="preview-frame__iframe"
+        style={{
+          width,
+          height,
+          transform: `scale(${canvasZoom})`,
+          transformOrigin: "top left",
+        }}
         sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
         srcDoc={PREVIEW_DOCUMENT}
+        onLoad={(event) =>
+          setMountNode(
+            event.currentTarget.contentDocument?.getElementById("preview-root"),
+          )
+        }
       />
       {mountNode &&
-        ReactDOM.createPortal(
-          <PreviewSurface layout={layout} />,
-          mountNode,
-        )}
+        ReactDOM.createPortal(<Runtime project={project || createProject([{ id: "home", name: "Home", path: "/", layout }])} registry={registry} initialPageId={currentPageId} onNavigate={onNavigate} allowNetwork={allowNetwork} />, mountNode)}
     </div>
   );
 };
-
 export default PreviewFrame;

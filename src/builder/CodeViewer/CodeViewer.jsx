@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { generateCompleteProject } from '../../utils/codeGenerator';
-import { generateCompleteApp } from '../../utils/fullAppGenerator';
+import { generateConfigApp } from '../../utils/configAppGenerator';
 import { createAndDownloadZip, createProjectStructureFile } from '../../utils/downloadUtils';
 import { usePages } from '../../contexts/PageContext';
 import './CodeViewer.css';
@@ -8,7 +8,7 @@ import './CodeViewer.css';
 const CodeViewer = ({ layout, isVisible, onClose }) => {
   const [activeTab, setActiveTab] = useState('jsx');
   const [isDownloading, setIsDownloading] = useState(false);
-  const { pages, getCurrentPage } = usePages();
+  const { exportProject, getCurrentPage } = usePages();
   
   if (!isVisible) return null;
   
@@ -28,7 +28,7 @@ const CodeViewer = ({ layout, isVisible, onClose }) => {
   const downloadCompleteApp = async () => {
     setIsDownloading(true);
     try {
-      const appFiles = generateCompleteApp(pages);
+      const appFiles = generateConfigApp(exportProject());
       
       // Try to create ZIP first, fallback to text file
       const zipSuccess = await createAndDownloadZip(appFiles, 'react-app-complete.zip');

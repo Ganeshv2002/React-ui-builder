@@ -17,6 +17,8 @@ const Canvas = ({
   isPreviewMode = false,
   canvasDimensions = { width: 1440, height: 900 },
   canvasZoom = 1,
+  onQuickAdd,
+  themeStyle = {},
 }) => {
   const manager = useDragDropManager();
   const monitor = manager.getMonitor();
@@ -172,7 +174,7 @@ const Canvas = ({
               className={`canvas ${isPreviewMode ? 'canvas--preview' : ''} ${isOver ? 'canvas--over' : ''} ${
                 layout.length === 0 ? 'canvas--empty' : ''
               }`}
-              style={{ width, height }}
+              style={{ width, height, ...themeStyle }}
               onClick={(event) => {
                 if (!isPreviewMode && event.target === event.currentTarget) {
                   onSelectComponent(null);
@@ -182,12 +184,15 @@ const Canvas = ({
               {layout.length === 0 ? (
                 !isPreviewMode && (
                   <div className="canvas-placeholder">
-                    <div className="canvas-placeholder__card">
+                    <div className="canvas-placeholder__card" style={{ transform: `scale(${Math.min(1.6, 1 / canvasZoom)})` }}>
                       <div className="canvas-placeholder__icon">
                         <FontAwesomeIcon icon={faCubes} />
                       </div>
-                      <h2>Drag and drop components here</h2>
-                      <p>or use AI to generate your UI</p>
+                      <span className="editor-eyebrow">YOUR NEXT IDEA STARTS HERE</span>
+                      <h2>Build something great.</h2>
+                      <p>Drag a component from the library, or start with a container.</p>
+                      <button type="button" className="editor-button editor-button--primary" onClick={onQuickAdd}>+ Add a container</button>
+                      <span className="canvas-placeholder__steps">Select · Customize · Preview · Export</span>
                     </div>
                   </div>
                 )
