@@ -2,20 +2,23 @@
 import { variantsApi, getErrorMessage } from './api.js';
 
 // Local storage keys for offline support
-const STORAGE_KEYS = {
+const LEGACY_STORAGE_KEYS = {
   VARIANT_CACHE: 'ui_builder_variant_cache',
   VARIANT_CHANGES: 'ui_builder_variant_changes'
 };
 
 class VariantPersistenceService {
   constructor() {
-    this.isOnline = navigator.onLine;
+    this.storageKeys = { VARIANT_CACHE: 'framewright:signed-out:variants', VARIANT_CHANGES: 'framewright:signed-out:variant-changes' };
+    this.scope = null;
+    // Variants remain device-local until the platform exposes an owned variant API.
+    // Do not send user data to the legacy, unauthenticated prototype.
+    this.isOnline = false;
     this.variantCache = new Map();
     
     // Listen for online/offline events
     window.addEventListener('online', () => {
-      this.isOnline = true;
-      this.syncOfflineChanges();
+      this.isOnline = false;
     });
     
     window.addEventListener('offline', () => {
@@ -26,10 +29,27 @@ class VariantPersistenceService {
     this.loadVariantCache();
   }
 
+  setUserScope(userId) {
+    this.scope = userId;
+    this.storageKeys = {
+      VARIANT_CACHE: `framewright:${userId || 'signed-out'}:variants`,
+      VARIANT_CHANGES: `framewright:${userId || 'signed-out'}:variant-changes`,
+    };
+    this.variantCache.clear();
+    this.loadVariantCache();
+  }
+
+  importLegacyCache() {
+    if (!this.scope) return;
+    const legacy = JSON.parse(localStorage.getItem(LEGACY_STORAGE_KEYS.VARIANT_CACHE) || '[]');
+    for (const variant of legacy) this.variantCache.set(variant.id, variant);
+    this.saveVariantCache();
+  }
+
   // Load variants from localStorage
   loadVariantCache() {
     try {
-      const cached = localStorage.getItem(STORAGE_KEYS.VARIANT_CACHE);
+      const cached = localStorage.getItem(this.storageKeys.VARIANT_CACHE);
       if (cached) {
         const variants = JSON.parse(cached);
         variants.forEach(variant => {
@@ -45,7 +65,7 @@ class VariantPersistenceService {
   saveVariantCache() {
     try {
       const variants = Array.from(this.variantCache.values());
-      localStorage.setItem(STORAGE_KEYS.VARIANT_CACHE, JSON.stringify(variants));
+      localStorage.setItem(this.storageKeys.VARIANT_CACHE, JSON.stringify(variants));
     } catch (error) {
       console.warn('Failed to save variant cache:', error);
     }
@@ -391,6 +411,7 @@ class VariantPersistenceService {
 
   // Offline change management
   queueOfflineChange(operation, data) {
+    if (!this.isOnline) return; // Local changes are already durable in this user's cache.
     try {
       const changes = this.getOfflineChanges();
       changes.push({
@@ -400,7 +421,7 @@ class VariantPersistenceService {
         timestamp: new Date().toISOString()
       });
       
-      localStorage.setItem(STORAGE_KEYS.VARIANT_CHANGES, JSON.stringify(changes));
+      localStorage.setItem(this.storageKeys.VARIANT_CHANGES, JSON.stringify(changes));
     } catch (error) {
       console.warn('Failed to queue offline change:', error);
     }
@@ -408,7 +429,7 @@ class VariantPersistenceService {
 
   getOfflineChanges() {
     try {
-      const changes = localStorage.getItem(STORAGE_KEYS.VARIANT_CHANGES);
+      const changes = localStorage.getItem(this.storageKeys.VARIANT_CHANGES);
       return changes ? JSON.parse(changes) : [];
     } catch (error) {
       console.warn('Failed to get offline changes:', error);
@@ -448,7 +469,7 @@ class VariantPersistenceService {
 
     // Remove successfully synced changes
     const remainingChanges = changes.filter(c => !successfulChanges.includes(c));
-    localStorage.setItem(STORAGE_KEYS.VARIANT_CHANGES, JSON.stringify(remainingChanges));
+    localStorage.setItem(this.storageKeys.VARIANT_CHANGES, JSON.stringify(remainingChanges));
 
     console.log(`Synced ${successfulChanges.length} variant changes, ${remainingChanges.length} remaining`);
   }

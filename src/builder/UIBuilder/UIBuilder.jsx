@@ -32,7 +32,7 @@ import {
   useNotifications,
 } from "../NotificationSystem/NotificationSystem";
 import { useKeyboardShortcuts, KEYBOARD_SHORTCUTS } from "../../utils/keyboard";
-import { PageProvider, usePages } from "../../contexts/PageContext";
+import { usePages } from "../../contexts/PageContext";
 import useEditorStore from "../../store/editorStore";
 import {
   ensureComponentRegistry,
@@ -45,6 +45,7 @@ import { IconPlayerPlay, IconDownload, IconSettings2, IconPalette, IconFolder } 
 import ProjectPanel from '../ProjectPanel/ProjectPanel';
 import { themeVariables } from '../../runtime/theme';
 import './UIBuilder.css';
+import Brand from '../../ui/Brand';
 
 ensureComponentRegistry();
 const DEVICES = [
@@ -115,7 +116,7 @@ function LayerTree({ nodes, selectedId, onSelect }) {
     </ul>
   );
 }
-function UIBuilderContent() {
+function UIBuilderContent({ onDashboard }) {
   const notifications = useNotifications();
   const {
     pages,
@@ -276,18 +277,9 @@ function UIBuilderContent() {
   return (
     <div className="ui-builder">
       <header className="editor-header">
-        <div className="editor-brand">
-          <span className="editor-logo">
-            <svg viewBox="0 0 32 32" width="25" height="25" fill="none" aria-hidden="true"><path d="M7 25V7h18M7 16h13M16 25V16h9" stroke="currentColor" strokeWidth="2.6" strokeLinecap="square" /></svg>
-          </span>
-          <div>
-            <strong>Framewright</strong>
-            <small>The visual React workspace.</small>
-          </div>
-          <span className="editor-beta">BETA</span>
-        </div>
+        <Brand />
         <div className="editor-project">
-          <span>Workspace</span>
+          <button className="editor-dashboard-link" onClick={onDashboard}>Projects</button>
           <FontAwesomeIcon icon={faChevronRight} />
           <strong>{page?.name || "Untitled"}</strong>
         </div>
@@ -703,12 +695,10 @@ function UIBuilderContent() {
     </div>
   );
 }
-export default function UIBuilder() {
+export default function UIBuilder({ onDashboard }) {
   return (
-    <PageProvider>
       <DndProvider backend={HTML5Backend}>
-        <UIBuilderContent />
+        <UIBuilderContent onDashboard={onDashboard} />
       </DndProvider>
-    </PageProvider>
   );
 }

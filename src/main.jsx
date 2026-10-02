@@ -4,6 +4,8 @@ import '@mantine/core/styles.css'
 import './index.css'
 import './utils/theme.css'
 import App from './App.jsx'
+import './ui/tokens.css'
+import './ui/controls.css'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

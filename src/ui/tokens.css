@@ -1,0 +1,82 @@
+/* Shared product chrome. Page themes and the isolated artboard own their styles. */
+:root {
+  --product-bg: #f4f7f6;
+  --product-sidebar: #f9fbfa;
+  --product-panel: #ffffff;
+  --product-surface: #edf2ef;
+  --product-hover: #e3ece7;
+  --product-border: #d6e0da;
+  --product-border-strong: #a6bbb0;
+  --product-text: #172d23;
+  --product-muted: #5d7267;
+  --product-accent: #147d5e;
+  --product-accent-hover: #0d6449;
+  --product-on-accent: #ffffff;
+  --product-accent-soft: #deeee6;
+  --product-error: #983c32;
+  --product-error-bg: #fff0ed;
+  --product-error-border: #e7b3aa;
+  --product-backdrop: #122c2380;
+  --product-shadow: #142c2314;
+  --product-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --product-control-radius: 7px;
+  --product-panel-radius: 9px;
+  --product-space: 8px;
+}
+:root[data-theme='dark'] {
+  --product-bg: #101418;
+  --product-sidebar: #13181d;
+  --product-panel: #181e24;
+  --product-surface: #1d252b;
+  --product-hover: #29363b;
+  --product-border: #29363c;
+  --product-border-strong: #49665b;
+  --product-text: #e9eef1;
+  --product-muted: #93a59e;
+  --product-accent: #64debd;
+  --product-accent-hover: #83e8cd;
+  --product-on-accent: #0c2820;
+  --product-accent-soft: #1b302c;
+  --product-error: #ffc4bd;
+  --product-error-bg: #362423;
+  --product-error-border: #70443c;
+  --product-backdrop: #050c10b3;
+  --product-shadow: #00000060;
+}
+/* Aliases keep existing component/editor consumers compatible. */
+:root, :root[data-theme='dark'] {
+  --bg: var(--product-bg);
+  --fg: var(--product-text);
+  --muted: var(--product-muted);
+  --primary: var(--product-accent);
+  --bg-surface: var(--product-panel);
+  --bg-hover: var(--product-hover);
+  --border: var(--product-border);
+  --fw-bg: var(--product-bg);
+  --fw-panel: var(--product-panel);
+  --fw-border: var(--product-border);
+  --fw-muted: var(--product-muted);
+  --fw-text: var(--product-text);
+  --fw-accent: var(--product-accent);
+  --primary-rgb: 20, 125, 94;
+  --border-rgb: 214, 224, 218;
+}
+:root[data-theme='dark'] { --primary-rgb: 100, 222, 189; --border-rgb: 41, 54, 60; }
+.fw-dashboard, .ui-builder, .fw-auth, .fw-account { font-family: var(--product-font); }
+.fw-dashboard, .fw-new-dialog { color-scheme: light; }
+:root[data-theme='dark'] .fw-dashboard, :root[data-theme='dark'] .fw-new-dialog { color-scheme: dark; }
+.fw-dashboard .editor-tool { display: inline-grid; place-items: center; width: 36px; height: 36px; border: 1px solid var(--product-border); background: var(--product-panel); color: var(--product-muted); border-radius: var(--product-control-radius); }
+.fw-header-tools { display: flex; align-items: center; gap: 8px; }
+.ui-builder .editor-header { background: var(--product-sidebar); height: 60px; gap: 20px; }
+.ui-builder .editor-sidebar, .ui-builder .editor-inspector { background: var(--product-panel); }
+.ui-builder .editor-button--primary { color: var(--product-on-accent); }
+.ui-builder .editor-workspace { min-height: 0; }
+.ui-builder .editor-dashboard-link { color: var(--product-accent); }
+@media (max-width: 1200px) {
+  .ui-builder .editor-header .editor-project { display: flex; padding-left: 0; border: 0; }
+  .ui-builder .editor-project > strong, .ui-builder .editor-project > svg { display: none; }
+}
+@media (max-width: 950px) {
+  .ui-builder .editor-brand small, .ui-builder .editor-save { display: none; }
+  .ui-builder .editor-header { gap: 12px; padding: 0 12px; }
+}

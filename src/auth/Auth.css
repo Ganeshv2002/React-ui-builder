@@ -1,0 +1,51 @@
+.fw-auth, .fw-account { height: 100dvh; overflow: auto; background: var(--product-bg); color: var(--product-text); font: 13px/1.5 var(--product-font); scrollbar-width: thin; scrollbar-color: var(--product-border-strong) transparent; color-scheme: light; }
+:root[data-theme='dark'] .fw-auth, :root[data-theme='dark'] .fw-account { color-scheme: dark; }
+.fw-auth-header { display: flex; justify-content: space-between; align-items: center; padding: 26px 42px; border-bottom: 1px solid var(--product-border); }
+.fw-auth-header .fw-brand { margin: 0; }
+.fw-auth-main { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; max-width: 1100px; margin: 54px auto; padding: 0 40px; align-items: center; }
+.fw-auth-story h1 { font-size: clamp(36px, 4vw, 54px); line-height: 1.16; font-weight: 500; letter-spacing: -2px; margin: 20px 0; }
+.fw-auth-story h1 em { color: var(--product-accent); font-style: normal; }
+.fw-auth-story > p { color: var(--product-muted); max-width: 320px; font-size: 14px; line-height: 1.8; }
+.fw-auth-caption { color: var(--product-muted); font-size: 10px; }
+.fw-auth-sketch { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 20px; margin: 42px 0 22px; background: var(--product-surface); border: 1px solid var(--product-border); border-radius: 10px; max-width: 330px; transform: rotate(-3deg); }
+.fw-auth-sketch div { background: var(--product-hover); border: 1px solid var(--product-border-strong); border-radius: 5px; height: 75px; }
+.fw-auth-sketch div:first-child { grid-column: span 3; height: 22px; width: 72%; background: var(--product-accent); opacity: .6; }
+.fw-auth-card { padding: 30px; border: 1px solid var(--product-border); background: var(--product-panel); border-radius: 12px; box-shadow: 0 12px 40px var(--product-shadow); }
+.fw-auth-card > svg { color: var(--product-accent); }
+.fw-auth-card h2 { font-size: 24px; letter-spacing: -.7px; font-weight: 550; margin: 15px 0 8px; }
+.fw-auth-card > p { color: var(--product-muted); font-size: 12px; margin: 0 0 24px; }
+.fw-auth-card .fw-google { width: 100%; margin-top: 2px; }
+.fw-auth-hint { display: block; font-size: 10px; color: var(--product-muted); margin-top: 8px; }
+.fw-auth-divider { display: flex; align-items: center; gap: 14px; margin: 23px 0; color: var(--product-muted); font-size: 10px; }
+.fw-auth-divider::before, .fw-auth-divider::after { content: ''; height: 1px; flex: 1; background: var(--product-border); }
+.fw-auth a:not(.fw-button), .fw-account-back { color: var(--product-accent); text-decoration: none; }
+.fw-auth a:hover { text-decoration: underline; }
+.fw-forgot { display: block; text-align: right; font-size: 11px; margin: -3px 0 20px; }
+.fw-auth .fw-auth-submit { width: 100%; margin-top: 4px; }
+.fw-auth-card .fw-auth-switch { margin: 24px 0 0; text-align: center; font-size: 11px; }
+.fw-auth-card .fw-auth-dev-note { border-top: 1px solid var(--product-border); padding-top: 14px; margin: 18px 0 0; font-size: 10px; }
+.fw-auth-success { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; color: var(--product-accent); }
+.fw-auth-success p { margin: 0; color: var(--product-text); }
+.fw-auth-footer { text-align: center; color: var(--product-muted); font-size: 10px; padding: 15px 20px 30px; }
+.fw-auth-loading { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px; text-align: center; padding: 24px; }
+.fw-auth-loading .fw-brand { margin-bottom: 20px; }
+.fw-auth-loading h1 { font-size: 23px; font-weight: 500; }
+.fw-account-main { max-width: 1000px; margin: 28px auto 60px; padding: 0 36px; }
+.fw-account-back { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; margin-bottom: 34px; }
+.fw-account-main h1 { font-size: 29px; font-weight: 550; margin: 5px 0; letter-spacing: -.8px; }
+.fw-account-intro { color: var(--product-muted); margin: 8px 0 30px; }
+.fw-account-section { display: grid; grid-template-columns: 1fr 1.4fr; gap: 45px; padding: 30px; margin-bottom: 20px; border: 1px solid var(--product-border); border-radius: var(--product-panel-radius); background: var(--product-panel); }
+.fw-account-section h2 { margin: 0 0 6px; font-size: 16px; font-weight: 550; }
+.fw-account-section p { font-size: 11px; color: var(--product-muted); margin: 5px 0 18px; }
+.fw-email-status { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; color: var(--product-muted); font-size: 11px; margin: 0 0 18px; }
+.fw-account-methods > div { display: flex; justify-content: space-between; padding: 12px; background: var(--product-bg); border: 1px solid var(--product-border); margin-bottom: 12px; border-radius: 6px; }
+.fw-account-methods strong { font-weight: 500; font-size: 12px; }
+.fw-account-methods span { color: var(--product-accent); font-size: 11px; }
+.fw-device-list > div { display: flex; align-items: center; gap: 12px; padding-bottom: 18px; margin-bottom: 18px; border-bottom: 1px solid var(--product-border); }
+.fw-device-list > div > div { flex: 1; min-width: 0; }
+.fw-device-list p { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 230px; margin: 4px 0; }
+.fw-device-list strong { font-weight: 500; font-size: 12px; }
+.fw-device-list small { font-size: 10px; color: var(--product-muted); }
+.fw-account-message { padding: 14px 18px; color: var(--product-accent); border: 1px solid var(--product-border-strong); border-radius: 7px; background: var(--product-accent-soft); }
+@media (max-width: 900px) { .fw-auth-main { gap: 30px; padding: 0 26px; } .fw-auth-story h1 { font-size: 38px; } .fw-account-section { gap: 25px; } }
+@media (max-width: 680px) { .fw-auth-header { padding: 20px; } .fw-auth-main { display: block; margin: 28px auto; max-width: 470px; padding: 0 20px; } .fw-auth-story { display: none; } .fw-auth-card { padding: 24px; } .fw-account-main { padding: 0 20px; } .fw-account-section { display: block; padding: 22px; } .fw-account-section > div:first-child { margin-bottom: 22px; } .fw-device-list > div { flex-wrap: wrap; } .fw-auth-header .fw-brand strong, .fw-auth-loading .fw-brand strong { display: block; } }

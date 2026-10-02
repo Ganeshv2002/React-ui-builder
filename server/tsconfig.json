@@ -1,0 +1,8 @@
+{
+  "compilerOptions": {
+    "target": "ES2022", "lib": ["ES2022", "DOM"], "module": "NodeNext", "moduleResolution": "NodeNext",
+    "strict": true, "esModuleInterop": true, "skipLibCheck": true, "outDir": "dist", "rootDir": ".",
+    "noUncheckedIndexedAccess": true, "forceConsistentCasingInFileNames": true, "types": ["node"]
+  },
+  "include": ["src/**/*.ts", "tests/**/*.ts", "drizzle.config.ts", "vitest.config.ts"]
+}

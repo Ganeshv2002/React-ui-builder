@@ -1,4 +1,10 @@
-# React UI Builder
+# Framewright
+
+## Run and deploy
+
+The dashboard and editor now use the account server in `server/`. Follow [server setup](server/README.md) to run both packages locally. See [Render deployment and Google OAuth setup](docs/DEPLOY_RENDER.md) for production. The older `backend/` is a prototype and is not used by this deployment.
+
+Projects and variants currently save per account in browser storage; use JSON export for backups and device transfers.
 
 A drag-and-drop React component builder that allows you to visually create layouts and generate corresponding React code.
 

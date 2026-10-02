@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Platform secrets, embedded development database and test mail
+.env
+.env.*
+!.env.example
+.data/
+coverage/

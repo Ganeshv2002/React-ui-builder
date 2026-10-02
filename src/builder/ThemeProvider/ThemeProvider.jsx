@@ -15,7 +15,7 @@ export const BuilderThemeProvider = ({ children }) => {
   const [colorScheme, setColorScheme] = useState(() => {
     // Initialize from localStorage or default to light
     const stored = localStorage.getItem('mantine-color-scheme');
-    return (stored === 'dark' || stored === 'light') ? stored : 'light';
+    return (stored === 'dark' || stored === 'light') ? stored : 'dark';
   });
 
   const toggleColorScheme = () => {
@@ -30,7 +30,7 @@ export const BuilderThemeProvider = ({ children }) => {
   }, [colorScheme]);
 
   const theme = createTheme({
-    primaryColor: 'blue',
+    primaryColor: 'teal',
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     spacing: {
       xs: 'var(--gap)',

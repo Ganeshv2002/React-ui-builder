@@ -1,0 +1,24 @@
+:is(.fw-dashboard, .fw-auth, .fw-account, .fw-new-dialog) .fw-button {
+  background: var(--product-panel); border: 1px solid var(--product-border-strong); border-radius: var(--product-control-radius);
+  min-height: 38px; padding: 9px 15px; display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+  font: 500 12px/1.5 var(--product-font); color: var(--product-text); cursor: pointer; text-decoration: none;
+}
+:is(.fw-dashboard, .fw-auth, .fw-account, .fw-new-dialog) .fw-button:hover { background: var(--product-hover); }
+:is(.fw-dashboard, .fw-auth, .fw-account, .fw-new-dialog) .fw-button--primary { background: var(--product-accent); color: var(--product-on-accent); border-color: var(--product-accent); font-weight: 650; }
+:is(.fw-dashboard, .fw-auth, .fw-account, .fw-new-dialog) .fw-button--primary:hover { background: var(--product-accent-hover); border-color: var(--product-accent-hover); }
+:is(.fw-dashboard, .fw-auth, .fw-account, .fw-new-dialog) button:disabled { opacity: .5; cursor: not-allowed; }
+:is(.fw-dashboard, .fw-auth, .fw-account, .fw-new-dialog) :focus-visible { outline: 2px solid var(--product-accent); outline-offset: 3px; }
+:is(.fw-auth, .fw-account) label { display: flex; flex-direction: column; gap: 7px; margin-bottom: 17px; font-size: 12px; color: var(--product-text); }
+:is(.fw-auth, .fw-account) input { width: 100%; padding: 11px 12px; background: var(--product-bg); border: 1px solid var(--product-border); border-radius: var(--product-control-radius); color: var(--product-text); font: inherit; }
+:is(.fw-auth, .fw-account) input:read-only { color: var(--product-muted); }
+:is(.fw-auth, .fw-account) label small { color: var(--product-muted); font-size: 10px; }
+:is(.fw-auth, .fw-account) .editor-tool { display: grid; place-items: center; width: 36px; height: 36px; border: 1px solid var(--product-border); background: var(--product-panel); color: var(--product-muted); border-radius: var(--product-control-radius); cursor: pointer; }
+.fw-user-button { display: flex; align-items: center; gap: 10px; width: 100%; border: 0; border-top: 1px solid var(--product-border); background: none; padding: 18px 2px 0; margin-top: 20px; text-align: left; }
+.fw-user-button > span { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--product-accent-soft); color: var(--product-accent); font-size: 12px; }
+.fw-user-button div { display: flex; flex-direction: column; min-width: 0; }
+.fw-user-button strong { color: var(--product-text); font-size: 11px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 145px; }
+.fw-user-button small { color: var(--product-muted); font-size: 10px; }
+.fw-legacy-banner { display: flex; gap: 15px; align-items: center; padding: 15px 18px; background: var(--product-accent-soft); border: 1px solid var(--product-border-strong); border-radius: var(--product-panel-radius); margin-bottom: 25px; }
+.fw-legacy-banner p { color: var(--product-muted); font-size: 11px; margin-top: 4px; }
+.fw-legacy-banner .fw-button { flex-shrink: 0; margin-left: auto; }
+@media (max-width: 760px) { .fw-user-button { justify-content: center; } .fw-user-button div { display: none; } .fw-legacy-banner { flex-wrap: wrap; } }

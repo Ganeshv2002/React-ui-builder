@@ -22,13 +22,13 @@ const cloneLayout = (layout = []) => JSON.parse(JSON.stringify(layout));
 
 const layoutsAreEqual = (a = [], b = []) => JSON.stringify(a) === JSON.stringify(b);
 
-const readPersistedState = () => {
+const readPersistedState = (storageKey = STATE_STORAGE_KEY) => {
   if (typeof window === 'undefined') {
     return null;
   }
 
   try {
-    const raw = window.localStorage.getItem(STATE_STORAGE_KEY);
+    const raw = window.localStorage.getItem(storageKey);
     if (!raw) {
       return null;
     }
@@ -91,9 +91,9 @@ export const usePages = () => {
   return context;
 };
 
-export const PageProvider = ({ children }) => {
+export const PageProvider = ({ children, storageKey = STATE_STORAGE_KEY }) => {
   const initialState = useMemo(() => {
-    const persisted = readPersistedState();
+    const persisted = readPersistedState(storageKey);
     const initialPages = (persisted?.pages || createDefaultPages()).map((page) => ({
       ...page,
       layout: cloneLayout(page.layout),
@@ -112,8 +112,12 @@ export const PageProvider = ({ children }) => {
       history,
       theme: persisted?.theme || defaultTheme,
       metadata: persisted?.metadata || { name: 'My app' },
+      workspaceId: persisted?.workspaceId || uuidv4(),
+      savedProjects: Array.isArray(persisted?.savedProjects) ? persisted.savedProjects : [],
+      updatedAt: persisted?.updatedAt || new Date().toISOString(),
+      legacyImported: Boolean(persisted?.legacyImported),
     };
-  }, []);
+  }, [storageKey]);
 
   const [pages, setPages] = useState(initialState.pages);
   const [currentPageId, setCurrentPageId] = useState(initialState.currentPageId);
@@ -123,6 +127,61 @@ export const PageProvider = ({ children }) => {
   const [theme, setTheme] = useState(initialState.theme);
   const [metadata, setMetadata] = useState(initialState.metadata);
   const [previousProject, setPreviousProject] = useState(null);
+  const [workspaceId, setWorkspaceId] = useState(initialState.workspaceId);
+  const [savedProjects, setSavedProjects] = useState(initialState.savedProjects);
+  const [updatedAt, setUpdatedAt] = useState(initialState.updatedAt);
+  const [legacyImported, setLegacyImported] = useState(initialState.legacyImported);
+  const legacyWorkspaceAvailable = storageKey !== STATE_STORAGE_KEY && !legacyImported && Boolean(readPersistedState()?.pages?.length);
+  // The dashboard and editor share this provider, so navigation retains undo history.
+  // Inactive projects use the same snapshot format as the existing active project.
+  const currentSnapshot = useMemo(() => ({ id: workspaceId, pages, theme, metadata,
+    currentPageId, history: serializeHistory(layoutHistory), updatedAt }),
+  [workspaceId, pages, theme, metadata, currentPageId, layoutHistory, updatedAt]);
+  const workspaceProjects = useMemo(() => [currentSnapshot, ...savedProjects], [currentSnapshot, savedProjects]);
+  const switchWorkspace = useCallback((target) => {
+    // Check storage before switching. A quota failure must never discard the active work.
+    const archived = [currentSnapshot, ...savedProjects.filter(p => p.id !== target.id)];
+    const payload = { ...target, workspaceId: target.id, savedProjects: archived, legacyImported };
+    window.localStorage.setItem(storageKey, JSON.stringify(payload));
+    setSavedProjects(archived);
+    setWorkspaceId(target.id);
+    setPages(target.pages); setTheme(target.theme); setMetadata(target.metadata);
+    setCurrentPageId(target.currentPageId);
+    setLayoutHistory(buildInitialHistory(target.pages, target.history));
+    setUpdatedAt(target.updatedAt); setPreviousProject(null);
+  }, [currentSnapshot, savedProjects, storageKey, legacyImported]);
+  const importLegacyWorkspace = useCallback(() => {
+    if (!legacyWorkspaceAvailable) return;
+    const legacy = readPersistedState();
+    const snapshots = [legacy, ...(legacy.savedProjects || [])].map(snapshot => {
+      const project = createProject(snapshot.pages, snapshot.theme, snapshot.metadata);
+      return { id: uuidv4(), pages: project.pages, theme: project.theme, metadata: { ...snapshot.metadata, name: project.name },
+        currentPageId: snapshot.currentPageId || project.pages[0].id, history: snapshot.history || {}, updatedAt: snapshot.updatedAt || new Date().toISOString() };
+    });
+    const next = [...savedProjects, ...snapshots];
+    window.localStorage.setItem(storageKey, JSON.stringify({ ...currentSnapshot, workspaceId, savedProjects: next, legacyImported: true }));
+    setSavedProjects(next); setLegacyImported(true);
+  }, [legacyWorkspaceAvailable, savedProjects, storageKey, currentSnapshot, workspaceId]);
+  const openWorkspace = useCallback((id) => {
+    if (id === workspaceId) return;
+    const target = savedProjects.find(p => p.id === id);
+    if (!target) throw new Error('This project is no longer available.');
+    switchWorkspace(target);
+  }, [workspaceId, savedProjects, switchWorkspace]);
+  const createWorkspace = useCallback((input) => {
+    const { pages: nextPages, theme: nextTheme, ...nextMetadata } = parseProject(input);
+    switchWorkspace({ id: uuidv4(), pages: nextPages, theme: nextTheme, metadata: nextMetadata,
+      currentPageId: nextPages.find(p => p.isHome)?.id || nextPages[0].id,
+      history: {}, updatedAt: new Date().toISOString() });
+  }, [switchWorkspace]);
+  const lastContent = useRef({ workspaceId, pages, theme, metadata });
+  useEffect(() => {
+    const last = lastContent.current;
+    if (last.workspaceId === workspaceId && (last.pages !== pages || last.theme !== theme || last.metadata !== metadata)) {
+      setUpdatedAt(new Date().toISOString());
+    }
+    lastContent.current = { workspaceId, pages, theme, metadata };
+  }, [workspaceId, pages, theme, metadata]);
   const exportProject = useCallback(() => createProject(pages, theme, metadata), [pages, theme, metadata]);
   const importProject = useCallback((input) => {
     const next = parseProject(input);
@@ -357,8 +416,12 @@ export const PageProvider = ({ children }) => {
           history: serializeHistory(layoutHistory),
           theme,
           metadata,
+          workspaceId,
+          savedProjects,
+          updatedAt,
+          legacyImported,
         };
-        window.localStorage.setItem(STATE_STORAGE_KEY, JSON.stringify(payload));
+        window.localStorage.setItem(storageKey, JSON.stringify(payload));
         setSaveStatus('saved');
       } catch (error) {
         setSaveStatus('error');
@@ -372,9 +435,22 @@ export const PageProvider = ({ children }) => {
         persistHandleRef.current = null;
       }
     };
-  }, [pages, currentPageId, layoutHistory, theme, metadata]);
+  }, [pages, currentPageId, layoutHistory, theme, metadata, workspaceId, savedProjects, updatedAt, storageKey, legacyImported]);
+
+  const latestState = useRef(null);
+  latestState.current = { ...currentSnapshot, workspaceId, savedProjects, legacyImported };
+  useEffect(() => {
+    const flush = () => {
+      try { window.localStorage.setItem(storageKey, JSON.stringify(latestState.current)); }
+      catch { /* The normal save path reports quota errors; never erase the prior snapshot. */ }
+    };
+    window.addEventListener('pagehide', flush);
+    return () => { window.removeEventListener('pagehide', flush); flush(); };
+  }, [storageKey]);
 
   const providerValue = useMemo(() => ({
+    storageKey, legacyWorkspaceAvailable, importLegacyWorkspace,
+    workspaceId, workspaceProjects, openWorkspace, createWorkspace,
     theme, setTheme, metadata, setMetadata, exportProject, importProject, restorePreviousProject, previousProject,
     saveStatus,
     pages,
@@ -391,6 +467,8 @@ export const PageProvider = ({ children }) => {
     undoPageLayout,
     redoPageLayout,
   }), [
+    storageKey, legacyWorkspaceAvailable, importLegacyWorkspace,
+    workspaceId, workspaceProjects, openWorkspace, createWorkspace,
     theme, metadata, exportProject, importProject, restorePreviousProject, previousProject,
     saveStatus,
     pages,
