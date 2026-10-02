@@ -3,11 +3,10 @@ services:
     name: framewright
     runtime: node
     region: singapore
-    plan: 0.5c-512mb
+    plan: free
     branch: editor-revamp-json-projects
     buildCommand: npm ci --include=dev && npm run build && npm ci --prefix server --include=dev && npm run build --prefix server
-    preDeployCommand: node server/dist/src/db/migrate.js
-    startCommand: node server/dist/src/index.js
+    startCommand: node server/dist/src/db/migrate.js && node server/dist/src/index.js
     healthCheckPath: /api/ready
     envVars:
       - key: NODE_VERSION
@@ -25,14 +24,8 @@ services:
       - key: RATE_LIMIT_SECRET
         generateValue: true
       - key: MAIL_MODE
-        value: smtp
-      - key: SMTP_HOST
-        sync: false
-      - key: SMTP_PORT
-        value: "587"
-      - key: SMTP_USER
-        sync: false
-      - key: SMTP_PASSWORD
+        value: resend
+      - key: RESEND_API_KEY
         sync: false
       - key: MAIL_FROM
         sync: false
@@ -40,6 +33,5 @@ services:
 databases:
   - name: framewright-db
     region: singapore
-    plan: 0.1c-256mb
-    diskSizeGB: 1
+    plan: free
     ipAllowList: []

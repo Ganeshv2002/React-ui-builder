@@ -1,17 +1,19 @@
 # Deploy Framewright on Render
 
-Deploy the repository branch `editor-revamp-json-projects`. The root `render.yaml` creates a paid Node web service and paid PostgreSQL database in Singapore. Review Render's displayed costs before creating them. The Node service serves both the built React app and `/api/v1`; no separate static site is needed.
+Deploy the repository branch `editor-revamp-json-projects`. The root `render.yaml` creates a **free** Node web service and **free, 30-day** PostgreSQL database in Singapore. Confirm both resources show Free before deploying. The Node service serves both the built React app and `/api/v1`; no separate static site is needed.
 
 ## 1. Prepare account email delivery
 
-Use an SMTP provider and verify your sender/domain with it. Collect `SMTP_HOST`, `SMTP_USER`, `SMTP_PASSWORD` and `MAIL_FROM` (a verified email address). The default `SMTP_PORT` is 587 with STARTTLS; use 465 if your provider requires implicit TLS. These are SMTP credentials, not your normal email account password. Production refuses the development file-mail mode.
+Create a Resend account at https://resend.com and create a sending API key. Set `RESEND_API_KEY` to that key and `MAIL_FROM` to a sender on your verified domain. Email is sent over HTTPS, which works on Render's free tier. Keep the key in Render's environment, never in Git or frontend variables.
+
+For a personal test without a domain, set `MAIL_FROM=onboarding@resend.dev` and use your Resend account's own email when testing registration/reset. Resend's test domain only sends to the account owner; verify a domain before sending to other people. Google sign-in configuration is unchanged. Production still rejects file-based mail.
 
 ## 2. Create the Render deployment
 
 1. Sign in at https://dashboard.render.com and select **New → Blueprint**.
 2. Connect GitHub and select `Ganeshv2002/React-ui-builder`.
 3. Select branch **editor-revamp-json-projects**, with **render.yaml** as the Blueprint path. Leave Root Directory empty.
-4. Enter the SMTP values requested by the Blueprint. Review the paid web service and database, then deploy.
+4. Enter `RESEND_API_KEY` and `MAIL_FROM`. Confirm the web service and database both show **Free**, then deploy. If the previous paid Blueprint setup is still open, restart its setup so it reads the latest file. Changing this file alone does not downgrade already-created paid resources.
 5. Render builds both packages, applies database migrations, and starts the web service. The database URL and rate-limit secret are supplied automatically.
 6. Open the web service's assigned HTTPS URL. The server automatically uses Render's `RENDER_EXTERNAL_URL` as its app origin. Do not set an invented URL or add a trailing slash.
 7. Confirm `/api/ready` returns `{"data":{"status":"ready"}}`. Register a test account, check its verification email, sign in, reload, open the editor, and sign out. Test password reset with a disposable account.
@@ -21,15 +23,13 @@ The Blueprint supplies these commands (also usable for manual Web Service setup)
 ```sh
 # Build
 npm ci --include=dev && npm run build && npm ci --prefix server --include=dev && npm run build --prefix server
-# Pre-deploy: paid web service required
-node server/dist/src/db/migrate.js
-# Start
-node server/dist/src/index.js
+# Start (free services have no pre-deploy command)
+node server/dist/src/db/migrate.js && node server/dist/src/index.js
 ```
 
-Manual setup additionally needs `NODE_VERSION=22`, `NODE_ENV=production`, `HOST=0.0.0.0`, `TRUST_PROXY=true`, `MAIL_MODE=smtp`, the SMTP variables, a random secret of at least 32 characters as `RATE_LIMIT_SECRET`, and the database's internal connection URL as `DATABASE_URL`. Health check: `/api/ready`. Render supplies `PORT`.
+Manual setup additionally needs `NODE_VERSION=22`, `NODE_ENV=production`, `HOST=0.0.0.0`, `TRUST_PROXY=true`, `MAIL_MODE=resend`, `RESEND_API_KEY`, `MAIL_FROM`, a random secret of at least 32 characters as `RATE_LIMIT_SECRET`, and the database's internal connection URL as `DATABASE_URL`. Health check: `/api/ready`. Render supplies `PORT`. Leave the Pre-deploy Command empty.
 
-Render's free web services block standard SMTP ports 25/465/587, and free PostgreSQL expires after 30 days. This application's current email adapter uses SMTP, so the Blueprint uses paid resources. An HTTP email adapter would be needed for providers reached over HTTPS on the free web tier.
+Render's free web services sleep after inactivity, so the first request can be slow. Free PostgreSQL expires 30 days after creation. Export database data before that deadline if you want to preserve accounts. The Blueprint uses no paid compute plans. SMTP remains available for other hosting, but free Render blocks standard SMTP ports.
 
 ## 3. Configure Google OAuth
 
@@ -66,14 +66,14 @@ For a custom domain, configure it and HTTPS in Render first, set `APP_ORIGIN=htt
 - Access blocked while testing: add the signing-in Google account to the consent screen's test users and check the audience.
 - Existing email/password account: sign in with password, verify its email, then connect Google in Account settings. Matching email addresses are deliberately not linked automatically.
 - CSRF/origin error: access the canonical app origin; remove any stale `APP_ORIGIN` override or update it to your custom domain.
-- Email missing: check sender verification and SMTP credentials. Registration intentionally gives a generic response; inspect server delivery error logs and use resend verification.
+- Email missing: check the Resend API key, sender verification and recipient restrictions. Registration intentionally gives a generic response; inspect server delivery error logs and use resend verification.
 
 ## Data, operations and limits
 
 - PostgreSQL stores accounts, identities, sessions and auth tokens. Projects and variants remain scoped to each account **in that browser**. They are not yet synced between devices. Back them up with JSON export.
 - Deploy `server/`, not the older `backend/` prototype. The old prototype has no production account ownership model and is not exposed by this service.
-- Keep database backups enabled. Run `node server/dist/src/db/cleanup.js` periodically from the service environment to remove expired auth records; never delete unexpired refresh-token history because it detects replay.
+- Free PostgreSQL does not provide managed backups: export it manually before expiry. On a paid plan, enable backups. Run `node server/dist/src/db/cleanup.js` periodically from an environment with database access to remove expired auth records; never delete unexpired refresh-token history because it detects replay.
 - The CSP permits dynamic evaluation for the existing ONNX browser inference dependency and HTTPS model/API connections. A stricter policy requires isolating that feature first.
-- Live Google, SMTP delivery and Render PostgreSQL must be smoke-tested after credentials are supplied; local tests do not verify those external services.
+- Live Google, Resend delivery and Render PostgreSQL must be smoke-tested after credentials are supplied; local tests do not verify those external services.
 
 References: [Render Blueprints](https://render.com/docs/blueprint-spec), [Render environment variables](https://render.com/docs/environment-variables), [free tier limits](https://render.com/docs/free), [Google OpenID Connect](https://developers.google.com/identity/openid-connect/openid-connect).

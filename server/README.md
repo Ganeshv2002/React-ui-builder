@@ -37,10 +37,10 @@ The Google adapter uses discovery, authorization code, S256 PKCE, state, nonce a
 ## Production
 
 1. Provision PostgreSQL, backups and a TLS connection according to the database provider. Set `DATABASE_URL` and apply `npm run db:migrate` as a release step. SQL migrations are committed; startup does not mutate schemas. The migrator uses a PostgreSQL advisory lock.
-2. Set `NODE_ENV=production`, an HTTPS `APP_ORIGIN`, a random `RATE_LIMIT_SECRET`, `MAIL_MODE=smtp`, `MAIL_FROM` and SMTP settings. SMTP requires TLS. Use a deployment secret manager. PGlite and file email are rejected in production.
+2. Set `NODE_ENV=production`, an HTTPS `APP_ORIGIN`, a random `RATE_LIMIT_SECRET`, and `MAIL_FROM`. For Render Free, use `MAIL_MODE=resend` and `RESEND_API_KEY` for HTTPS delivery. Other hosts may use `MAIL_MODE=smtp` with SMTP settings and TLS. Use a deployment secret manager. PGlite and file email are rejected in production.
 3. Run `npm ci`, `npm run build`, then `npm start`. API listens on loopback unless `HOST` is deliberately changed. Route `/api/v1/*` from the SPA's HTTPS origin to this service. Expose `/api/health` and `/api/ready` only as required by your infrastructure.
 4. Enable `TRUST_PROXY=true` only if the API is reachable exclusively through a trusted proxy that sanitizes forwarded headers. IP limits otherwise use the socket address. Apply edge request limits/body limits as well as the database-backed application limits.
-5. Configure Google with the production callback and complete real-provider staging checks. Verify SMTP delivery, TLS/cookie flags, backup restoration and session rotation against the deployed origin before release.
+5. Configure Google with the production callback and complete real-provider staging checks. Verify email delivery, TLS/cookie flags, backup restoration and session rotation against the deployed origin before release.
 6. Run `npm run db:cleanup` periodically to remove expired auth records. It retains refresh generations until their absolute session expiration so replay detection remains effective.
 7. Serve the SPA with `Referrer-Policy: no-referrer`, `X-Content-Type-Options: nosniff`, HSTS after HTTPS rollout and a tested CSP. The existing editor uses workers, WebAssembly and an iframe preview, so test a report-only policy against those features before enforcement. Do not grant arbitrary remote scripts access to the application origin.
 
@@ -56,7 +56,7 @@ npm audit --omit=dev
 
 API tests use fresh in-memory embedded PostgreSQL and the actual SQL migrations. OIDC tests use generated signing keys and mocked provider HTTP responses; they do not contact Google. The frontend has additional auth-state, protected-route, refresh and storage migration tests. Run root `npm test` and `npm run build` as regressions.
 
-Live Google, a real SMTP provider and a production PostgreSQL deployment require operator configuration. Local automated tests do not substitute for those staging checks or an independent security review.
+Live Google, Resend or SMTP, and a production PostgreSQL deployment require operator configuration. Local automated tests do not substitute for those staging checks or an independent security review.
 
 ## API overview
 
