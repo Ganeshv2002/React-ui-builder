@@ -10,6 +10,7 @@ import { downloadSingleFile } from '../utils/downloadUtils';
 import { countComponents } from '../utils/layoutTree';
 import { makeTemplate, templates } from './templates';
 import './Dashboard.css';
+import { useMediaQuery } from '@mantine/hooks';
 import Brand from '../ui/Brand';
 import { ThemeToggle } from '../builder/ThemeToggle/ThemeToggle';
 import variantPersistence from '../services/variantPersistence';
@@ -67,6 +68,7 @@ export default function Dashboard({ onOpenEditor, user, onAccount }) {
   const { workspaceId, workspaceProjects, openWorkspace, createWorkspace, saveStatus, legacyWorkspaceAvailable, importLegacyWorkspace, storageKey } = usePages();
   const favoritesKey = `${storageKey}:${FAVORITES_KEY}`;
   const [section, setSection] = useState('projects');
+  const mobile = useMediaQuery('(max-width: 600px)');
   const [query, setQuery] = useState('');
   const [view, setView] = useState('grid');
   const [sort, setSort] = useState('recent');
@@ -124,10 +126,12 @@ export default function Dashboard({ onOpenEditor, user, onAccount }) {
       </div>
     </aside>
     <main className="fw-dashboard-main">
+      <div className="fw-mobile-brand"><Brand compact /><ThemeToggle /></div>
       <header className="fw-dashboard-header"><div><span className="fw-eyebrow">YOUR WORKSPACE</span><h1>{section === 'templates' ? 'Templates' : section === 'starred' ? 'Starred projects' : 'Projects'}</h1><p>{section === 'templates' ? 'Skip the blank canvas. Start with a little structure.' : `${workspaceProjects.length} ${workspaceProjects.length === 1 ? 'project' : 'projects'} · A space for everything you’re building.`}</p></div>
         <div className="fw-header-tools"><ThemeToggle /><button className="fw-button fw-continue" onClick={() => open(workspaceId)}>Continue editing<IconArrowUpRight size={17} /></button></div>
       </header>
       <div className="fw-dashboard-content">
+        <div className="fw-mobile-actions"><button className="fw-button fw-button--primary" onClick={() => setDialog({})}><IconPlus size={18} />New project</button><button className="fw-button" onClick={() => input.current.click()}><IconUpload size={18} />Import JSON</button></div>
         {legacyWorkspaceAvailable && <div className="fw-legacy-banner"><div><strong>Your previous work is still here.</strong><p>Copy this device’s earlier projects into your account. The original backup stays untouched.</p></div><button className="fw-button" onClick={() => run(() => { variantPersistence.importLegacyCache(); importLegacyWorkspace(); })}>Copy existing projects</button></div>}
         {error && <div className="fw-error" role="alert">{error}<button className="fw-icon-button" aria-label="Dismiss error" onClick={() => setError('')}><IconX size={16} /></button></div>}
         {section !== 'starred' && templateSection}
@@ -150,6 +154,10 @@ export default function Dashboard({ onOpenEditor, user, onAccount }) {
         <footer className="fw-dashboard-footer"><span><i className={saveStatus === 'error' ? 'is-error' : ''} />{saveStatus === 'error' ? 'Could not save. Export a JSON backup.' : saveStatus === 'saving' ? 'Saving changes…' : 'All changes saved locally'}</span><span>Built visually. Made with React.</span></footer>
       </div>
     </main>
+    {mobile && <nav className="fw-mobile-nav" aria-label="Mobile workspace navigation">
+      {[['projects', IconFolder, 'Projects'], ['starred', IconStar, 'Starred'], ['templates', IconLayout, 'Templates']].map(([id, Icon, label]) => <button key={id} aria-current={section === id ? 'page' : undefined} onClick={() => { setSection(id); setQuery(''); }}><Icon size={20} /><span>{label}</span></button>)}
+      <button onClick={onAccount}><IconDeviceDesktop size={20} /><span>Account</span></button>
+    </nav>}
     <input ref={input} hidden type="file" accept=".json,application/json" aria-label="Import project JSON" onChange={importFile} />
     {dialog && <NewProjectDialog template={dialog} onClose={() => setDialog(null)} onCreate={create} />}
   </div>;

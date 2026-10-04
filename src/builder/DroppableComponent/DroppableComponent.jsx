@@ -12,6 +12,8 @@ import { usePages } from '../../contexts/PageContext';
 import { resolveValue } from '../../runtime/engine';
 import { registry as runtimeRegistry } from '../../runtime/registry';
 import useEditorStore from '../../store/editorStore';
+import useFreeTransform from '../Canvas/useFreeTransform';
+import { freeStyle, localPoint, paletteBox } from '../Canvas/geometry';
 import './DroppableComponent.css';
 
 ensureComponentRegistry();
@@ -73,17 +75,22 @@ const DroppableComponent = ({
   const Component = runtimeAdapter?.component ?? getComponentRenderer(component.type);
   const { theme, getCurrentPage, pages } = usePages();
   const canvasDimensions = useEditorStore((state) => state.canvasDimensions);
+  const free = useEditorStore(state => state.canvasPlacement === 'free');
+  const zoom = useEditorStore(state => state.canvasZoom);
   let renderProps;
   try { renderProps = resolveValue({ ...component.props, ...component.bindings }, { theme, state: getCurrentPage()?.logic?.state || {} }); }
   catch { renderProps = { ...component.props, style: {} }; }
   renderProps = { ...renderProps, style: toArtboardUnits(renderProps.style, canvasDimensions) };
   for (const key of Object.keys(renderProps)) if (/^on[A-Z]|^dangerouslySetInnerHTML$/.test(key)) delete renderProps[key];
   const placement = isPreviewMode ? { wrapper: undefined, inner: renderProps.style } : splitWrapperStyle(renderProps.style);
+  if (!isPreviewMode && component.children !== undefined) placement.inner = { ...placement.inner, position: 'relative' };
   const componentProps = runtimeAdapter
-    ? { ...renderProps, style: placement.inner, runtime: { navigate: noop, pages } }
+    ? { ...renderProps, style: placement.inner, runtime: { navigate: noop, pages, editor: !isPreviewMode } }
     : { ...renderProps, style: placement.inner, isPreview: isPreviewMode };
   const componentRef = useRef(null);
   const clickTimeoutRef = useRef(null);
+  const transform = useFreeTransform({ component, elementRef: componentRef, enabled: free && !isPreviewMode,
+    zoom, layout, onLayoutChange, onSelect });
 
   const [{ isDragging }, drag] = useDrag(() => ({
     type: 'component',
@@ -96,7 +103,7 @@ const DroppableComponent = ({
       isDragging: monitor.isDragging(),
     }),
     canDrag: (monitor) => {
-      return !isPreviewMode;
+      return !isPreviewMode && !free;
     },
     end: (item, monitor) => {
       // Reset any drag state when drag ends
@@ -104,7 +111,7 @@ const DroppableComponent = ({
         // Drag was successful
       }
     }
-  }), [isPreviewMode, component]);
+  }), [isPreviewMode, component, free]);
 
   const [{ isOver }, drop] = useDrop(() => ({
     accept: 'component',
@@ -125,16 +132,24 @@ const DroppableComponent = ({
           children: item.component.canContainChildren ? [] : undefined
         };
         
+        if (free && monitor.getClientOffset()) {
+          const host = componentRef.current.firstElementChild;
+          newComponent.props.style = freeStyle(newComponent.props.style, paletteBox(item.componentType,
+            localPoint(monitor.getClientOffset(), host.getBoundingClientRect(), zoom, { x: host.clientLeft, y: host.clientTop })));
+        }
         onUpdate(component.id, {
+          ...(free ? { props: { ...component.props, style: { ...component.props?.style,
+            position: component.props?.style?.position === 'absolute' ? 'absolute' : 'relative' } } } : {}),
           children: [...(component.children || []), newComponent]
         });
+        onSelectComponent(newComponent.id);
       }
       // Note: Repositioning is now handled by DropZone components
     },
     collect: (monitor) => ({
       isOver: monitor.isOver({ shallow: true }),
     }),
-  }), [component.id, component.children, isPreviewMode]);
+  }), [component, isPreviewMode, free, zoom, onUpdate, onSelectComponent]);
 
   const handleClick = (e) => {
     if (!isPreviewMode) {
@@ -361,7 +376,13 @@ const DroppableComponent = ({
           }
         }
       }}
-      className={`droppable-component ${isSelected ? 'selected' : ''} ${isDragging ? 'dragging' : ''} ${isOver ? 'drop-over' : ''} ${isDragActive ? 'canvas--dragging' : ''}`}
+      data-component-id={component.id}
+      tabIndex={0}
+      aria-label={`${component.type} component`}
+      onPointerDown={transform.begin}
+      onKeyDown={transform.onKeyDown}
+      onDragStart={free ? event => event.preventDefault() : undefined}
+      className={`droppable-component ${free ? 'free-positionable' : ''} ${isSelected ? 'selected' : ''} ${isDragging ? 'dragging' : ''} ${isOver ? 'drop-over' : ''} ${isDragActive ? 'canvas--dragging' : ''}`}
       style={placement.wrapper}
       onClick={handleClick}
     >
@@ -377,8 +398,20 @@ const DroppableComponent = ({
           {renderChildren()}
         </Component>
       )}
+      {isSelected && free && <>
+        {['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'].map(handle => <span key={handle}
+          className={`canvas-resize-handle canvas-resize-handle--${handle}`} title={`Resize ${handle}`}
+          onPointerDown={event => transform.begin(event, handle)} />)}
+        <div className="canvas-position-label">{Math.round(parseFloat(component.props.style?.left) || 0)}, {Math.round(parseFloat(component.props.style?.top) || 0)} · Drag to move</div>
+      </>}
       {isSelected && !isPreviewMode && (
         <div className="component-controls" onClick={(event) => event.stopPropagation()}>
+          {free && component.props.style?.position === 'absolute' && <button type="button" className="return-to-flow"
+            title="Return to responsive layout flow" onClick={() => {
+              const style = { ...component.props.style };
+              for (const key of ['position', 'left', 'top', 'right', 'bottom', 'inset', 'flex']) delete style[key];
+              onUpdate(component.id, { props: { ...component.props, style } });
+            }}>Flow</button>}
           <button
             type="button"
             ref={(node) => {
@@ -387,6 +420,7 @@ const DroppableComponent = ({
               }
             }}
             className="drag-handle"
+            hidden={free}
             title="Drag to move"
           >
             <FontAwesomeIcon icon={faGripVertical} />

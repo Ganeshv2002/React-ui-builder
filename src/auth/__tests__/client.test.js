@@ -3,6 +3,12 @@ import { api } from '../client';
 const response = (status, data) => ({ ok: status < 400, status, json: async () => status < 400 ? { data } : { error: { code: 'UNAUTHENTICATED', message: 'Sign in' } } });
 afterEach(() => vi.unstubAllGlobals());
 describe('cookie API client', () => {
+  it('explains a failed local proxy without treating it as an expired session', async () => {
+    const fetch = vi.fn(async () => ({ ok: false, status: 500, json: async () => { throw new SyntaxError('Empty proxy response'); } }));
+    vi.stubGlobal('fetch', fetch);
+    await expect(api('/auth/session')).rejects.toMatchObject({ status: 500, code: 'LOCAL_API_UNAVAILABLE' });
+    expect(fetch).toHaveBeenCalledOnce();
+  });
   it('coordinates concurrent refreshes, retries once and sends CSRF headers', async () => {
     let refreshed = false, rotations = 0;
     const fetch = vi.fn(async (url, options) => {

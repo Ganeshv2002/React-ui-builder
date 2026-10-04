@@ -1,0 +1,6 @@
+import React, { useId, useState } from 'react';
+import '../Library/Library.css';
+export default function Tabs({ labels=['Overview','Details','Activity'], panels=['A clear overview of your project.','Everything you need to know.','Your latest updates appear here.'], label='Content sections', style }) {
+const [selected,setSelected]=useState(0); const id=useId(); const active=Math.min(selected,Math.max(0,labels.length-1));
+return <section className="fw-library fw-library-tabs" style={style}><div role="tablist" aria-label={label}>{labels.map((text,i)=><button key={i} type="button" role="tab" id={id+'-tab-'+i} aria-controls={id+'-panel-'+i} aria-selected={active===i} tabIndex={active===i?0:-1} onClick={()=>setSelected(i)} onKeyDown={e=>{let next=i;if(e.key==='ArrowRight')next=(i+1)%labels.length;else if(e.key==='ArrowLeft')next=(i-1+labels.length)%labels.length;else if(e.key==='Home')next=0;else if(e.key==='End')next=labels.length-1;else return;e.preventDefault();setSelected(next);e.currentTarget.parentElement.children[next]?.focus();}}>{text}</button>)}</div>{labels.length>0&&<div role="tabpanel" id={id+'-panel-'+active} aria-labelledby={id+'-tab-'+active} tabIndex={0}>{panels[active]||''}</div>}</section>;
+}

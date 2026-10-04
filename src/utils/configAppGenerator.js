@@ -1,5 +1,5 @@
 import { parseProject, projectJSONSchema } from '../runtime/project.js';
-const sources = import.meta.glob(['../runtime/*.{js,jsx,css}', '../components/*/*.{jsx,css}', '../utils/theme.css'], { query: '?raw', import: 'default', eager: true });
+const sources = import.meta.glob(['../runtime/*.{js,jsx,css}', '../components/*/*.{jsx,css}', '../utils/theme.css', '!../components/**/*.test.jsx'], { query: '?raw', import: 'default', eager: true });
 
 export function generateConfigApp(input) {
   const project = parseProject(input);
@@ -25,6 +25,7 @@ import './utils/theme.css';
 import './runtime/artboard.css';
 import './app.css';
 const project = parseProject(config);
+document.title = project.name;
 createRoot(document.getElementById('root')).render(<Runtime project={project} registry={registry} handlers={handlers} />);
 `;
   files['src/handlers.js'] = '// Register application-specific functions here. JSON refers to their IDs, never their code.\nexport const handlers = {};\n';

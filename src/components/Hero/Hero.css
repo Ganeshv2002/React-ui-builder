@@ -1,0 +1,7 @@
+.fw-hero { display:flex; flex-wrap:wrap; align-items:center; gap:24px; padding:clamp(28px,5vw,60px); border-radius:24px; background:#211344; color:white; overflow:hidden; }
+.fw-hero-copy { flex:1 1 280px; position:relative; z-index:1; }.fw-hero-copy>span { color:#c9b8ff; font-size:11px; font-weight:700; letter-spacing:.17em; }
+.fw-hero h1 { margin:18px 0; max-width:620px; font-size:clamp(34px,4.5vw,60px); line-height:1.04; letter-spacing:-.045em; }.fw-hero p { color:#d6cfe5; line-height:1.7; max-width:430px; font-size:16px; }
+.fw-hero-art { position:relative; flex:0 1 260px; min-height:250px; display:grid; place-items:center; margin:auto; }.fw-hero-orbit { width:220px; height:220px; border:1px solid #a47cf777; border-radius:50%; box-shadow:0 0 0 25px #8e5bef22,0 0 0 50px #8e5bef11; position:absolute; }
+.fw-hero-ticket { transform:rotate(12deg); border-radius:15px; padding:22px; background:#d1fb7d; color:#211344; width:155px; box-shadow:18px 20px 0 #ab8be533; }.fw-hero-ticket span { font-size:9px; letter-spacing:3px; }.fw-hero-ticket strong { display:block; font-size:30px; line-height:1; letter-spacing:-2px; margin:18px 0; }.fw-hero-ticket div { border-top:1px dashed #21134477; padding-top:15px; font-family:monospace; }
+.fw-hero-art small { position:absolute; bottom:-10px; font-size:10px; color:#c9b8ff; text-align:center; }
+@media(max-width:600px) { .fw-hero-art { display:none; } }

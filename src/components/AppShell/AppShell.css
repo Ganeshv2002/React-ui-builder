@@ -1,0 +1,13 @@
+.fw-app-shell { min-height:100vh; color:#211a34; --fg:#211a34; --bg:#fff; --border:#e5e1ee; --bg-surface:#f6f4fb; font-family:Inter,'Segoe UI',sans-serif; }
+.fw-app-shell-content { max-width:var(--fw-shell-width,1180px); margin:auto; padding:24px clamp(16px,4vw,48px); display:flex; flex-direction:column; gap:28px; }
+.fw-app-shell .ui-container { border:0; background:transparent; border-radius:0; min-height:0; }
+.fw-app-shell .ui-container:hover { background:transparent; }
+.fw-app-shell .ui-input { border-radius:10px; padding:13px 14px; min-height:46px; }
+.fw-app-shell .ui-button { border-radius:10px; min-height:44px; font-weight:600; padding:12px 20px; }
+.fw-app-shell .ui-button--primary { background:var(--primary); border-color:var(--primary); color:white; }
+.fw-app-shell .ui-form { border:0; padding:0; background:transparent; display:flex; flex-direction:column; gap:16px; }
+.fw-app-shell .ui-heading { letter-spacing:-.035em; line-height:1.12; margin:0; }
+.fw-app-shell .ui-paragraph { line-height:1.7; }
+.fw-app-shell a { color:var(--primary); text-decoration:none; font-weight:600; }
+.fw-app-shell .fw-library-table { border:1px solid var(--border); border-radius:14px; background:white; padding:20px; }
+@media(max-width:600px) { .fw-app-shell-content { gap:20px; }.fw-app-shell .ui-heading--h1 { font-size:34px; } }

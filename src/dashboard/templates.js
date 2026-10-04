@@ -1,7 +1,9 @@
 import { v4 as uuid } from 'uuid';
 import { createProject } from '../runtime/project';
+import seatwave from '../demos/seatwave.json';
 
 export const templates = [
+  { id:'seatwave', name:'Seatwave tickets', description:'Login, events and live API bookings', kind:'dashboard' },
   { id: 'landing', name: 'Landing page', description: 'A home for your next idea', kind: 'landing' },
   { id: 'dashboard', name: 'Dashboard', description: 'Metrics, cards and insights', kind: 'dashboard' },
   { id: 'portfolio', name: 'Portfolio', description: 'Put your work in the spotlight', kind: 'portfolio' },
@@ -17,6 +19,12 @@ const card = (title, text) => container([heading(title, 3), paragraph(text)], { 
 
 // Templates use the existing public component contracts and portable JSON format.
 export function makeTemplate(id = 'blank', name = 'Untitled project') {
+  if (id === 'seatwave') {
+    const pages = structuredClone(seatwave.pages);
+    const renew = nodes => nodes.forEach(node => { node.id = uuid(); renew(node.children || []); });
+    pages.forEach(page => renew(page.layout));
+    return createProject(pages, seatwave.theme, {name});
+  }
   let layout = [];
   if (id === 'landing') layout = [container([
     node('badge', { children: 'YOUR NEXT BIG IDEA', variant: 'success' }),

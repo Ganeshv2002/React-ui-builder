@@ -129,6 +129,15 @@
                     "body": {
                       "$ref": "#/$defs/__schema0"
                     },
+                    "credentials": {
+                      "default": "same-origin",
+                      "type": "string",
+                      "enum": [
+                        "omit",
+                        "same-origin",
+                        "include"
+                      ]
+                    },
                     "response": {
                       "default": "json",
                       "type": "string",
@@ -142,6 +151,7 @@
                     "url",
                     "method",
                     "headers",
+                    "credentials",
                     "response"
                   ],
                   "additionalProperties": false
@@ -221,6 +231,24 @@
                         "required": [
                           "type",
                           "pageId"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "const": "markClean"
+                          },
+                          "formId": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 160
+                          }
+                        },
+                        "required": [
+                          "type"
                         ],
                         "additionalProperties": false
                       },
@@ -472,7 +500,8 @@
               "click",
               "change",
               "submit",
-              "blur"
+              "blur",
+              "close"
             ]
           },
           "additionalProperties": {

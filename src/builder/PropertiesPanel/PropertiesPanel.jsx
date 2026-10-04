@@ -155,6 +155,8 @@ const PropertiesPanel = ({
       : (prop.defaultValue || '');
 
     switch (prop.type) {
+      case 'json':
+        return <JsonEditor key={selectedComponent.id+prop.name} label={prop.label} value={currentValue} onApply={value => handlePropChange(prop.name,value)} />;
       case 'string':
         return (
           <div className="input-with-clear">

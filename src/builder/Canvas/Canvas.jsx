@@ -1,5 +1,8 @@
 ﻿import React from 'react';
 import { useDrop, useDragLayer } from 'react-dnd';
+import { useRef } from 'react';
+import useEditorStore from '../../store/editorStore';
+import { freeStyle, localPoint, paletteBox } from './geometry';
 import { v4 as uuidv4 } from 'uuid';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCubes } from '@fortawesome/free-solid-svg-icons';
@@ -23,6 +26,8 @@ const Canvas = ({
 }) => {
   // Subscribe so drop zones appear as soon as any drag starts.
   const isGlobalDragging = useDragLayer((monitor) => monitor.isDragging());
+  const free = useEditorStore(state => state.canvasPlacement === 'free');
+  const canvasRef = useRef(null);
   const { width, height } = canvasDimensions;
   const scaledWidth = width * canvasZoom;
   const scaledHeight = height * canvasZoom;
@@ -43,7 +48,12 @@ const Canvas = ({
           children: item.component.canContainChildren ? [] : undefined,
         };
 
+        if (free && dropMonitor.getClientOffset() && canvasRef.current) {
+          newComponent.props.style = freeStyle(newComponent.props.style, paletteBox(item.componentType,
+            localPoint(dropMonitor.getClientOffset(), canvasRef.current.getBoundingClientRect(), canvasZoom)));
+        }
         onLayoutChange([...layout, newComponent]);
+        onSelectComponent(newComponent.id);
         telemetry.track(TELEMETRY_EVENTS.COMPONENT_ADDED, {
           componentType: item.componentType,
           parentId: null,
@@ -77,7 +87,7 @@ const Canvas = ({
         isOver: dropMonitor.isOver({ shallow: true }),
       }),
     }),
-    [layout, onLayoutChange],
+    [layout, onLayoutChange, free, canvasZoom, onSelectComponent],
   );
 
   const handleDropZoneDrop = (item, insertIndex) => {
@@ -170,11 +180,11 @@ const Canvas = ({
             style={{ width, height, transform: `scale(${canvasZoom})`, transformOrigin: 'top left' }}
           >
             <div
-              ref={!isPreviewMode ? drop : null}
+              ref={node => { canvasRef.current = node; if (!isPreviewMode) drop(node); }}
               className={`canvas fw-artboard ${isPreviewMode ? 'canvas--preview' : ''} ${isOver ? 'canvas--over' : ''} ${
                 layout.length === 0 ? 'canvas--empty' : ''
               }`}
-              style={{ width, height, ...themeStyle }}
+              style={{ width, height, ...themeStyle, '--canvas-inverse-zoom': 1 / canvasZoom }}
               onClick={(event) => {
                 if (!isPreviewMode && event.target === event.currentTarget) {
                   onSelectComponent(null);
@@ -198,7 +208,7 @@ const Canvas = ({
                 )
               ) : (
                 <div className="canvas-components">
-                  {!isPreviewMode && <DropZone onDrop={handleDropZoneDrop} index={0} isVisible />}
+                  {!isPreviewMode && !free && <DropZone onDrop={handleDropZoneDrop} index={0} isVisible />}
 
                   {layout.map((component, index) => (
                     <React.Fragment key={component.id}>
@@ -220,7 +230,7 @@ const Canvas = ({
                         isDragActive={isGlobalDragging}
                       />
 
-                      {!isPreviewMode && (
+                      {!isPreviewMode && !free && (
                         <DropZone onDrop={handleDropZoneDrop} index={index + 1} isVisible />
                       )}
                     </React.Fragment>

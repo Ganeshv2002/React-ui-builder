@@ -17,7 +17,8 @@ export function resolveValue(value, context) {
   if (Array.isArray(value)) return value.map(v => resolveValue(v, context));
   if (value && typeof value === 'object') {
     if ('$token' in value) return resolveToken(context.theme, value.$token);
-    for (const source of ['state', 'event', 'result']) if (`$${source}` in value) return readPath(context[source], value[`$${source}`]);
+    for (const source of ['state', 'event', 'result', 'fields']) if (`$${source}` in value) return readPath(context[source], value[`$${source}`]);
+    if ('$dirty' in value) return Boolean(context.dirty);
     if ('$eq' in value) { const [a, b] = resolveValue(value.$eq, context); return a === b; }
     if ('$ne' in value) { const [a, b] = resolveValue(value.$ne, context); return a !== b; }
     if ('$gt' in value) { const [a, b] = resolveValue(value.$gt, context); return a > b; }
@@ -61,9 +62,10 @@ export async function runActions(names, logic, env, event = {}, signal) {
     if (!steps) throw new Error(`Action not registered: ${name}`);
     for (const step of steps) {
       if (signal?.aborted) return;
-      const context = { state: env.getState(), event, result, theme: env.theme };
+      const context = { state: env.getState(), fields: env.getFields?.() || {}, dirty: env.isDirty?.(), event, result, theme: env.theme };
       if (step.type === 'setState') env.setState(writePath(env.getState(), step.path, resolveValue(step.value, context)));
-      else if (step.type === 'navigate') { env.navigate(step.pageId); return; }
+      else if (step.type === 'navigate') { await env.navigate(step.pageId); return; }
+      else if (step.type === 'markClean') env.markClean?.(step.formId);
       else if (step.type === 'validate') {
         const errors = validateValues(logic.validation?.[step.rules || 'default'] || [], { ...env.getState(), ...event.values });
         env.setErrors(errors);
@@ -77,8 +79,11 @@ export async function runActions(names, logic, env, event = {}, signal) {
         const headers = { ...resource.headers };
         const body = resource.body === undefined ? undefined : JSON.stringify(resolveValue(resource.body, context));
         if (body && !Object.keys(headers).some(k => k.toLowerCase() === 'content-type')) headers['Content-Type'] = 'application/json';
-        const response = await (env.fetch || fetch)(safeURL(url), { method: resource.method || 'GET', headers, ...(resource.method !== 'GET' && body !== undefined ? { body } : {}), signal });
-        if (!response.ok) throw new Error(`Request ${step.resource} failed (${response.status}).`);
+        const response = await (env.fetch || fetch)(safeURL(url), { method: resource.method || 'GET', credentials: resource.credentials || 'same-origin', headers, ...(resource.method !== 'GET' && body !== undefined ? { body } : {}), signal });
+        if (!response.ok) {
+          const detail = response.json ? await response.json().catch(() => null) : null;
+          throw new Error(typeof detail?.error?.message === 'string' ? detail.error.message.slice(0, 300) : `Request ${step.resource} failed (${response.status}).`);
+        }
         result = response.status === 204 ? null : resource.response === 'text' ? await response.text() : await response.json();
         if (signal?.aborted) return;
         if (step.assignTo) env.setState(writePath(env.getState(), step.assignTo, result));

@@ -23,8 +23,46 @@ import Avatar from '../../components/Avatar/Avatar';
 import Progress from '../../components/Progress/Progress';
 import StatCard from '../../components/StatCard/StatCard';
 import { componentDefinitions } from '../../data/componentDefinitions';
+import PriceSummary from '../../components/PriceSummary/PriceSummary';
+import Drawer from '../../components/Drawer/Drawer';
+import Modal from '../../components/Modal/Modal';
+import Footer from '../../components/Footer/Footer';
+import AppShell from '../../components/AppShell/AppShell';
+import Hero from '../../components/Hero/Hero';
+import EventGrid from '../../components/EventGrid/EventGrid';
+import Select from '../../components/Select/Select';
+import Textarea from '../../components/Textarea/Textarea';
+import Switch from '../../components/Switch/Switch';
+import Slider from '../../components/Slider/Slider';
+import Accordion from '../../components/Accordion/Accordion';
+import Tabs from '../../components/Tabs/Tabs';
+import DataTable from '../../components/DataTable/DataTable';
+import Breadcrumbs from '../../components/Breadcrumbs/Breadcrumbs';
+import Pagination from '../../components/Pagination/Pagination';
+import EmptyState from '../../components/EmptyState/EmptyState';
+import Skeleton from '../../components/Skeleton/Skeleton';
+import Quote from '../../components/Quote/Quote';
 
 const componentRenderers = {
+  priceSummary: PriceSummary,
+  drawer: Drawer,
+  modal: Modal,
+  footer: Footer,
+  appShell: AppShell,
+  hero: Hero,
+  eventGrid: EventGrid,
+  select: Select,
+  textarea: Textarea,
+  switch: Switch,
+  slider: Slider,
+  accordion: Accordion,
+  tabs: Tabs,
+  dataTable: DataTable,
+  breadcrumbs: Breadcrumbs,
+  pagination: Pagination,
+  emptyState: EmptyState,
+  skeleton: Skeleton,
+  quote: Quote,
   button: Button,
   input: Input,
   card: Card,
@@ -52,6 +90,25 @@ const componentRenderers = {
 };
 
 const componentSourcePaths = {
+  priceSummary: 'PriceSummary/PriceSummary',
+  drawer: 'Drawer/Drawer',
+  modal: 'Modal/Modal',
+  footer: 'Footer/Footer',
+  appShell: 'AppShell/AppShell',
+  hero: 'Hero/Hero',
+  eventGrid: 'EventGrid/EventGrid',
+  select: 'Select/Select',
+  textarea: 'Textarea/Textarea',
+  switch: 'Switch/Switch',
+  slider: 'Slider/Slider',
+  accordion: 'Accordion/Accordion',
+  tabs: 'Tabs/Tabs',
+  dataTable: 'DataTable/DataTable',
+  breadcrumbs: 'Breadcrumbs/Breadcrumbs',
+  pagination: 'Pagination/Pagination',
+  emptyState: 'EmptyState/EmptyState',
+  skeleton: 'Skeleton/Skeleton',
+  quote: 'Quote/Quote',
   button: 'Button/Button',
   input: 'Input/Input',
   card: 'Card/Card',

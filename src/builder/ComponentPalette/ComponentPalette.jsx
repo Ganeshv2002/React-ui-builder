@@ -3,8 +3,6 @@ import { useDrag } from 'react-dnd';
 import { Resizable } from 'react-resizable';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faMagic } from '@fortawesome/free-solid-svg-icons';
-import { v4 as uuidv4 } from 'uuid';
-import CreateComponentModal from '../../components/CreateComponentModal';
 import './ComponentPalette.css';
 import 'react-resizable/css/styles.css';
 
@@ -47,7 +45,6 @@ const DraggableComponent = ({ component, onInsert }) => {
 
 const ComponentPalette = ({
   components = [],
-  onAddCustomComponent,
   onComponentClick,
   searchValue = '',
   onSearchChange,
@@ -60,7 +57,6 @@ const ComponentPalette = ({
   const isControlledWidth = typeof width === 'number';
   const [uncontrolledWidth, setUncontrolledWidth] = useState(width ?? defaultWidth);
   const paletteWidth = isControlledWidth ? width : uncontrolledWidth;
-  const [showCreateModal, setShowCreateModal] = useState(false);
   const [localSearch, setLocalSearch] = useState(searchValue);
 
   useEffect(() => {
@@ -122,53 +118,6 @@ const ComponentPalette = ({
       ]);
   }, [components]);
 
-  const handleComponentCreated = (componentSpec) => {
-    if (!componentSpec) {
-      return;
-    }
-
-    const componentType =
-      typeof componentSpec.type === 'string' && componentSpec.type.length > 0
-        ? componentSpec.type
-        : 'component';
-    const normalizedProps = componentSpec.props ?? {};
-    const formatLabel = (value) =>
-      value.charAt(0).toUpperCase() + value.slice(1).replace(/([A-Z])/g, ' $1');
-
-    const newComponent = {
-      id: componentSpec.id || `custom-${uuidv4().slice(0, 8)}`,
-      name: formatLabel(componentType),
-      category: 'AI Generated',
-      icon: faMagic,
-      defaultProps: {
-        ...normalizedProps,
-        children:
-          componentSpec.children ??
-          normalizedProps.children ??
-          normalizedProps.text ??
-          'AI Generated Content',
-      },
-      props: Object.keys(normalizedProps).map((key) => ({
-        name: key,
-        type:
-          typeof normalizedProps[key] === 'boolean'
-            ? 'boolean'
-            : typeof normalizedProps[key] === 'number'
-            ? 'number'
-            : 'string',
-        defaultValue: normalizedProps[key],
-        label: formatLabel(key),
-      })),
-      canContainChildren: componentSpec.children !== undefined,
-      isCustom: true,
-      aiGenerated: true,
-    };
-
-    if (onAddCustomComponent) {
-      onAddCustomComponent(newComponent);
-    }
-  };
-
   return (
     <Resizable
       width={paletteWidth}
@@ -202,8 +151,8 @@ const ComponentPalette = ({
           <button
             type="button"
             className="create-component-btn"
-            onClick={() => setShowCreateModal(true)}
-            title="Generate custom components using AI"
+            disabled
+            title="AI creation is temporarily unavailable"
           >
             <span className="create-icon" aria-hidden="true">
               <FontAwesomeIcon icon={faMagic} />
@@ -211,7 +160,7 @@ const ComponentPalette = ({
             <span>Create with AI</span>
           </button>
           <p className="create-component-subtitle">
-            Generate custom components with AI assistance
+            Temporarily unavailable. Explore the component library below.
           </p>
         </div>
 
@@ -247,11 +196,6 @@ const ComponentPalette = ({
           </p>
         </div>
 
-        <CreateComponentModal
-          isOpen={showCreateModal}
-          onClose={() => setShowCreateModal(false)}
-          onComponentCreate={handleComponentCreated}
-        />
       </div>
     </Resizable>
   );

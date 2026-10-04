@@ -14,6 +14,9 @@ async function raw(path, { method = 'GET', body, signal } = {}) {
     throw new ApiError('Cannot reach Framewright. Check your connection and try again.', 0, 'NETWORK_ERROR');
   }
   const result = await response.json().catch(() => null);
+  if (import.meta.env.DEV && response.status >= 500 && !result?.error) {
+    throw new ApiError('The local Framewright API is unavailable. Start the API with npm run dev from the server folder, then try again.', response.status, 'LOCAL_API_UNAVAILABLE');
+  }
   if (!response.ok) throw new ApiError(result?.error?.message || 'The server could not complete this request.', response.status, result?.error?.code);
   if (!result || !('data' in result)) throw new ApiError('The server returned an unexpected response.', 502, 'INVALID_RESPONSE');
   return result.data;

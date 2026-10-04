@@ -3,6 +3,8 @@ import { readPath, resolveValue, runActions, safeURL } from './engine.js';
 import { themeVariables } from './theme.js';
 import { evaluateConditions } from './conditions.js';
 import { FieldsContext } from './fields.js';
+import { pagePlacementStyle } from './placement.js';
+import { DirtyContext, DirtyProvider } from './dirty.jsx';
 
 function RuntimeNode({ node, registry, context, dispatch, navigate, pages }) {
   const fields = useContext(FieldsContext);
@@ -27,8 +29,8 @@ function RuntimeNode({ node, registry, context, dispatch, navigate, pages }) {
   for (const [eventName, names] of Object.entries(node.events || {})) {
     eventProps[`on${eventName[0].toUpperCase()}${eventName.slice(1)}`] = event => {
       if (eventName === 'submit' || (eventName === 'click' && ['link', 'navigationLink'].includes(node.type))) event.preventDefault();
-      const data = eventName === 'submit' ? { values: Object.fromEntries(new FormData(event.currentTarget)) } : { value: event.target?.value, checked: event.target?.checked };
-      dispatch(names, data);
+      const data = eventName === 'submit' ? { values: Object.fromEntries(new FormData(event.currentTarget)) } : { value: event.target?.value, checked: event.target?.checked, record: event.detail?.record };
+      return dispatch(names, data);
     };
   }
   const content = node.children?.length ? node.children.map(child => <RuntimeNode key={child.id} node={child} registry={registry} context={context} dispatch={dispatch} navigate={navigate} pages={pages} />) : props.children;
@@ -54,6 +56,8 @@ class RuntimeBoundary extends React.Component {
 }
 
 function RuntimePage({ page, project, registry, handlers, navigate, allowNetwork }) {
+  const dirty = useContext(DirtyContext);
+  const valuesRef = useRef({});
   const logic = page.logic || {};
   const [state, setState] = useState(() => structuredClone(logic.state || {}));
   const stateRef = useRef(state);
@@ -62,7 +66,7 @@ function RuntimePage({ page, project, registry, handlers, navigate, allowNetwork
   const [pending, setPending] = useState(0);
   const controllers = useRef(new Set());
   const envRef = useRef(null);
-  envRef.current = { theme: project.theme, allowNetwork, handlers, navigate, getState: () => stateRef.current, setErrors,
+  envRef.current = { theme: project.theme, allowNetwork, handlers, navigate, getState: () => stateRef.current, getFields: () => valuesRef.current, markClean: dirty.markClean, isDirty: () => dirty.isDirty, setErrors,
     setState: next => { stateRef.current = next; setState(next); } };
   const dispatch = useCallback(async (names, event = {}, externalSignal) => {
     const controller = new AbortController();
@@ -71,7 +75,12 @@ function RuntimePage({ page, project, registry, handlers, navigate, allowNetwork
     externalSignal?.addEventListener('abort', abort, { once: true });
     setError(''); setPending(n => n + 1);
     try { await runActions(names, page.logic || {}, envRef.current, event, controller.signal); }
-    catch (err) { if (!controller.signal.aborted) setError(err.message); }
+    catch (err) {
+      if (!controller.signal.aborted) {
+        if (!event.values) setError(err.message);
+        return { error: err.message };
+      }
+    }
     finally { externalSignal?.removeEventListener('abort', abort); controllers.current.delete(controller); setPending(n => Math.max(0, n - 1)); }
   }, [page.logic]);
   useEffect(() => {
@@ -79,12 +88,13 @@ function RuntimePage({ page, project, registry, handlers, navigate, allowNetwork
     return () => { active.forEach(c => c.abort()); active.clear(); };
   }, []);
   const [fieldValues, setFieldValues] = useState({});
+  valuesRef.current = fieldValues;
   const [showAllErrors, setShowAllErrors] = useState(false);
   const setField = useCallback((name, value) => setFieldValues(prev => Object.is(prev[name], value) ? prev : { ...prev, [name]: value }), []);
   const revealErrors = useCallback(() => setShowAllErrors(true), []);
   const fields = useMemo(() => ({ values: fieldValues, setField, showAllErrors, revealErrors }), [fieldValues, setField, showAllErrors, revealErrors]);
-  const context = { state, theme: project.theme };
-  return <FieldsContext.Provider value={fields}><div className="fw-page" style={themeVariables(project.theme)}>
+  const context = { state, fields: fieldValues, dirty: dirty.isDirty, theme: project.theme };
+  return <FieldsContext.Provider value={fields}><div className="fw-page" style={{ ...themeVariables(project.theme), ...pagePlacementStyle(page.layout) }}>
     {(page.logic?.effects || []).map(effect => <RuntimeEffect key={effect.id} effect={effect} state={state} dispatch={dispatch} />)}
     {pending > 0 && <div role="status">Working…</div>}
     {error && <div role="alert" className="fw-runtime-error">{error}</div>}
@@ -93,27 +103,35 @@ function RuntimePage({ page, project, registry, handlers, navigate, allowNetwork
   </div></FieldsContext.Provider>;
 }
 
-export default function Runtime({ project, registry, handlers = {}, initialPageId, onNavigate, allowNetwork = true }) {
+function RuntimeRouter({ project, registry, handlers = {}, initialPageId, onNavigate, allowNetwork = true }) {
+  const dirty = useContext(DirtyContext);
   const routePage = () => project.pages.find(p => p.path === window.location.hash.slice(1))?.id || project.pages.find(p => p.isHome)?.id || project.pages[0].id;
   const [activeId, setActiveId] = useState(initialPageId || routePage);
-  const navigate = useCallback(id => {
+  const navigate = useCallback(async id => {
     const destination = project.pages.find(p => p.id === id);
     if (!destination) throw new Error(`Page not found: ${id}`);
+    if (!await dirty.confirmLeave()) return;
     setActiveId(id);
     if (onNavigate) onNavigate(id);
     else window.location.hash = destination.path;
-  }, [onNavigate, project.pages]);
+  }, [onNavigate, project.pages, dirty.confirmLeave]);
   useEffect(() => {
     if (initialPageId) setActiveId(initialPageId);
   }, [initialPageId]);
   useEffect(() => {
     if (onNavigate) return;
-    const onHash = () => setActiveId(project.pages.find(p => p.path === window.location.hash.slice(1))?.id || '__not_found__');
+    const onHash = async () => {
+      const next = project.pages.find(p => p.path === window.location.hash.slice(1))?.id || '__not_found__';
+      if (next === activeId) return;
+      if (!await dirty.confirmLeave()) { window.history.replaceState(null, '', '#'+(project.pages.find(p => p.id === activeId)?.path || '/')); return; }
+      setActiveId(next);
+    };
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
-  }, [project.pages, onNavigate]);
+  }, [project.pages, onNavigate, activeId, dirty.confirmLeave]);
   const page = project.pages.find(p => p.id === activeId);
   if (!page) return <div role="alert">Page not found.</div>;
   return <RuntimeBoundary key={page.id}><RuntimePage page={page} project={project} registry={registry} handlers={handlers} navigate={navigate} allowNetwork={allowNetwork} /></RuntimeBoundary>;
 }
+export default function Runtime(props) { return <DirtyProvider><RuntimeRouter {...props} /></DirtyProvider>; }
 

@@ -8,19 +8,20 @@ const action = z.discriminatedUnion('type', [
   z.object({ type: z.literal('setState'), path: key, value: json }).strict(),
   z.object({ type: z.literal('request'), resource: key, assignTo: key.optional() }).strict(),
   z.object({ type: z.literal('navigate'), pageId: key }).strict(),
+  z.object({ type: z.literal('markClean'), formId: key.optional() }).strict(),
   z.object({ type: z.literal('validate'), rules: key.optional() }).strict(),
   z.object({ type: z.literal('custom'), handler: key, args: json.optional() }).strict(),
 ]);
 export const logicSchema = z.object({
   state: record.default({}),
-  resources: z.record(z.string(), z.object({ url: z.string().min(1), method: z.enum(['GET', 'POST', 'PUT', 'PATCH', 'DELETE']).default('GET'), headers: z.record(z.string(), z.string()).default({}), body: json.optional(), response: z.enum(['json', 'text']).default('json') }).strict()).default({}),
+  resources: z.record(z.string(), z.object({ url: z.string().min(1), method: z.enum(['GET', 'POST', 'PUT', 'PATCH', 'DELETE']).default('GET'), headers: z.record(z.string(), z.string()).default({}), body: json.optional(), credentials: z.enum(['omit', 'same-origin', 'include']).default('same-origin'), response: z.enum(['json', 'text']).default('json') }).strict()).default({}),
   actions: z.record(z.string(), z.array(action).max(100)).default({}),
   effects: z.array(z.object({ id: key, on: z.enum(['mount', 'change']), watch: z.array(key).default([]), actions: z.array(key) }).strict()).default([]),
   validation: z.record(z.string(), z.array(z.object({ field: key, rule: z.enum(['required', 'email', 'minLength', 'maxLength', 'min', 'max']), value: z.number().optional(), message: z.string().optional() }).strict())).default({}),
 }).strict();
 export const behaviorSchema = z.object({
   bindings: record.optional(),
-  events: z.partialRecord(z.enum(['click', 'change', 'submit', 'blur']), z.array(key)).optional(),
+  events: z.partialRecord(z.enum(['click', 'change', 'submit', 'blur', 'close']), z.array(key)).optional(),
   visibleWhen: json.optional(),
 }).strict();
 export const nodeSchema = z.lazy(() => z.object({

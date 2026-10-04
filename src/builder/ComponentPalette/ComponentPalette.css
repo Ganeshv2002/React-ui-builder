@@ -225,3 +225,4 @@
   color: var(--muted);
   text-align: center;
 }
+.create-component-btn:disabled { opacity: .5; cursor: not-allowed; filter: grayscale(1); }

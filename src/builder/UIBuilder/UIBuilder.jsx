@@ -23,6 +23,9 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import ComponentPalette from "../ComponentPalette/ComponentPalette";
 import Canvas from "../Canvas/Canvas";
+import { useMediaQuery } from '@mantine/hooks';
+import usePanelFocus from '../../ui/usePanelFocus';
+import { freeStyle, paletteBox } from '../Canvas/geometry';
 import PropertiesPanel from "../PropertiesPanel/PropertiesPanel";
 import CodeViewer from "../CodeViewer/CodeViewer";
 import PageManager from "../PageManager/PageManager";
@@ -132,6 +135,12 @@ function UIBuilderContent({ onDashboard }) {
   const editor = useEditorStore();
   const { clearSelection, canvasDimensions, setCanvasZoom } = editor;
   const [tab, setTab] = useState("components");
+  const compact = useMediaQuery('(max-width: 1100px)');
+  const [mobilePanel, setMobilePanel] = useState(null);
+  const libraryRef = useRef(null), inspectorRef = useRef(null);
+  const closeMobilePanel = useCallback(() => setMobilePanel(null), []);
+  usePanelFocus(libraryRef, compact && mobilePanel === 'library', closeMobilePanel);
+  usePanelFocus(inspectorRef, compact && mobilePanel === 'inspector', closeMobilePanel);
   const [search, setSearch] = useState("");
   const [paletteWidth, setPaletteWidth] = useState(280);
   const [propertiesWidth, setPropertiesWidth] = useState(300);
@@ -219,7 +228,14 @@ function UIBuilderContent({ onDashboard }) {
       props: structuredClone(def.defaultProps || {}),
       ...(def.canContainChildren ? { children: [] } : {}),
     };
+    if (editor.canvasPlacement === 'free') {
+      const box = paletteBox(def.id, { x: 0, y: 0 });
+      box.x = Math.max(0, (canvasDimensions.width - box.width) / 2 + (layout.length % 5) * 12);
+      box.y = Math.max(0, (canvasDimensions.height - box.height) / 2 + (layout.length % 5) * 12);
+      instance.props.style = freeStyle(instance.props.style, box);
+    }
     changeLayout([...layout, instance]);
+    closeMobilePanel();
     editor.selectComponent(instance.id);
   };
   const undo = () => {
@@ -320,7 +336,9 @@ function UIBuilderContent({ onDashboard }) {
           "--inspector-width": `${propertiesWidth}px`,
         }}
       >
-        <aside className="editor-sidebar" aria-label="Library and navigation">
+        {compact && mobilePanel && <button className="editor-panel-backdrop" aria-label="Close panel" onClick={closeMobilePanel} />}
+        <aside ref={libraryRef} className={`editor-sidebar ${mobilePanel === 'library' ? 'mobile-panel-open' : ''}`} aria-label="Library and navigation" role={compact ? 'dialog' : undefined} aria-modal={compact && mobilePanel === 'library' ? true : undefined}>
+          <div className="editor-mobile-panel-heading"><strong>Workspace</strong><button type="button" onClick={closeMobilePanel} aria-label="Close workspace panel">Close</button></div>
           <div className="editor-sidebar-tabs" aria-label="Workspace panels">
             {TABS.map((item) => (
               <button
@@ -419,6 +437,11 @@ function UIBuilderContent({ onDashboard }) {
                 onClick={redo}
                 disabled={!canRedo}
               />
+            </div>
+            <div className="canvas-placement-switch" aria-label="Placement mode">
+              {['free', 'flow'].map(mode => <button key={mode} type="button" aria-pressed={editor.canvasPlacement === mode}
+                title={mode === 'free' ? 'Drag anywhere. Shift: lock axis. Alt: ignore snapping. Arrows: nudge.' : 'Insert and reorder in responsive flex/grid layouts.'}
+                onClick={() => editor.setCanvasPlacement(mode)}>{mode === 'free' ? 'Free' : 'Flow'}</button>)}
             </div>
             <div className="editor-device-group">
               {DEVICES.map((d) => (
@@ -555,7 +578,8 @@ function UIBuilderContent({ onDashboard }) {
             />
           </div>
         </main>
-        <aside className="editor-inspector" aria-label="Component inspector">
+        <aside ref={inspectorRef} className={`editor-inspector ${mobilePanel === 'inspector' ? 'mobile-panel-open' : ''}`} aria-label="Component inspector" role={compact ? 'dialog' : undefined} aria-modal={compact && mobilePanel === 'inspector' ? true : undefined}>
+          <div className="editor-mobile-panel-heading"><strong>Inspect & style</strong><button type="button" onClick={closeMobilePanel} aria-label="Close inspector panel">Close</button></div>
           {selected ? (
             <PropertiesPanel
               selectedComponent={selected}
@@ -644,6 +668,12 @@ function UIBuilderContent({ onDashboard }) {
         </aside>
       </div>
       {projectPanel && <ProjectPanel section={projectPanel} onClose={() => setProjectPanel(null)} />}
+      <nav className="editor-mobile-nav" aria-label="Editor tools">
+        {[['components', 'Insert'], ['pages', 'Pages'], ['layers', 'Layers']].map(([id, label]) => <button key={id} type="button"
+          aria-pressed={mobilePanel === 'library' && tab === id} onClick={() => { setTab(id); setMobilePanel('library'); }}>{label}</button>)}
+        <button type="button" aria-pressed={mobilePanel === 'inspector'} onClick={() => setMobilePanel('inspector')}>Inspect</button>
+        <button type="button" onClick={() => setProjectPanel('project')}>Project</button>
+      </nav>
       <CodeViewer
         layout={layout}
         isVisible={editor.isCodeViewerVisible}

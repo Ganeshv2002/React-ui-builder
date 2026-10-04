@@ -1,4 +1,6 @@
 // Component definitions for the UI builder
+import { libraryDefinitions } from './libraryDefinitions';
+import { bookingDefinitions } from './bookingDefinitions';
 import {
   faFont,
   faFileAlt,
@@ -24,6 +26,8 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 
 export const componentDefinitions = [
+  ...libraryDefinitions,
+  ...bookingDefinitions,
   {
     id: 'button',
     name: 'Button',
@@ -890,6 +894,8 @@ export const componentDefinitions = [
       shape: 'rounded'
     },
     props: [
+      { name:'trackDirty', type:'boolean', defaultValue:false, label:'Warn before leaving unsaved changes' },
+      { name:'formId', type:'string', defaultValue:'', label:'Form ID (for markClean actions)' },
       {
         name: 'children',
         type: 'string',

@@ -9,8 +9,11 @@ vi.mock('../../builder/ThemeToggle/ThemeToggle', () => ({ ThemeToggle: () => nul
 
 const wrapper = ({ children }) => <PageProvider>{children}</PageProvider>;
 const key = 'react-ui-builder:pages-state';
-beforeEach(() => { localStorage.clear(); vi.useFakeTimers(); });
-afterEach(() => { cleanup(); vi.useRealTimers(); vi.restoreAllMocks(); });
+beforeEach(() => {
+  localStorage.clear(); vi.useFakeTimers();
+  vi.stubGlobal('matchMedia', vi.fn(query => ({ matches: false, media: query, addEventListener: vi.fn(), removeEventListener: vi.fn() })));
+});
+afterEach(() => { cleanup(); vi.useRealTimers(); vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 
 describe('dashboard project library', () => {
   it('retains legacy work, undo history, theme and behavior across switches and reloads', () => {

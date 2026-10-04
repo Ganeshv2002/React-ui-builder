@@ -1,0 +1,1420 @@
+{
+  "format": "framewright",
+  "schemaVersion": 1,
+  "name": "Seatwave · Ticket booking demo",
+  "theme": {
+    "name": "Seatwave",
+    "tokens": {
+      "color.brand": {
+        "type": "color",
+        "value": "#6842e8"
+      },
+      "color.surface": {
+        "type": "color",
+        "value": "#f8f7fb"
+      },
+      "color.text": {
+        "type": "color",
+        "value": "#211a34"
+      }
+    }
+  },
+  "pages": [
+    {
+      "id": "login",
+      "name": "Sign in",
+      "path": "/",
+      "isHome": true,
+      "logic": {
+        "state": {},
+        "resources": {
+          "login": {
+            "url": "http://localhost:3003/auth/login",
+            "method": "POST",
+            "credentials": "include",
+            "body": {
+              "$event": "values"
+            }
+          }
+        },
+        "actions": {
+          "login": [
+            {
+              "type": "request",
+              "resource": "login"
+            },
+            {
+              "type": "navigate",
+              "pageId": "discover"
+            }
+          ]
+        },
+        "effects": [],
+        "validation": {}
+      },
+      "layout": [
+        {
+          "id": "sw-21",
+          "type": "appShell",
+          "props": {},
+          "children": [
+            {
+              "id": "sw-3",
+              "type": "container",
+              "props": {
+                "direction": "horizontal",
+                "flexWrap": "wrap",
+                "alignItems": "center",
+                "justifyContent": "space-between",
+                "padding": "none",
+                "gap": "large",
+                "style": {}
+              },
+              "children": [
+                {
+                  "id": "sw-1",
+                  "type": "heading",
+                  "props": {
+                    "text": "seatwave.",
+                    "level": "h2",
+                    "style": {
+                      "margin": 0,
+                      "fontSize": 30
+                    }
+                  }
+                },
+                {
+                  "id": "sw-2",
+                  "type": "paragraph",
+                  "props": {
+                    "text": "YOUR NEXT GREAT STORY STARTS HERE",
+                    "style": {
+                      "margin": 0,
+                      "fontSize": 10,
+                      "letterSpacing": "2px",
+                      "color": "#81738e"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "id": "sw-17",
+              "type": "container",
+              "props": {
+                "direction": "horizontal",
+                "flexWrap": "wrap",
+                "alignItems": "center",
+                "justifyContent": "space-between",
+                "padding": "none",
+                "gap": "large",
+                "style": {
+                  "alignItems": "stretch",
+                  "gap": 32
+                }
+              },
+              "children": [
+                {
+                  "id": "sw-5",
+                  "type": "container",
+                  "props": {
+                    "padding": "none",
+                    "gap": "large",
+                    "style": {
+                      "flex": "1.25 1 420px"
+                    }
+                  },
+                  "children": [
+                    {
+                      "id": "sw-4",
+                      "type": "hero",
+                      "props": {
+                        "eyebrow": "LESS SCROLLING. MORE LIVING.",
+                        "title": "Be there for the moments that matter.",
+                        "description": "Live music. Big laughs. New ideas. Your next unforgettable experience is one ticket away.",
+                        "detail": "Made for the memories you haven’t made yet.",
+                        "style": {
+                          "minHeight": 510
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "id": "sw-16",
+                  "type": "container",
+                  "props": {
+                    "padding": "none",
+                    "gap": "large",
+                    "style": {
+                      "flex": "1 1 320px",
+                      "padding": "32px",
+                      "background": "#fff",
+                      "border": "1px solid #e5e1ee",
+                      "borderRadius": 20
+                    }
+                  },
+                  "children": [
+                    {
+                      "id": "sw-6",
+                      "type": "badge",
+                      "props": {
+                        "children": "WELCOME BACK",
+                        "variant": "default",
+                        "style": {
+                          "alignSelf": "flex-start",
+                          "background": "#eee8fc",
+                          "color": "#6842e8"
+                        }
+                      }
+                    },
+                    {
+                      "id": "sw-7",
+                      "type": "heading",
+                      "props": {
+                        "text": "Good to see you.",
+                        "level": "h2",
+                        "style": {
+                          "margin": 0,
+                          "fontSize": 32
+                        }
+                      }
+                    },
+                    {
+                      "id": "sw-8",
+                      "type": "paragraph",
+                      "props": {
+                        "text": "Sign in to discover your next favourite experience.",
+                        "style": {
+                          "margin": 0,
+                          "fontSize": 14,
+                          "color": "#746b82"
+                        }
+                      }
+                    },
+                    {
+                      "id": "sw-12",
+                      "type": "form",
+                      "props": {},
+                      "children": [
+                        {
+                          "id": "sw-9",
+                          "type": "input",
+                          "props": {
+                            "label": "Email address",
+                            "name": "email",
+                            "type": "email",
+                            "required": true,
+                            "value": "demo@seatwave.test"
+                          }
+                        },
+                        {
+                          "id": "sw-10",
+                          "type": "input",
+                          "props": {
+                            "label": "Password",
+                            "name": "password",
+                            "type": "password",
+                            "required": true,
+                            "value": "TicketDemo2026!"
+                          }
+                        },
+                        {
+                          "id": "sw-11",
+                          "type": "button",
+                          "props": {
+                            "children": "Sign in →",
+                            "type": "submit",
+                            "style": {
+                              "width": "100%"
+                            }
+                          }
+                        }
+                      ],
+                      "events": {
+                        "submit": [
+                          "login"
+                        ]
+                      }
+                    },
+                    {
+                      "id": "sw-13",
+                      "type": "paragraph",
+                      "props": {
+                        "text": "DEMO ACCESS",
+                        "style": {
+                          "margin": 0,
+                          "fontSize": 10,
+                          "fontWeight": 700,
+                          "letterSpacing": 1.5,
+                          "color": "#6842e8"
+                        }
+                      }
+                    },
+                    {
+                      "id": "sw-14",
+                      "type": "paragraph",
+                      "props": {
+                        "text": "demo@seatwave.test · TicketDemo2026!",
+                        "style": {
+                          "margin": 0,
+                          "fontSize": 12
+                        }
+                      }
+                    },
+                    {
+                      "id": "sw-15",
+                      "type": "paragraph",
+                      "props": {
+                        "text": "Fictional events. No payments or emails. API: localhost:3003.",
+                        "style": {
+                          "margin": 0,
+                          "fontSize": 11,
+                          "color": "#82778c"
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "sw-20",
+              "type": "footer",
+              "props": {
+                "brand": "seatwave.",
+                "description": "Go out. Feel more. Make memories.",
+                "copyright": "© 2026 Seatwave · Fictional demo events"
+              },
+              "children": [
+                {
+                  "id": "sw-18",
+                  "type": "navigationLink",
+                  "props": {
+                    "children": "Discover events",
+                    "targetPageId": "discover",
+                    "style": {
+                      "fontSize": 13
+                    }
+                  }
+                },
+                {
+                  "id": "sw-19",
+                  "type": "navigationLink",
+                  "props": {
+                    "children": "My tickets",
+                    "targetPageId": "tickets",
+                    "style": {
+                      "fontSize": 13
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "discover",
+      "name": "Discover events",
+      "path": "/discover",
+      "logic": {
+        "state": {
+          "events": {
+            "items": [
+              {
+                "id": "midnight-sessions",
+                "title": "Midnight Sessions",
+                "poster": "FEEL THE FREQUENCY.",
+                "category": "Music",
+                "date": "SAT, 24 OCT · 7:00 PM",
+                "venue": "The Courtyard",
+                "city": "Bengaluru",
+                "description": "An intimate open-air night of indie, electronic beats and good company.",
+                "price": 1499
+              },
+              {
+                "id": "comedy-club",
+                "title": "The Weekend Comedy Club",
+                "poster": "LAUGH. REPEAT.",
+                "category": "Comedy",
+                "date": "SUN, 25 OCT · 6:30 PM",
+                "venue": "Studio 42",
+                "city": "Bengaluru",
+                "description": "Fresh voices, sharp wit and an evening that doesn't take itself too seriously.",
+                "price": 799
+              },
+              {
+                "id": "design-forward",
+                "title": "Design Forward",
+                "poster": "IDEAS IN MOTION.",
+                "category": "Workshop",
+                "date": "SAT, 07 NOV · 10:00 AM",
+                "venue": "The Design Hub",
+                "city": "Bengaluru",
+                "description": "Make, learn and connect with a community of curious creative minds.",
+                "price": 2499
+              }
+            ]
+          },
+          "selected": {
+            "id": "midnight-sessions",
+            "title": "Midnight Sessions",
+            "poster": "FEEL THE FREQUENCY.",
+            "category": "Music",
+            "date": "SAT, 24 OCT · 7:00 PM",
+            "venue": "The Courtyard",
+            "city": "Bengaluru",
+            "description": "An intimate open-air night of indie, electronic beats and good company.",
+            "price": 1499
+          },
+          "search": "",
+          "drawerOpen": false,
+          "confirmationOpen": false,
+          "booking": {
+            "id": ""
+          }
+        },
+        "resources": {
+          "events": {
+            "url": "http://localhost:3003/events?search={state.search}",
+            "method": "GET",
+            "credentials": "include"
+          },
+          "booking": {
+            "url": "http://localhost:3003/bookings",
+            "method": "POST",
+            "credentials": "include",
+            "body": {
+              "eventId": {
+                "$state": "selected.id"
+              },
+              "quantity": {
+                "$event": "values.quantity"
+              },
+              "attendee": {
+                "$event": "values.attendee"
+              },
+              "email": {
+                "$event": "values.email"
+              }
+            }
+          },
+          "logout": {
+            "url": "http://localhost:3003/auth/logout",
+            "method": "POST",
+            "credentials": "include",
+            "body": {}
+          }
+        },
+        "actions": {
+          "load": [
+            {
+              "type": "request",
+              "resource": "events",
+              "assignTo": "events"
+            }
+          ],
+          "search": [
+            {
+              "type": "setState",
+              "path": "search",
+              "value": {
+                "$event": "values.search"
+              }
+            },
+            {
+              "type": "request",
+              "resource": "events",
+              "assignTo": "events"
+            }
+          ],
+          "select": [
+            {
+              "type": "setState",
+              "path": "selected",
+              "value": {
+                "$event": "record"
+              }
+            },
+            {
+              "type": "setState",
+              "path": "drawerOpen",
+              "value": true
+            }
+          ],
+          "closeDrawer": [
+            {
+              "type": "markClean",
+              "formId": "booking-form"
+            },
+            {
+              "type": "setState",
+              "path": "drawerOpen",
+              "value": false
+            }
+          ],
+          "book": [
+            {
+              "type": "request",
+              "resource": "booking",
+              "assignTo": "booking"
+            },
+            {
+              "type": "markClean",
+              "formId": "booking-form"
+            },
+            {
+              "type": "setState",
+              "path": "drawerOpen",
+              "value": false
+            },
+            {
+              "type": "setState",
+              "path": "confirmationOpen",
+              "value": true
+            }
+          ],
+          "closeConfirmation": [
+            {
+              "type": "setState",
+              "path": "confirmationOpen",
+              "value": false
+            }
+          ],
+          "tickets": [
+            {
+              "type": "navigate",
+              "pageId": "tickets"
+            }
+          ],
+          "logout": [
+            {
+              "type": "request",
+              "resource": "logout"
+            },
+            {
+              "type": "navigate",
+              "pageId": "login"
+            }
+          ]
+        },
+        "effects": [
+          {
+            "id": "events",
+            "on": "mount",
+            "watch": [],
+            "actions": [
+              "load"
+            ]
+          }
+        ],
+        "validation": {}
+      },
+      "layout": [
+        {
+          "id": "sw-63",
+          "type": "appShell",
+          "props": {},
+          "children": [
+            {
+              "id": "sw-27",
+              "type": "container",
+              "props": {
+                "direction": "horizontal",
+                "flexWrap": "wrap",
+                "alignItems": "center",
+                "justifyContent": "space-between",
+                "padding": "none",
+                "gap": "large",
+                "style": {
+                  "padding": "0 0 8px"
+                }
+              },
+              "children": [
+                {
+                  "id": "sw-22",
+                  "type": "heading",
+                  "props": {
+                    "text": "seatwave.",
+                    "level": "h2",
+                    "style": {
+                      "margin": 0,
+                      "fontSize": 28,
+                      "letterSpacing": "-1.5px"
+                    }
+                  }
+                },
+                {
+                  "id": "sw-26",
+                  "type": "container",
+                  "props": {
+                    "direction": "horizontal",
+                    "flexWrap": "wrap",
+                    "alignItems": "center",
+                    "justifyContent": "space-between",
+                    "padding": "none",
+                    "gap": "large",
+                    "style": {
+                      "width": "auto"
+                    }
+                  },
+                  "children": [
+                    {
+                      "id": "sw-23",
+                      "type": "navigationLink",
+                      "props": {
+                        "children": "Discover",
+                        "targetPageId": "discover",
+                        "style": {
+                          "fontSize": 13
+                        }
+                      }
+                    },
+                    {
+                      "id": "sw-24",
+                      "type": "navigationLink",
+                      "props": {
+                        "children": "My tickets",
+                        "targetPageId": "tickets",
+                        "style": {
+                          "fontSize": 13
+                        }
+                      }
+                    },
+                    {
+                      "id": "sw-25",
+                      "type": "button",
+                      "props": {
+                        "children": "Sign out",
+                        "variant": "secondary",
+                        "style": {
+                          "fontSize": 12
+                        }
+                      },
+                      "events": {
+                        "click": [
+                          "logout"
+                        ]
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "sw-28",
+              "type": "hero",
+              "props": {
+                "eyebrow": "BENGALURU · GOOD TIMES AHEAD",
+                "title": "Your city. Your people. Your next story.",
+                "description": "Handpicked experiences for whatever moves you. Find your kind of night, and make it happen."
+              }
+            },
+            {
+              "id": "sw-36",
+              "type": "container",
+              "props": {
+                "direction": "horizontal",
+                "flexWrap": "wrap",
+                "alignItems": "center",
+                "justifyContent": "space-between",
+                "padding": "none",
+                "gap": "large",
+                "style": {}
+              },
+              "children": [
+                {
+                  "id": "sw-31",
+                  "type": "container",
+                  "props": {
+                    "padding": "none",
+                    "gap": "large",
+                    "style": {
+                      "flex": "1 1 320px"
+                    }
+                  },
+                  "children": [
+                    {
+                      "id": "sw-29",
+                      "type": "heading",
+                      "props": {
+                        "text": "Find your next “you had to be there.”",
+                        "level": "h2",
+                        "style": {
+                          "margin": 0,
+                          "fontSize": 26
+                        }
+                      }
+                    },
+                    {
+                      "id": "sw-30",
+                      "type": "paragraph",
+                      "props": {
+                        "text": "Live music, big ideas and evenings worth going out for.",
+                        "style": {
+                          "margin": 0,
+                          "fontSize": 13,
+                          "color": "#81738e"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "id": "sw-35",
+                  "type": "form",
+                  "props": {
+                    "style": {
+                      "flex": "0 1 320px"
+                    }
+                  },
+                  "children": [
+                    {
+                      "id": "sw-34",
+                      "type": "container",
+                      "props": {
+                        "direction": "horizontal",
+                        "flexWrap": "wrap",
+                        "alignItems": "center",
+                        "justifyContent": "space-between",
+                        "padding": "none",
+                        "gap": "large",
+                        "style": {
+                          "flexWrap": "nowrap",
+                          "alignItems": "flex-end"
+                        }
+                      },
+                      "children": [
+                        {
+                          "id": "sw-32",
+                          "type": "input",
+                          "props": {
+                            "name": "search",
+                            "label": "Search events",
+                            "placeholder": "Music, comedy, workshop…",
+                            "style": {
+                              "minWidth": 160
+                            }
+                          }
+                        },
+                        {
+                          "id": "sw-33",
+                          "type": "button",
+                          "props": {
+                            "children": "Search",
+                            "type": "submit"
+                          }
+                        }
+                      ]
+                    }
+                  ],
+                  "events": {
+                    "submit": [
+                      "search"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "id": "sw-37",
+              "type": "eventGrid",
+              "props": {
+                "items": [
+                  {
+                    "id": "midnight-sessions",
+                    "title": "Midnight Sessions",
+                    "poster": "FEEL THE FREQUENCY.",
+                    "category": "Music",
+                    "date": "SAT, 24 OCT · 7:00 PM",
+                    "venue": "The Courtyard",
+                    "city": "Bengaluru",
+                    "description": "An intimate open-air night of indie, electronic beats and good company.",
+                    "price": 1499
+                  },
+                  {
+                    "id": "comedy-club",
+                    "title": "The Weekend Comedy Club",
+                    "poster": "LAUGH. REPEAT.",
+                    "category": "Comedy",
+                    "date": "SUN, 25 OCT · 6:30 PM",
+                    "venue": "Studio 42",
+                    "city": "Bengaluru",
+                    "description": "Fresh voices, sharp wit and an evening that doesn't take itself too seriously.",
+                    "price": 799
+                  },
+                  {
+                    "id": "design-forward",
+                    "title": "Design Forward",
+                    "poster": "IDEAS IN MOTION.",
+                    "category": "Workshop",
+                    "date": "SAT, 07 NOV · 10:00 AM",
+                    "venue": "The Design Hub",
+                    "city": "Bengaluru",
+                    "description": "Make, learn and connect with a community of curious creative minds.",
+                    "price": 2499
+                  }
+                ]
+              },
+              "bindings": {
+                "items": {
+                  "$state": "events.items"
+                }
+              },
+              "events": {
+                "change": [
+                  "select"
+                ]
+              }
+            },
+            {
+              "id": "sw-40",
+              "type": "container",
+              "props": {
+                "direction": "horizontal",
+                "flexWrap": "wrap",
+                "alignItems": "center",
+                "justifyContent": "space-between",
+                "padding": "none",
+                "gap": "large",
+                "style": {}
+              },
+              "children": [
+                {
+                  "id": "sw-38",
+                  "type": "paragraph",
+                  "props": {
+                    "text": "CURATED EXPERIENCES · INSTANT DEMO CONFIRMATION",
+                    "style": {
+                      "margin": 0,
+                      "fontSize": 10,
+                      "letterSpacing": 1.2,
+                      "color": "#81738e"
+                    }
+                  }
+                },
+                {
+                  "id": "sw-39",
+                  "type": "navigationLink",
+                  "props": {
+                    "children": "View your bookings →",
+                    "targetPageId": "tickets",
+                    "style": {
+                      "fontSize": 13
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "id": "sw-52",
+              "type": "drawer",
+              "props": {
+                "title": "Make it a plan.",
+                "triggerLabel": "",
+                "side": "right"
+              },
+              "children": [
+                {
+                  "id": "sw-51",
+                  "type": "container",
+                  "props": {
+                    "padding": "none",
+                    "gap": "large",
+                    "style": {}
+                  },
+                  "children": [
+                    {
+                      "id": "sw-41",
+                      "type": "badge",
+                      "props": {
+                        "children": "YOUR NEXT MEMORY",
+                        "style": {
+                          "background": "#eee8fc",
+                          "color": "#6842e8"
+                        }
+                      }
+                    },
+                    {
+                      "id": "sw-42",
+                      "type": "heading",
+                      "props": {
+                        "text": "Selected event",
+                        "level": "h2",
+                        "style": {
+                          "fontSize": 26
+                        }
+                      },
+                      "bindings": {
+                        "text": {
+                          "$state": "selected.title"
+                        }
+                      }
+                    },
+                    {
+                      "id": "sw-43",
+                      "type": "paragraph",
+                      "props": {},
+                      "bindings": {
+                        "text": {
+                          "$state": "selected.date"
+                        }
+                      }
+                    },
+                    {
+                      "id": "sw-44",
+                      "type": "paragraph",
+                      "props": {
+                        "style": {
+                          "color": "#81738e",
+                          "fontSize": 13
+                        }
+                      },
+                      "bindings": {
+                        "text": {
+                          "$state": "selected.venue"
+                        }
+                      }
+                    },
+                    {
+                      "id": "sw-50",
+                      "type": "form",
+                      "props": {
+                        "trackDirty": true,
+                        "formId": "booking-form"
+                      },
+                      "children": [
+                        {
+                          "id": "sw-45",
+                          "type": "select",
+                          "props": {
+                            "label": "Number of tickets",
+                            "name": "quantity",
+                            "options": [
+                              "1",
+                              "2",
+                              "3",
+                              "4",
+                              "5",
+                              "6"
+                            ],
+                            "value": "1",
+                            "required": true
+                          }
+                        },
+                        {
+                          "id": "sw-46",
+                          "type": "input",
+                          "props": {
+                            "label": "Attendee name",
+                            "name": "attendee",
+                            "value": "Alex Morgan",
+                            "required": true,
+                            "validationRules": "[{\"type\":\"minLength\",\"value\":2}]"
+                          }
+                        },
+                        {
+                          "id": "sw-47",
+                          "type": "input",
+                          "props": {
+                            "label": "Email address",
+                            "name": "email",
+                            "value": "demo@seatwave.test",
+                            "type": "email",
+                            "required": true
+                          }
+                        },
+                        {
+                          "id": "sw-48",
+                          "type": "paragraph",
+                          "props": {
+                            "text": "This demo creates a reservation only. No payment is taken.",
+                            "style": {
+                              "margin": 0,
+                              "fontSize": 12,
+                              "color": "#81738e"
+                            }
+                          }
+                        },
+                        {
+                          "id": "sw-price-summary",
+                          "type": "priceSummary",
+                          "props": {
+                            "currency": "INR"
+                          },
+                          "bindings": {
+                            "unitPrice": {
+                              "$state": "selected.price"
+                            },
+                            "quantity": {
+                              "$fields": "quantity"
+                            }
+                          }
+                        },
+                        {
+                          "id": "sw-49",
+                          "type": "button",
+                          "props": {
+                            "children": "Confirm booking →",
+                            "type": "submit",
+                            "style": {
+                              "width": "100%"
+                            }
+                          }
+                        }
+                      ],
+                      "events": {
+                        "submit": [
+                          "book"
+                        ]
+                      }
+                    }
+                  ]
+                }
+              ],
+              "bindings": {
+                "open": {
+                  "$state": "drawerOpen"
+                }
+              },
+              "events": {
+                "close": [
+                  "closeDrawer"
+                ]
+              }
+            },
+            {
+              "id": "sw-59",
+              "type": "modal",
+              "props": {
+                "title": "You're going!",
+                "triggerLabel": ""
+              },
+              "children": [
+                {
+                  "id": "sw-58",
+                  "type": "container",
+                  "props": {
+                    "padding": "none",
+                    "gap": "large",
+                    "style": {}
+                  },
+                  "children": [
+                    {
+                      "id": "sw-53",
+                      "type": "badge",
+                      "props": {
+                        "children": "BOOKING CONFIRMED",
+                        "variant": "success"
+                      }
+                    },
+                    {
+                      "id": "sw-54",
+                      "type": "heading",
+                      "props": {
+                        "text": "A good time is on the calendar.",
+                        "level": "h2",
+                        "style": {
+                          "margin": 0,
+                          "fontSize": 26
+                        }
+                      }
+                    },
+                    {
+                      "id": "sw-55",
+                      "type": "paragraph",
+                      "props": {
+                        "text": "Your demo reservation is ready. Find all the details in My tickets.",
+                        "style": {
+                          "margin": 0,
+                          "color": "#81738e"
+                        }
+                      }
+                    },
+                    {
+                      "id": "sw-56",
+                      "type": "text",
+                      "props": {
+                        "style": {
+                          "fontFamily": "monospace"
+                        }
+                      },
+                      "bindings": {
+                        "children": {
+                          "$state": "booking.id"
+                        }
+                      }
+                    },
+                    {
+                      "id": "sw-57",
+                      "type": "button",
+                      "props": {
+                        "children": "View my tickets →"
+                      },
+                      "events": {
+                        "click": [
+                          "tickets"
+                        ]
+                      }
+                    }
+                  ]
+                }
+              ],
+              "bindings": {
+                "open": {
+                  "$state": "confirmationOpen"
+                }
+              },
+              "events": {
+                "close": [
+                  "closeConfirmation"
+                ]
+              }
+            },
+            {
+              "id": "sw-62",
+              "type": "footer",
+              "props": {
+                "brand": "seatwave.",
+                "description": "Go out. Feel more. Make memories.",
+                "copyright": "© 2026 Seatwave · Fictional demo events"
+              },
+              "children": [
+                {
+                  "id": "sw-60",
+                  "type": "navigationLink",
+                  "props": {
+                    "children": "Discover events",
+                    "targetPageId": "discover",
+                    "style": {
+                      "fontSize": 13
+                    }
+                  }
+                },
+                {
+                  "id": "sw-61",
+                  "type": "navigationLink",
+                  "props": {
+                    "children": "My tickets",
+                    "targetPageId": "tickets",
+                    "style": {
+                      "fontSize": 13
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tickets",
+      "name": "My tickets",
+      "path": "/tickets",
+      "logic": {
+        "state": {
+          "bookings": {
+            "items": []
+          }
+        },
+        "resources": {
+          "bookings": {
+            "url": "http://localhost:3003/bookings",
+            "method": "GET",
+            "credentials": "include"
+          },
+          "logout": {
+            "url": "http://localhost:3003/auth/logout",
+            "method": "POST",
+            "credentials": "include",
+            "body": {}
+          }
+        },
+        "actions": {
+          "load": [
+            {
+              "type": "request",
+              "resource": "bookings",
+              "assignTo": "bookings"
+            }
+          ],
+          "discover": [
+            {
+              "type": "navigate",
+              "pageId": "discover"
+            }
+          ],
+          "logout": [
+            {
+              "type": "request",
+              "resource": "logout"
+            },
+            {
+              "type": "navigate",
+              "pageId": "login"
+            }
+          ]
+        },
+        "effects": [
+          {
+            "id": "bookings",
+            "on": "mount",
+            "watch": [],
+            "actions": [
+              "load"
+            ]
+          }
+        ],
+        "validation": {}
+      },
+      "layout": [
+        {
+          "id": "sw-81",
+          "type": "appShell",
+          "props": {},
+          "children": [
+            {
+              "id": "sw-69",
+              "type": "container",
+              "props": {
+                "direction": "horizontal",
+                "flexWrap": "wrap",
+                "alignItems": "center",
+                "justifyContent": "space-between",
+                "padding": "none",
+                "gap": "large",
+                "style": {
+                  "padding": "0 0 8px"
+                }
+              },
+              "children": [
+                {
+                  "id": "sw-64",
+                  "type": "heading",
+                  "props": {
+                    "text": "seatwave.",
+                    "level": "h2",
+                    "style": {
+                      "margin": 0,
+                      "fontSize": 28,
+                      "letterSpacing": "-1.5px"
+                    }
+                  }
+                },
+                {
+                  "id": "sw-68",
+                  "type": "container",
+                  "props": {
+                    "direction": "horizontal",
+                    "flexWrap": "wrap",
+                    "alignItems": "center",
+                    "justifyContent": "space-between",
+                    "padding": "none",
+                    "gap": "large",
+                    "style": {
+                      "width": "auto"
+                    }
+                  },
+                  "children": [
+                    {
+                      "id": "sw-65",
+                      "type": "navigationLink",
+                      "props": {
+                        "children": "Discover",
+                        "targetPageId": "discover",
+                        "style": {
+                          "fontSize": 13
+                        }
+                      }
+                    },
+                    {
+                      "id": "sw-66",
+                      "type": "navigationLink",
+                      "props": {
+                        "children": "My tickets",
+                        "targetPageId": "tickets",
+                        "style": {
+                          "fontSize": 13
+                        }
+                      }
+                    },
+                    {
+                      "id": "sw-67",
+                      "type": "button",
+                      "props": {
+                        "children": "Sign out",
+                        "variant": "secondary",
+                        "style": {
+                          "fontSize": 12
+                        }
+                      },
+                      "events": {
+                        "click": [
+                          "logout"
+                        ]
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "sw-70",
+              "type": "hero",
+              "props": {
+                "eyebrow": "YOUR PLANS, ALL IN ONE PLACE",
+                "title": "Good times. Booked.",
+                "description": "The anticipation is part of the experience. Here’s what you have to look forward to.",
+                "detail": "A seat for you. A story to tell."
+              }
+            },
+            {
+              "id": "sw-75",
+              "type": "container",
+              "props": {
+                "direction": "horizontal",
+                "flexWrap": "wrap",
+                "alignItems": "center",
+                "justifyContent": "space-between",
+                "padding": "none",
+                "gap": "large",
+                "style": {}
+              },
+              "children": [
+                {
+                  "id": "sw-73",
+                  "type": "container",
+                  "props": {
+                    "padding": "none",
+                    "gap": "large",
+                    "style": {
+                      "width": "auto"
+                    }
+                  },
+                  "children": [
+                    {
+                      "id": "sw-71",
+                      "type": "heading",
+                      "props": {
+                        "text": "My tickets",
+                        "level": "h2",
+                        "style": {
+                          "margin": 0,
+                          "fontSize": 28
+                        }
+                      }
+                    },
+                    {
+                      "id": "sw-72",
+                      "type": "paragraph",
+                      "props": {
+                        "text": "Live reservations from your connected demo API.",
+                        "style": {
+                          "margin": 0,
+                          "fontSize": 14,
+                          "color": "#81738e"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "id": "sw-74",
+                  "type": "button",
+                  "props": {
+                    "children": "Explore more events ↗"
+                  },
+                  "events": {
+                    "click": [
+                      "discover"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "id": "sw-76",
+              "type": "dataTable",
+              "props": {
+                "caption": "Upcoming experiences",
+                "columns": [
+                  "Booking",
+                  "Event",
+                  "When",
+                  "Tickets",
+                  "Total",
+                  "Status"
+                ],
+                "fieldPaths": [
+                  "id",
+                  "event.title",
+                  "event.date",
+                  "quantity",
+                  "totalLabel",
+                  "status"
+                ],
+                "rows": [],
+                "rowKey": "id",
+                "emptyText": "Your next memory is waiting. Book an event to see your tickets here."
+              },
+              "bindings": {
+                "rows": {
+                  "$state": "bookings.items"
+                }
+              }
+            },
+            {
+              "id": "sw-77",
+              "type": "button",
+              "props": {
+                "children": "Refresh tickets",
+                "variant": "secondary"
+              },
+              "events": {
+                "click": [
+                  "load"
+                ]
+              }
+            },
+            {
+              "id": "sw-80",
+              "type": "footer",
+              "props": {
+                "brand": "seatwave.",
+                "description": "Go out. Feel more. Make memories.",
+                "copyright": "© 2026 Seatwave · Fictional demo events"
+              },
+              "children": [
+                {
+                  "id": "sw-78",
+                  "type": "navigationLink",
+                  "props": {
+                    "children": "Discover events",
+                    "targetPageId": "discover",
+                    "style": {
+                      "fontSize": 13
+                    }
+                  }
+                },
+                {
+                  "id": "sw-79",
+                  "type": "navigationLink",
+                  "props": {
+                    "children": "My tickets",
+                    "targetPageId": "tickets",
+                    "style": {
+                      "fontSize": 13
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

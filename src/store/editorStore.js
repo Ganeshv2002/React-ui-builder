@@ -72,6 +72,8 @@ const useEditorStore = create((set, get) => {
     isCommandPaletteOpen: false,
     canvasDimensions: { width: 1440, height: 900 },
     canvasZoom: 1,
+    canvasPlacement: 'free',
+    setCanvasPlacement(canvasPlacement) { set({ canvasPlacement }); },
     customComponents: [],
     dragState: 'idle',
 
